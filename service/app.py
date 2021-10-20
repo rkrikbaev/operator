@@ -4,7 +4,7 @@ import pandas as pd   # must be replaced with internal python tools!
 import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound
-# from config.logger import logger
+
 import os
 import time
 import json

@@ -1,6 +1,6 @@
 import os
 import json
-from logger import logger
+from config.logger import logger
 
 
 def load_schema(name):

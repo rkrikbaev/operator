@@ -12,8 +12,7 @@ from wsgiref.simple_server import make_server
 
 import os
 from docopt import docopt
-# from app import Server
-from logger import logger
+from config.logger import logger
 
 
 import falcon

@@ -15,9 +15,9 @@ RUN pip install scipy==1.6.3
 RUN pip install sklearn
 
 
-RUN mkdir application
+RUN mkdir service
 
-WORKDIR /application
+WORKDIR /service
 
 RUN mkdir logs
 
