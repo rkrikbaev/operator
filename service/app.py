@@ -9,7 +9,6 @@ import os
 import time
 import json
 import requests
-import simplejson
 
 class Service():
 
@@ -26,11 +25,8 @@ class Service():
         self.tensorflow_conatiner_config = config.get('tensorflow')
 
 
-        # self.prophet_object = CallProphetObject(self.app_host)
+        self.host_name = os.getenv('SERVICES_NETWORK', default='service_network')
 
-        # docker host url
-        # self.base_url = base_url
-        # self.timeout = timeout
         try:
             self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
         except DockerException as exc:
@@ -42,6 +38,8 @@ class Service():
 
         self.start = None
         self.stop = None
+
+        self.host_name = None
         self.container_id = None
         self.service_response = None
         self.container_state = None
@@ -53,15 +51,29 @@ class Service():
         No extra side effects. Handles and reraises ContainerError, ImageNotFound,
         and APIError exceptions.
         '''
+
+        network = os.getenv('SERVICES_NETWORK', default='service_network')
+        con_mem_limit = os.getenv('CONTAINER_MEM_LIMIT', default='1')
+
         image = container_config.get('image')
         volumes = container_config.get('volumes')
-        con_int_ports = container_config.get('app_internal_port')   
+        con_int_ports = container_config.get('app_internal_port') 
+  
         ports = {con_int_ports:None}
         container = None
 
         try:
             
-            container = self.client.containers.run(image, ports=ports, volumes=volumes, detach=True)
+            container = self.client.containers.run(
+                image, 
+                ports=ports, 
+                volumes=volumes, 
+                detach=True, 
+                mem_limit=con_mem_limit,
+                cpuset_cpus="1",
+                network=network,
+                network_mode='bridge'
+                )
 
             if "name" in container_config.keys():
                 logger.info("Container", container_config["name"], "is now running.")
@@ -113,8 +125,8 @@ class Service():
                     # step 1. Create and run container
                     if self.container_id == None:
 
-                            self.container = self._runContainer(self.container_config)        
-                            self.container_id = self.container.attrs["Id"]
+                        self.container = self._runContainer(self.host_name, self.container_config)        
+                        self.container_id = self.container.attrs["Id"]
                     
                     # step 3. Try to get information about container
                     elif bool(self.container_id) and not (container_running == "running"):
@@ -126,6 +138,7 @@ class Service():
                         app_internal_port = self.container_config.get('app_internal_port')
 
                         self.container = self.client.containers.get(container_id=self.container_id)
+
                         self.container_state = self.container.attrs['State']
                         [con_ext_port] = self.container.ports.get(app_internal_port)
                         con_ext_port = con_ext_port.get('HostPort')

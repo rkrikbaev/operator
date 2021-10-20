@@ -8,7 +8,7 @@ with open('README.rst') as f:
 
 setup(
     name='operator',
-    version='1.1.1',
+    version='1.1.4',
     description=('Operator for docketed python services '),
     long_description=desc,
     url='https://github.com/rkrikbaev/operator',
@@ -27,12 +27,8 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'test*']),
     install_requires=[
         'falcon>=1.4.1',
-        'gunicorn>=19.6.0',
         'docopt>=0.6.2',
-        'jsonschema>=2.5.1',
-        'mysql-connector>=2.1.4',
-        'sqlalchemy>=1.1.4',
-        'aumbry[yaml]>=0.7.0'
+        'jsonschema>=2.5.1'
     ],
     package_data={},
     data_files=[],

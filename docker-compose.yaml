@@ -1,25 +1,26 @@
 version: "3"
 services:
   operator:
-    container_name: operator
-    image: rkrikbaev/service-operator:v0.1.1
+    container_name: services-operator
+    image: rkrikbaev/service-operator:v1.1.4
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8000:8000
+      - 8001:8001
     volumes:
-      - ./.env:/.env
-    # environment:
-    #   - DOCKER_HOST: '207.154.196.90'
-    #   - DOCKER_PORT: 4242
+      - ./.env:/app/.env
+      - /var/run/docker.sock:/var/run/docker.sock
     deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
-        window: 120s 
+        window: 120s
 networks:
   internal:
-    name: internal_network
-    driver: custom-driver-1
+    name: service_network
+    driver: bridge
+  host:
+    name: host_network
+    driver: bridge
