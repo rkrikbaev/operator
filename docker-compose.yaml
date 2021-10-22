@@ -1,7 +1,7 @@
 version: "3"
 services:
   operator:
-    container_name: services-operator
+    container_name: operator
     image: rkrikbaev/service-operator:v1.1.4
     build:
       context: .

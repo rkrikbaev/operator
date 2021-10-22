@@ -1,5 +1,5 @@
 build:
-	docker build -t rkrikbaev/servie-operator:v1.1.4 .
+	docker build -t rkrikbaev/service-operator:v1.1.4 .
 run:
 	docker run -it --rm -v ~/operator/service:/service \
 						-v /var/run/docker.sock:/var/run/docker.sock \
