@@ -16,14 +16,14 @@ RUN pip install docker==5.0.0 && \
     # pip install scipy==1.6.3 && \
     # pip install sklearn
 
-RUN mkdir service
+RUN mkdir application
 
-WORKDIR /service
+WORKDIR /application
 
 RUN mkdir logs
 
 # Copy the current directory contents into the container at /app
-COPY . .
+COPY ./service .
 
 # Make port 8001 available to the world outside this container
 EXPOSE 8001
