@@ -16,9 +16,9 @@ RUN pip install docker==5.0.0 && \
     # pip install scipy==1.6.3 && \
     # pip install sklearn
 
-RUN mkdir service
+RUN mkdir application
 
-WORKDIR /service
+WORKDIR /application
 
 RUN mkdir logs
 
