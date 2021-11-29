@@ -7,8 +7,6 @@ from docker.errors import DockerException, APIError, ContainerError, ImageNotFou
 
 import os
 import time
-import json
-import requests
 
 class Operator():
 

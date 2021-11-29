@@ -1,16 +1,5 @@
-"""
-Example Application
-
-Usage:
-    falcon-server [options]
-
-Options:
-    -h --help                   Show this screen.
-"""
-
 from wsgiref.simple_server import make_server
 
-import os
 from docopt import docopt
 from config.logger import logger
 
