@@ -2,7 +2,7 @@ version: "3"
 services:
   operator:
     container_name: operator
-    image: rkrikbaev/service-operator:v1.1.4
+    image: rkrikbaev/operator-service:v1.0
     build:
       context: .
       dockerfile: Dockerfile

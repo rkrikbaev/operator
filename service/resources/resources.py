@@ -15,7 +15,7 @@ from logic import Operator
 HOST_NAME = os.getenv('HOST_NAME', default='operator')
 
 TENSORFLOW_IMAGE = os.getenv('TENSORFLOW_IMAGE', default='tensorflow/serving:latest')
-PROPHET_IMAGE = os.getenv('PROPHET_IMAGE', default='rkrikbaev/service-prophet:latest')
+PROPHET_IMAGE = os.getenv('PROPHET_IMAGE', default='fpcloud/prophet-service:latest')
 
 PATH_TO_MODELS = os.getenv('PATH_TO_MODELS', default='/tmp/models/')
 PATH_TO_SOURCE = os.getenv('PATH_TO_SOURCE', default='/tmp/source')
@@ -96,7 +96,7 @@ class Prediction():
 class ProphetService():
 
     APP_PORT = '8005/tcp'
-    PROPHET_IMAGE = os.getenv('PROPHET_IMAGE', default='rkrikbaev/service-prophet:latest') 
+    PROPHET_IMAGE = os.getenv('PROPHET_IMAGE', default='fpcloud/prophet-service:latest') 
     # PATH_TO_DEST = '/application'
 
     config = {
