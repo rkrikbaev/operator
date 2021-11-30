@@ -8,7 +8,7 @@ with open('README.rst') as f:
 
 setup(
     name='operator',
-    version='1.1.4',
+    version='1.0',
     description=('Operator for docketed python services '),
     long_description=desc,
     url='https://github.com/rkrikbaev/operator',

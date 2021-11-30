@@ -1,10 +1,13 @@
 from wsgiref.simple_server import make_server
 
+from falcon import app
+
 from config.logger import logger
 
 import falcon
 from resources.resources import *
 from middleware.context import ContextMiddleware
+import sys
 
 class Server(falcon.API):
 
@@ -25,6 +28,8 @@ if __name__ == "__main__":
 
     api_app = Server()
 
-    with make_server("", 8001, api_app) as httpd:
-        logger.debug("Serving on port 8001...")
+    app_port = 8001 if sys.argv[1] == None else sys.argv[1]
+
+    with make_server("", app_port, api_app) as httpd:
+        logger.debug(f'Serving on port {app_port}...')
         httpd.serve_forever()

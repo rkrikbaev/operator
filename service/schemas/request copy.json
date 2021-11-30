@@ -58,8 +58,28 @@
             }
         },
         "history": {
+            "type": "array",
+            "items": [
+                {"type": "array"},
+                {"items": [
+                    {"type": "number"},
+                    {"type": "number"},
+                    {"type": "number"}
+                    ]
+                }
+            ]
         },
         "future": {
-        } 
+            "type": "array",
+            "items": [
+                {"type": "array"},
+                {"items": [
+                    {"type": "number"},
+                    {"type": "number"},
+                    {"type": "number"}
+                    ]
+                }
+            ]
+        }  
     }
 }
