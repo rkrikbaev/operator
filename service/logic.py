@@ -15,7 +15,7 @@ class Operator():
         try:
             self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
         except DockerException as exc:
-            logger.error(exc)
+            logger.error(f'Connection with docker.socket aborted {exc}')
             raise exc
 
         self.history = None

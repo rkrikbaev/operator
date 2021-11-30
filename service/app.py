@@ -2,7 +2,6 @@ from wsgiref.simple_server import make_server
 
 from config.logger import logger
 
-
 import falcon
 from resources.resources import *
 from middleware.context import ContextMiddleware
