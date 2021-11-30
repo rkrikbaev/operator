@@ -29,4 +29,4 @@ COPY ./service .
 EXPOSE 8001
 
 # Run app.py when the container launches
-CMD ["python", "app.py"]
+CMD ["python", "app.py", 8001]
