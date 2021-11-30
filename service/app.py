@@ -1,8 +1,6 @@
 from wsgiref.simple_server import make_server
 
-from docopt import docopt
 from config.logger import logger
-
 
 import falcon
 from resources.resources import *
@@ -24,8 +22,6 @@ class Server(falcon.API):
         # self.add_route("/test", test)
 
 if __name__ == "__main__":
-
-    docopt(__doc__)
 
     api_app = Server()
 

@@ -9,6 +9,7 @@ import requests
 
 from config.logger import logger
 from schemas import load_schema
+
 from config.storage import storage
 from logic import Operator
 
@@ -30,7 +31,7 @@ class Prediction():
         
     @jsonschema.validate(req_schema=load_schema('request'))
     def on_post(self, req, resp):
-
+        print('on_post')
         resp.status = falcon.HTTP_400
         data =  req.media
     
