@@ -6,6 +6,8 @@ import falcon
 from resources.resources import *
 from middleware.context import ContextMiddleware
 
+import sys
+
 class Server(falcon.API):
 
     def __init__(self):
@@ -24,7 +26,7 @@ class Server(falcon.API):
 if __name__ == "__main__":
 
     api_app = Server()
-
-    with make_server("", 8001, api_app) as httpd:
-        logger.debug("Serving on port 8001...")
+    app_port = sys.argv[1]
+    with make_server('', int(app_port), api_app) as httpd:
+        logger.debug(f'Serving on port {app_port}...')
         httpd.serve_forever()
