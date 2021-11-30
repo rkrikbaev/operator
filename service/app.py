@@ -1,6 +1,5 @@
 from wsgiref.simple_server import make_server
 
-from docopt import docopt
 from config.logger import logger
 
 
@@ -11,7 +10,7 @@ from middleware.context import ContextMiddleware
 class Server(falcon.API):
 
     def __init__(self):
-        
+
         super(Server, self).__init__(
             middleware=[ContextMiddleware()]
         )
@@ -24,8 +23,6 @@ class Server(falcon.API):
         # self.add_route("/test", test)
 
 if __name__ == "__main__":
-
-    docopt(__doc__)
 
     api_app = Server()
 
