@@ -47,7 +47,7 @@ class Operator():
             
             container = self.client.containers.run(
                 image,
-                name=f'prophet-{self.point}_' + str(int(time.time())),
+                name=f'point-{self.point}_' + str(int(time.time())),
                 ports=ports, 
                 volumes=volumes, 
                 detach=True, 
@@ -164,7 +164,7 @@ class Operator():
             
         except (APIError, DockerException) as exc:
             
-            logger.error(exc)
+            logger.error(f'Error create docker: {exc}')
             raise exc
         
         finally:
