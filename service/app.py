@@ -30,10 +30,9 @@ if __name__ == "__main__":
 
     api_app = Server()
 
-    network = os.getenv('APP_PORT', default=8015)
+    app_port = os.getenv('APP_PORT', default=8015)
     
     try:
-        app_port = sys.argv[1] if isinstance(sys.argv[1], int) else int(sys.argv[1])
 
         with make_server("", app_port, api_app) as httpd:
             logger.debug(f'Serving on port {app_port}...')
