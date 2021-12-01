@@ -26,7 +26,7 @@ RUN mkdir logs
 COPY ./service .
 
 # Make port 8001 available to the world outside this container
-EXPOSE 8001
+EXPOSE 8015
 
 # Run app.py when the container launches
-CMD ["python", "app.py", 8001]
+CMD ["python", "app.py"]

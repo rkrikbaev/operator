@@ -39,4 +39,4 @@ if __name__ == "__main__":
             httpd.serve_forever()
     
     except Exception as exc:
-        logger.error(f'Address already in use {exc}')
+        logger.error(f'Server not started by {exc}')
