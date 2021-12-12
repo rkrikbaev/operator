@@ -2,25 +2,30 @@ version: "3"
 services:
   operator:
     container_name: operator
-    image: fpcloud/operator-service:v1.0
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: fpcloud/operator-service-amd64:latest
     ports:
-      - 8015:8001
+      - 8015:8015
     volumes:
-      # - ./.env:/app/.env
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./service/:/application
     deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
         window: 120s
+    environment:
+#      - APP_PORT
+#      - PATH_TO_MODELS
+#      - TENSORFLOW_IMAGE
+      - PROPHET_IMAGE='fpcloud/prophet-service-amd64:latest'
+#      - SERVICES_NETWORK
+#      - CONTAINER_MEM_LIMIT='512m'
+#      - LIST_OF_SUP_SERVICES=['prophet', 'tensorflow']
+    networks:
+      - internal
+
 networks:
   internal:
     name: service_network
-    driver: bridge
-  host:
-    name: host_network
     driver: bridge

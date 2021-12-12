@@ -11,10 +11,9 @@ RUN pip install docker==5.0.0 && \
     pip install python-dotenv && \
     pip install falcon==3.0.1 && \
     pip install numpy==1.20.2 && \
-    pip install pandas==1.2.4
-    # pip install scikit-learn==0.24.2 && \
-    # pip install scipy==1.6.3 && \
-    # pip install sklearn
+    pip install pandas==1.2.4 && \
+    pip install jsonschema && \
+    pip install pickledb
 
 RUN mkdir application
 

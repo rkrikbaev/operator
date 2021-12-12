@@ -23,20 +23,17 @@ class Server(falcon.API):
         action = Prediction()
 
         # Build routes
-        self.add_route("/action", action)
+        self.add_route("/action2", action)
         # self.add_route("/test", test)
 
 if __name__ == "__main__":
 
     api_app = Server()
-
     app_port = os.getenv('APP_PORT', default=8015)
-    
-    try:
 
-        with make_server("", app_port, api_app) as httpd:
-            logger.debug(f'Serving on port {app_port}...')
+    try:
+        with make_server("", int(app_port), api_app) as httpd:
+            logger.debug(f'Application web-service started on port {app_port}...')
             httpd.serve_forever()
-    
     except Exception as exc:
         logger.error(f'Server not started by {exc}')

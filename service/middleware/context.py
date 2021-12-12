@@ -1,6 +1,4 @@
 import uuid
-import jsonschema
-
 
 def set_context(req, resp):
     if not req.context.get('request_id'):

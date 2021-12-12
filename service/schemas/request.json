@@ -1,9 +1,9 @@
 {
     "title": "Create Score",
     "type": "object",
-    "required": ["history", "future"],
+    "required": ["data", "regressor"],
     "properties": {
-        "metadata": {
+        "config": {
             "type": "object",
             "properties": {
                 "point": {

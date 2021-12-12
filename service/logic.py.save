@@ -1,4 +1,3 @@
-
 from config.logger import logger
 
 import pandas as pd   # must be replaced with internal python tools!
@@ -155,20 +154,17 @@ class Operator():
 
             self.stop = str(datetime.datetime.now())
 
-            response = {
-                        "metadata": {
-                            "containerId": self.container_id,
-                            "point": self.point,
-                            "start_time": self.start,
-                            "finish_time": self.stop
-                            },
-                        "state":self.service_response['state'],
-                        "response":self.service_response['result'],
-                        "predictions":self.service_response['prediction']
-            }
+            reponse = {"metadata":
+                          {
+                           "containerId": self.container_id,
+                           "point": self.point,
+                           "start_time": self.start,
+                           "finish_time": self.stop
+                          }
+                      }
+            response.update(self.service_response)
 
             return response
-
         except (APIError, DockerException) as exc:
 
             logger.error(f'Error create docker: {exc}')
@@ -230,19 +226,3 @@ class Test(object):
                 hour=date_hour, \
                 minute=0)
 
-        dtr = pd.date_range(start=date_time, periods=len(hist_test_df), freq=time_freq)
-        predict_test_df = pd.DataFrame({'date_time':dtr})
-
-        transform = pd.DataFrame(data=hist_test_df['y'].values, columns=['y'])
-        transform = transform.iloc[::-1]
-        # logger.info(transform)
-        transform = transform.rolling(window=self.rolling_window).sum()/self.rolling_window
-        # logger.info(transform)
-        transform = transform.iloc[::-1]
-        # logger.info(transform)
-        transform.fillna(method='ffill', inplace=True)
-        # logger.info(transform)
-        answer = transform['y'].values.tolist()
-        self.response = {"predictions": answer[:47]}
-
-        return self.response

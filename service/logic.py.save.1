@@ -1,4 +1,3 @@
-
 from config.logger import logger
 
 import pandas as pd   # must be replaced with internal python tools!
@@ -155,20 +154,17 @@ class Operator():
 
             self.stop = str(datetime.datetime.now())
 
-            response = {
-                        "metadata": {
-                            "containerId": self.container_id,
-                            "point": self.point,
-                            "start_time": self.start,
-                            "finish_time": self.stop
-                            },
-                        "state":self.service_response['state'],
-                        "response":self.service_response['result'],
-                        "predictions":self.service_response['prediction']
-            }
+            reponse = {"metadata":
+                          {
+                           "containerId": self.container_id,
+                           "point": self.point,
+                           "start_time": self.start,
+                           "finish_time": self.stop
+                          }
+                      }
+            response.update(self.service_response)
 
             return response
-
         except (APIError, DockerException) as exc:
 
             logger.error(f'Error create docker: {exc}')
