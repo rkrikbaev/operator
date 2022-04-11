@@ -38,27 +38,26 @@ class ModelService():
 
     def __init__(self, mtype, config=None) -> None:
 
+        self.docker_config = config.get('docker')
+        
+        if self.docker_config == None:
+            logger.warn('Docker config empty')
+        
         self.port = config.get('port')
-
         if self.port == None:
             logger.warn('PORT must be placed')
-
-        self.image = config[mtype].get('image')
-
-        if self.image == None:
-            logger.warn('IMAGE must be placed')
 
         self.host = self.point = None
         self.mtype = mtype
 
 
-    def call(self, payload, point, config)->dict:
+    def call(self, payload, point)->dict:
 
         self.point = point
 
         container = DockerOperator()
 
-        container.deploy(self.image, port=self.port, container_name=self.point)
+        container.deploy(mtype=self.mtype, port=self.port, container_name=self.point, config=self.docker_config)
 
         url = f'http://{self.point}:{self.port}/action' # point will be added to answer from url
 
@@ -105,11 +104,19 @@ class DockerOperator():
             logger.error(f'Connection with docker.socket aborted {exc}')
             raise exc
 
-    def deploy(self, image, port, container_name):
+    def deploy(self, mtype, port, container_name, config):
+
+        image = config[mtype].get('image')
+        if image == None:
+            logger.warn('IMAGE must be placed')
+
+        volumes = config[mtype].get('volumes')
+        cpuset_cpus = config[mtype]['limits'].get('cpuset_cpus')
+        con_mem_limit = config[mtype]['limits'].get('con_mem_limit')
 
         container_id = None
         count = 0
-        containet_state = None
+        containet_state = 'stop'
 
         try:
 
@@ -120,9 +127,10 @@ class DockerOperator():
 
                     self.container = self.create(
                         image, 
-                        volumes=None, 
                         ports=port,
-                        container_name=container_name
+                        container_name=container_name,
+                        cpuset_cpus=cpuset_cpus,
+                        con_mem_limit=con_mem_limit
                         )
 
                     container_id = self.container.short_id
@@ -154,7 +162,7 @@ class DockerOperator():
             logger.error(f'Error create docker: {exc}')
             raise exc
 
-    def create(self, image, volumes, ports, container_name, cpuset_cpus):
+    def create(self, image, ports, container_name, cpuset_cpus, con_mem_limit):
         
         '''Run a docker container using a given image; passing keyword arguments
         documented to be accepted by docker's client.containers.run function
@@ -163,10 +171,10 @@ class DockerOperator():
         '''
 
         network = os.getenv('SERVICES_NETWORK', default='service_network')
-        con_mem_limit = os.getenv('CONTAINER_MEM_LIMIT', default='512m')
   
         ports = {ports:None}
         container = None
+        volume = [f'{container_name}:application/mlruns']
 
         try:
 
@@ -174,7 +182,7 @@ class DockerOperator():
                 image,
                 name=container_name,
                 ports=ports, 
-                volumes=volumes, 
+                volumes=volume, 
                 detach=True, 
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,

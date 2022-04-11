@@ -59,7 +59,7 @@ class Predict():
                 # self.docker = DockerOperator()
 
                 # self.docker.deploy(self.docker_config[mtype], point) 
-                feedback = self.service.call(payload, point, config=self.service_config)
+                feedback = self.service.call(payload, point)
                 # self.docker.remove()
                 
                 resp.media = feedback

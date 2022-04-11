@@ -15,9 +15,6 @@ services:
         max_attempts: 3
         window: 120s
     environment:
-      - APP_PORT
-      - TENSORFLOW_IMAGE
-      - PROPHET_IMAGE='fpcloud/prophet-service-amd64:latest'
       - SERVICES_NETWORK
       - CONTAINER_MEM_LIMIT='512m'
       - LIST_OF_SUP_SERVICES=['prophet', 'tensorflow']

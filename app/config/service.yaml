@@ -1,14 +1,15 @@
 port: 8015
-prophet:
-  image: 'fpcloud/prophet-service:latest'
-  container:
-  - mem: '512m'
-  - cpuset_cpus: '1'
-  - network: 'service_network'
-tensorflow:
-  image: 'tensorflow/serving:latest' 
-  container:
-  - mem: '1024m'
-  - cpuset_cpus: '1'
-  - network: 'service_network'     
+docker:
+  prophet:
+    image: 'fpcloud/prophet-service:latest'
+    limits:
+      con_mem_limit: '512m'
+      cpuset_cpus: '1'
+      network: 'service_network'
+  tensorflow:
+    image: 'tensorflow/serving:latest'
+    limits:
+      con_mem_limit: '1024m'
+      cpuset_cpus: '1'
+      network: 'service_network'     
     
