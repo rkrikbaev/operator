@@ -11,22 +11,21 @@ RUN pip install docker==5.0.0 && \
     pip install python-dotenv && \
     pip install falcon==3.0.1 && \
     pip install numpy==1.20.2 && \
-    pip install pandas==1.2.4
-    # pip install scikit-learn==0.24.2 && \
-    # pip install scipy==1.6.3 && \
-    # pip install sklearn
+    pip install pandas==1.2.4 && \
+    pip install pickledb
 
 RUN mkdir application
 
-WORKDIR /application
 
+WORKDIR /application
 RUN mkdir logs
 
 # Copy the current directory contents into the container at /app
-COPY ./service .
+COPY ./app .
 
-# Make port 8001 available to the world outside this container
+# Make port 8015 available to the world outside this container
 EXPOSE 8015
 
 # Run app.py when the container launches
-CMD ["python", "app.py"]
+# CMD ["python", "app.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:8015", "app:api"]

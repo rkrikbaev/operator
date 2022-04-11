@@ -1,5 +1,4 @@
 import uuid
-import jsonschema
 
 
 def set_context(req, resp):
@@ -7,7 +6,6 @@ def set_context(req, resp):
         req.context['request_id'] = str(uuid.uuid4())
 
     resp.set_header('request-id', req.context['request_id'])
-
 
 class ContextMiddleware(object):
     def process_request(self, req, resp):

@@ -1,0 +1,14 @@
+port: 8015
+prophet:
+  image: 'fpcloud/prophet-service:latest'
+  container:
+  - mem: '512m'
+  - cpuset_cpus: '1'
+  - network: 'service_network'
+tensorflow:
+  image: 'tensorflow/serving:latest' 
+  container:
+  - mem: '1024m'
+  - cpuset_cpus: '1'
+  - network: 'service_network'     
+    

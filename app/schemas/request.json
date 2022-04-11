@@ -12,7 +12,12 @@
                 "type":{
                     "type": "string"
                 },
-
+                "image":{
+                    "type": "string"
+                },
+                "type":{
+                    "type": "string"
+                },                
                 "settings":{
             "type": "object",
             "properties": {
