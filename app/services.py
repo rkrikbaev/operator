@@ -39,42 +39,42 @@ class ModelService():
     def __init__(self, mtype, config=None) -> None:
 
         self.docker_config = config.get('docker')
-        
+
         if self.docker_config == None:
             logger.warn('Docker config empty')
-        
         self.port = config.get('port')
         if self.port == None:
             logger.warn('PORT must be placed')
 
         self.host = self.point = None
         self.mtype = mtype
-
+        self.container_id = None
 
     def call(self, payload, point)->dict:
 
         self.point = point
 
         container = DockerOperator()
-
+        print('Create service')
         container.deploy(mtype=self.mtype, port=self.port, container_name=self.point, config=self.docker_config)
 
         url = f'http://{self.point}:{self.port}/action' # point will be added to answer from url
-
+        print('url',url)
         start = str(datetime.datetime.now())
 
         response = {'state': 'error'}
 
         try:
-            
+
             result = requests.request("POST", 
                 url,
                 headers={"Content-Type": "application/json"}, 
                 data=json.dumps(payload))
-            
-            result = eval(response.text)
+            #result = eval(response
+            #print('result', result)
+
             stop = str(datetime.datetime.now())
-            
+
             response = {
                         "state": 'ok',
                         "metadata": {
@@ -82,15 +82,20 @@ class ModelService():
                             "start_time": start,
                             "finish_time": stop
                             },
-                        'prediction': result
+                        'prediction': result.json()
             }
 
+            print('Response: ', result.json())
+            print('Request: ', payload)
+
         except Exception as exp:
+
             logger.error(exp)
-        
+           # container.remove()
+
         container.remove()
-        
-        return response # if error {'state': 'error'} else dict       
+
+        return response # if error {'state': 'error'} else dict
 
 class DockerOperator():
     """
@@ -110,60 +115,60 @@ class DockerOperator():
         if image == None:
             logger.warn('IMAGE must be placed')
 
-        volumes = config[mtype].get('volumes')
+        # volumes = config[mtype].get('volumes')
         cpuset_cpus = config[mtype]['limits'].get('cpuset_cpus')
         con_mem_limit = config[mtype]['limits'].get('con_mem_limit')
 
-        container_id = None
+        self.container_id = None
         count = 0
         containet_state = 'stop'
 
         try:
 
             while containet_state != 'exited':
-                
+
                 # step 1. Create and run container
-                if container_id == None:
+                if self.container_id == None:
 
                     self.container = self.create(
-                        image, 
+                        image,
                         ports=port,
                         container_name=container_name,
                         cpuset_cpus=cpuset_cpus,
                         con_mem_limit=con_mem_limit
                         )
 
-                    container_id = self.container.short_id
-                    
+                    self.container_id = self.container.short_id
+                    print('step 1', self.container_id)
+
                 # step 3. Try to get information about container
                 elif containet_state.lower() == 'created':
-                    
+                    print('step 2',self.container_id)
                     time.sleep(5)
                     count = count + 1
+                    self.container = self.client.containers.get(self.container_id)
 
-                    self.container = self.client.containers.get(container_id)
-                
-                # step 2. Return if container was started        
+                # step 2. Return if container was started
                 elif containet_state.lower() == 'running':
-
+                    print('step 3',self.container_id)
                     return self.container.short_id
-                
+
                 elif count >= 5:
                     logger.warning('Max retries exeeded')
                     break
 
                 containet_state = self.container.attrs['State'].get('Status')
-            
+
             else:
-                logger.warning(f'Container {container_id} failed to start')
-            
+                logger.warning(f'Container {self.container_id} failed to start')
+
         except (APIError, DockerException) as exc:
-            
+
             logger.error(f'Error create docker: {exc}')
             raise exc
 
     def create(self, image, ports, container_name, cpuset_cpus, con_mem_limit):
-        
+
         '''Run a docker container using a given image; passing keyword arguments
         documented to be accepted by docker's client.containers.run function
         No extra side effects. Handles and reraises ContainerError, ImageNotFound,
@@ -171,10 +176,10 @@ class DockerOperator():
         '''
 
         network = os.getenv('SERVICES_NETWORK', default='service_network')
-  
+
         ports = {ports:None}
         container = None
-        volume = [f'{container_name}:application/mlruns']
+        volume = [f'{container_name}:/application/mlruns']
 
         try:
 
@@ -213,7 +218,7 @@ class DockerOperator():
             '''
                 
             try:               
-            
+                print('try to remove container')
                 container = self.client.containers.get(container_id=self.container_id)
                 container.remove(force=True)
                 

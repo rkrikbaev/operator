@@ -1,7 +1,7 @@
-port: 8015
+port: 8005
 docker:
   prophet:
-    image: 'fpcloud/prophet-service:latest'
+    image: 'rkrikbaev/fp-prophet:latest'
     limits:
       con_mem_limit: '512m'
       cpuset_cpus: '1'

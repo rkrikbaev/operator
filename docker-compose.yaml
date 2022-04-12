@@ -1,12 +1,12 @@
 version: "3"
 services:
-  operator:
-    container_name: operator
-    image: fpcloud/operator-service-amd64:1.0
+  operator-1:
+    container_name: operator-1
+    image: rkrikbaev/fp-operator:latest
     ports:
       - 8015:8015
     volumes:
-      - ./service:/application
+      - ./app:/application
       - /var/run/docker.sock:/var/run/docker.sock
     deploy:
       restart_policy:
@@ -14,14 +14,27 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-    environment:
-      - SERVICES_NETWORK
-      - CONTAINER_MEM_LIMIT='512m'
-      - LIST_OF_SUP_SERVICES=['prophet', 'tensorflow']
+    networks: 
+      - service_network
+
+  operator-2:
+    container_name: operator-2
+    image: rkrikbaev/fp-operator:latest
+    ports:
+      - 8016:8015
+    volumes:
+      - ./app:/application
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    networks:
+      - service_network
+
 networks:
-  internal:
-    name: service_network
+  service_network:
     driver: bridge
-  # host:
-  #   name: host_network
-  #   driver: bridge
+    external: true
