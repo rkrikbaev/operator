@@ -31,7 +31,7 @@ class Health():
 class Predict():
 
     def __init__(self):
-        #self.service_config = None
+
         self.feedback = None
 
     @jsonschema.validate(req_schema=schema.load_schema('request'))
@@ -51,20 +51,22 @@ class Predict():
             'settings': data.get('config')
         }
 
-        service_config = load_config(file='./app/config/service.yaml')
+        service_config = load_config(file='./config/service.yaml')
         logger.debug(f'Loaded config file : {service_config}')
 
         if service_config:
+
             self.service = ModelService(mtype, config=service_config)
-        else:
-            logger.warn('Service-config empty!')
-        try:
+            logger.debug(f'bject created {self.service}')
+
+            try:
                 self.feedback = self.service.call(payload, point)
                 logger.debug(f'feedback on request: {self.feedback}')
                 resp.status = falcon.HTTP_201
-        except Exception as error:
-            logger.error(error)
-            resp.status = error
-        
+            except Exception as error:
+                logger.error(error)
+                resp.status = error
+        else:
+            logger.warn('Service-config empty!')       
         resp.media = self.feedback
 
