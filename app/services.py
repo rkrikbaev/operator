@@ -1,16 +1,11 @@
 import datetime
 from docker import DockerClient
-from docker.errors import DockerException, APIError, ContainerError, ImageNotFound
+from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument
 
-import os
 import time
 import requests, json
 
-import logging, os
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
+from middleware.logger import logger
 
 class ModelService():
 
@@ -46,7 +41,7 @@ class ModelService():
         if self.port == None:
             logger.warn('PORT must be placed')
 
-        self.host = self.point = None
+        self.point = None
         self.mtype = mtype
         self.container_id = None
 
@@ -55,59 +50,58 @@ class ModelService():
         self.point = point
 
         container = DockerOperator()
-        print('Create service')
-        container.deploy(mtype=self.mtype, port=self.port, container_name=self.point, config=self.docker_config)
+        state = False
+        
+        state = container.deploy(mtype=self.mtype, port=self.port, container_name=self.point, config=self.docker_config)
 
-        url = f'http://{self.point}:{self.port}/action' # point will be added to answer from url
-        print('url',url)
-        start = str(datetime.datetime.now())
+        if state:
+            url = f'http://{self.point}:{self.port}/action'
+            logger.debug(f'url: {url}')
+            
+            response = {}
 
-        response = {'state': 'error'}
+            try:
 
-        try:
-
-            result = requests.request("POST", 
-                url,
-                headers={"Content-Type": "application/json"}, 
-                data=json.dumps(payload))
-            #result = eval(response
-            #print('result', result)
-
-            stop = str(datetime.datetime.now())
-
-            response = {
-                        "state": 'ok',
-                        "metadata": {
+                response = {
+                            "state": 'executed',
                             "point": self.point,
-                            "start_time": start,
-                            "finish_time": stop
-                            },
-                        'prediction': result.json()
-            }
+                            "start_time": str(datetime.datetime.now())
+                            }
 
-            print('Response: ', result.json())
-            print('Request: ', payload)
+                result = requests.request("POST", 
+                    url,
+                    headers={"Content-Type": "application/json"}, 
+                    data=json.dumps(payload))
 
-        except Exception as exp:
+                response["finish_time"] = str(datetime.datetime.now())
+                response['prediction'] = result.json()['yhat']
+                
+                logger.debug(f'response: {response}')
 
-            logger.error(exp)
-           # container.remove()
+            except Exception as exp:
+                
+                response['state'] = 'error'
+                response['prediction'] = None
+                logger.error(exp)
 
-        container.remove()
+            container.remove()
 
-        return response # if error {'state': 'error'} else dict
+            return response 
 
 class DockerOperator():
     """
     Class to work with docker objects
     """
     def __init__(self):
-        # pass
+
         try:
             self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
         except DockerException as exc:
             logger.error(f'Connection with docker.socket aborted {exc}')
             raise exc
+
+        self.container_id = None
+        self.container = None
 
     def deploy(self, mtype, port, container_name, config):
 
@@ -119,18 +113,15 @@ class DockerOperator():
         cpuset_cpus = config[mtype]['limits'].get('cpuset_cpus')
         con_mem_limit = config[mtype]['limits'].get('con_mem_limit')
 
-        self.container_id = None
         count = 0
-        containet_state = 'stop'
+        containet_state = ' '
 
-        try:
-
-            while containet_state != 'exited':
-
+        while containet_state != 'exited':
+            try:
                 # step 1. Create and run container
                 if self.container_id == None:
 
-                    self.container = self.create(
+                    self.container_id = self.create(
                         image,
                         ports=port,
                         container_name=container_name,
@@ -138,44 +129,45 @@ class DockerOperator():
                         con_mem_limit=con_mem_limit
                         )
 
-                    self.container_id = self.container.short_id
-                    print('step 1', self.container_id)
+                    # self.container_id = self.container.short_id
+                    logger.debug(f'step 1: container #{self.container_id} created')
 
-                # step 3. Try to get information about container
+                # step 2. Try to get information about container
                 elif containet_state.lower() == 'created':
-                    print('step 2',self.container_id)
-                    time.sleep(5)
+                    
                     count = count + 1
-                    self.container = self.client.containers.get(self.container_id)
+                    logger.debug(f'attempt #{count} to start container #{self.container_id}')
+                    
+                    if count > 5:
+                        logger.warning('Max retries exeeded')
+                        raise DockerException
+                    else:
+                        self.container = self.client.containers.get(self.container_id) 
+                        time.sleep(5)
 
                 # step 2. Return if container was started
                 elif containet_state.lower() == 'running':
-                    print('step 3',self.container_id)
-                    return self.container.short_id
+                    logger.debug(f'step 2: container #{self.container_id} running')
+                    return True
 
-                elif count >= 5:
-                    logger.warning('Max retries exeeded')
-                    break
+                if self.container_id :
+                    self.container = self.client.containers.get(self.container_id)
+                    containet_state = self.container.attrs['State'].get('Status')
+            
+            except (APIError, DockerException) as exc:
+                logger.error(f'unable to create a docker due to: {exc}')
 
-                containet_state = self.container.attrs['State'].get('Status')
+        else:
+            logger.warning(f'container #{self.container_id} exited')
+            
 
-            else:
-                logger.warning(f'Container {self.container_id} failed to start')
-
-        except (APIError, DockerException) as exc:
-
-            logger.error(f'Error create docker: {exc}')
-            raise exc
-
-    def create(self, image, ports, container_name, cpuset_cpus, con_mem_limit):
+    def create(self, image, ports, container_name, cpuset_cpus, con_mem_limit, network='service_network')->str:
 
         '''Run a docker container using a given image; passing keyword arguments
         documented to be accepted by docker's client.containers.run function
         No extra side effects. Handles and reraises ContainerError, ImageNotFound,
         and APIError exceptions.
         '''
-
-        network = os.getenv('SERVICES_NETWORK', default='service_network')
 
         ports = {ports:None}
         container = None
@@ -194,9 +186,6 @@ class DockerOperator():
                 network=network
                 )
 
-            if "Name" in container.attrs.keys():
-                logger.info(f'Container {container.attrs["Name"]} is now running.')
-
         except ContainerError as exc:
             logger.error("Failed to run container")
             raise exc
@@ -206,8 +195,10 @@ class DockerOperator():
         except APIError as exc:
             logger.error("Unhandled error")
             raise exc
-
-        return container   
+        except InvalidArgument  as exc:
+            logger.error("Docker Invalid Argument")
+            raise exc           
+        return container.short_id   
 
     def remove(self):
             
@@ -218,14 +209,11 @@ class DockerOperator():
             '''
                 
             try:               
-                print('try to remove container')
                 container = self.client.containers.get(container_id=self.container_id)
                 container.remove(force=True)
                 
-                logger.info(f'Container {self.container_id} was removed')
-                self.container_id = None
+                logger.debug(f'container {self.container_id} removed')
 
             except APIError as exc:
-                logger.error(f'Unhandled APIError error: {exc}')
-                raise exc
+                logger.error(f'unable to remove container by APIError error: {exc}')
 

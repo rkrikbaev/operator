@@ -12,4 +12,3 @@ docker:
       con_mem_limit: '1024m'
       cpuset_cpus: '1'
       network: 'service_network'     
-    
