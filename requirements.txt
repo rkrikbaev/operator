@@ -8,3 +8,4 @@ msgpack
 pytest
 pyyaml
 gunicorn
+gevent

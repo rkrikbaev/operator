@@ -6,13 +6,7 @@ from middleware.logger import logger
 
 from schemas import schema
 
-
-PATH_TO_MODELS = '/tmp/models/'
-PATH_TO_SOURCE = '/tmp/source'
-
 from middleware.helper import load_config
-
-#config = load_config(file='app/config/service.yaml')
 
 class Health():
 

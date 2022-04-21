@@ -21,6 +21,4 @@ COPY ./app .
 # Make port 8015 available to the world outside this container
 EXPOSE 8015
 
-# Run app.py when the container launches
-# CMD ["python", "app.py"]
-CMD ["gunicorn", "-b", "0.0.0.0:8015", "app:api"]
+CMD ["sh", "entry_point.sh"]
