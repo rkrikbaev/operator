@@ -2,7 +2,7 @@ version: "3"
 services:
   operator-1:
     container_name: operator-1
-    image: rkrikbaev/fp-operator:latest
+    image: rkrikbaev/fp-operator:v1.0
     ports:
       - 8015:8015
     volumes:
