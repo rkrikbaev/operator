@@ -24,7 +24,7 @@ services:
     ports:
       - 8015:8015
     volumes:
-      - ./app:/application
+      - ./app:/app
       - /var/run/docker.sock:/var/run/docker.sock
     deploy:
       restart_policy:
@@ -44,9 +44,9 @@ services:
   celery:
     image: api
     volumes:
-      - ./app:/application
-      - ./app/logs:/application/logs
-    command: celery -A app.tasks worker --loglevel=info  --logfile=logs/celery.log
+      - ./app:/app
+      - ./app/logs:/app/logs
+    command: celery -A tasks worker --loglevel=info  --logfile=logs/celery.log
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
@@ -61,7 +61,7 @@ services:
     image: api
     ports:
       - 5555:5555
-    command:  flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+    command:  flower -A tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
       - api
       - redis

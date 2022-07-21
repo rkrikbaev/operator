@@ -10,8 +10,8 @@ COPY ./requirements.txt .
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt 
 
-RUN mkdir application
-WORKDIR /application
+RUN mkdir app
+WORKDIR /app
 
 RUN mkdir logs
 
