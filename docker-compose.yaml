@@ -16,7 +16,7 @@ services:
         window: 120s
     networks: 
       - service_network
-    command: gunicorn -b 0.0.0.0:8000 app:app
+    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class gevent
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
