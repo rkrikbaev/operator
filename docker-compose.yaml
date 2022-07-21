@@ -19,8 +19,8 @@ services:
 
   api:
     build: .
-    image: rkrikbaev/fp-operator:v1.0
-    container_name: web-api
+    image: api
+    container_name: api
     ports:
       - 8015:8015
     volumes:
@@ -42,7 +42,7 @@ services:
       - redis
 
   celery:
-    image: web
+    image: api
     volumes:
       - ./app:/application
       - ./app/logs:/application/logs
@@ -51,19 +51,19 @@ services:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
-      - web
+      - api
       - redis
 
   redis:
     image: redis:6-alpine
 
   monitor:
-    image: web
+    image: api
     ports:
       - 5555:5555
     command:  flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
-      - web
+      - api
       - redis
 
 networks:
