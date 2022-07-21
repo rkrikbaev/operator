@@ -12,3 +12,4 @@ jsonschema
 # pytest
 pyyaml
 gevent
+six
