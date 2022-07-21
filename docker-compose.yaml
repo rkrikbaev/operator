@@ -1,8 +1,26 @@
 version: "3"
 services:
-  operator-1:
-    container_name: operator-1
+  # operator-1:
+  #   container_name: operator
+  #   image: rkrikbaev/fp-operator:v1.0
+  #   ports:
+  #     - 8015:8015
+  #   volumes:
+  #     - ./app:/application
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   deploy:
+  #     restart_policy:
+  #       condition: on-failure
+  #       delay: 5s
+  #       max_attempts: 3
+  #       window: 120s
+  #   networks: 
+  #     - service_network
+
+  api:
+    build: .
     image: rkrikbaev/fp-operator:v1.0
+    container_name: web-api
     ports:
       - 8015:8015
     volumes:
@@ -16,23 +34,37 @@ services:
         window: 120s
     networks: 
       - service_network
+    command: gunicorn -b 0.0.0.0:8000 app:app
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
 
-  operator-2:
-    container_name: operator-2
-    image: rkrikbaev/fp-operator:latest
-    ports:
-      - 8016:8015
+  celery:
+    image: web
     volumes:
       - ./app:/application
-      - /var/run/docker.sock:/var/run/docker.sock
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-    networks:
-      - service_network
+      - ./app/logs:/application/logs
+    command: celery -A app.tasks worker --loglevel=info  --logfile=logs/celery.log
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    image: redis:6-alpine
+
+  monitor:
+    image: web
+    ports:
+      - 5555:5555
+    command:  flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
 
 networks:
   service_network:

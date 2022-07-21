@@ -10,6 +10,6 @@ logger.setLevel(logging.DEBUG)
 if __name__ == "__main__":
 
     with make_server("", 8015, api) as httpd:
-        logger.debug("Listening Port 8005...")
+        logger.debug("Listening Port 8015...")
         # Serve until process is killed
         httpd.serve_forever()
