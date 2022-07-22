@@ -1,19 +1,23 @@
+#!.venv/bin/python
+
 import falcon
 from falcon.media.validators import jsonschema
-
 from celery.result import AsyncResult
+import time
 
 from schemas import schema
-from middleware.helper import load_config
-
 from tasks import predict
 
-import time, sys
-
-import logging
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
-                    format=f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s")
-logger = logging.getLogger(__name__)
+import logging, yaml, os
+try:
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config/logger_config.yaml')
+    with open(file_path, 'r') as fl:
+        config =  yaml.safe_load(fl)
+        logging.config.dictConfig(config)      
+except:
+    pass
+finally:
+    logger = logging.getLogger(__name__)
 
 class Health():
 
@@ -47,12 +51,11 @@ class Predict():
             response = result
         
         else:
-
-            service_config = load_config(file='./app/config/service.yaml')
-            logger.debug(f'Loaded config file : {service_config}')
-
+            file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config/service_config.yaml')
+            logger.debug(f'Loaded config file : {file_path}')
+            config = load_config(file_path)
             data =  req.media
-            state = predict(service_config, data) 
+            state = predict(config, data) 
             response = {'task_id': int(time.ctime()), 'state':state}
             
             # logger.debug(f'Incoming data: [history: {data.get("data")[0:2]}, future: {data.get("regressor")[0:2]}, settings: {data.get("config")}, features: {data.get("features")}]')

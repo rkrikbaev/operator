@@ -1,1 +1,0 @@
-gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class gevent

@@ -2,12 +2,22 @@ import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time
-import requests, json
+import yaml
 
-import logging, sys
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
-                    format=f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s")
-logger = logging.getLogger(__name__)
+import requests, json
+from middleware.helper import logger
+# import logging
+# import logging.config
+
+# try:
+#     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config/logger_config.yaml')
+#     with open(file_path, 'r') as fl:
+#         config =  yaml.safe_load(fl)
+#         logging.config.dictConfig(config)      
+# except:
+#     pass
+# finally:
+#     logger = logging.getLogger(__name__)
 
 
 class ModelService():
@@ -18,16 +28,13 @@ class ModelService():
         self.port = config.get('port')
         self.mtype = mtype
 
-    def call(self, payload, point)->dict:
-
-        container = DockerOperator()
-        container_id, container_ip = container.deploy(mtype=self.mtype, port=self.port, point=point, config=self.docker_config)
+    def call(self, payload, point, container_id)->dict:
 
         # time delay to deploy application in the container
         time.sleep(2)
         if container_id:
 
-            url = f'http://{container_ip}:{self.port}/action'
+            url = f'http://{container_id}:{self.port}/action'
             logger.debug(f'query url: {url}')
 
             response = {
@@ -50,8 +57,7 @@ class ModelService():
             except Exception as exp:
                 response['state'] = 'error'
                 logger.error(exp)
-            
-            container.remove(container_id)
+
             return response 
 
 class DockerOperator():
@@ -107,12 +113,11 @@ class DockerOperator():
                 else:
                     raise RuntimeError(f'Fail to deploy container for point {point}')
             
-            return container_id, container_ip
+            return container_id
 
         except (APIError, DockerException, RuntimeError) as exc:
             logger.error(f'Docker API error: {exc}')
             logger.error('Fail to create container')
-
 
     def remove(self, container_id):
             

@@ -3,12 +3,9 @@ import celery
 import os
 from time import sleep
 
-import logging, sys
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
-                    format=f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s")
-logger = logging.getLogger(__name__)
+from middleware.helper import logger
 
-from service import ModelService
+from service import ModelService, DockerOperator
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
@@ -29,8 +26,12 @@ def predict(service_config=None, data=None, task_id=None):
     }
 
     if service_config:
+        
+        container = DockerOperator()
+        container_id = container.deploy(mtype=self.mtype, port=self.port, point=point, config=self.docker_config)
 
         service = ModelService(mtype, config=service_config)
+
         logger.debug(f'object created: {mtype}, {point}')
 
         try:
@@ -39,7 +40,8 @@ def predict(service_config=None, data=None, task_id=None):
         
         except Exception as error:
             logger.error(error)
-    
+        finally:
+            container.remove(container_id)
     else:
         logger.warn('Service-config empty!') 
     
