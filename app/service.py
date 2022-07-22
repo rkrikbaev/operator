@@ -1,40 +1,25 @@
 import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
-import time
-import yaml
-
+import time, os
 import requests, json
+
 from middleware.helper import logger
-# import logging
-# import logging.config
-
-# try:
-#     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config/logger_config.yaml')
-#     with open(file_path, 'r') as fl:
-#         config =  yaml.safe_load(fl)
-#         logging.config.dictConfig(config)      
-# except:
-#     pass
-# finally:
-#     logger = logging.getLogger(__name__)
-
+logger = logger(__name__)
 
 class ModelService():
 
-    def __init__(self, mtype, config=None) -> None:
+    def __init__(self, mtype) -> None:
 
-        self.docker_config = config.get('docker')
-        self.port = config.get('port')
-        self.mtype = mtype
+        self.mtype = mtype 
 
-    def call(self, payload, point, container_id)->dict:
+    def call(self, payload, point, container_id, port)->dict:
 
         # time delay to deploy application in the container
         time.sleep(2)
         if container_id:
 
-            url = f'http://{container_id}:{self.port}/action'
+            url = f'http://{container_id}:{port}/action'
             logger.debug(f'query url: {url}')
 
             response = {
@@ -64,7 +49,7 @@ class DockerOperator():
     """
     Class to work with docker objects
     """
-    def __init__(self):
+    def __init__(self,):
 
         try:
             self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)

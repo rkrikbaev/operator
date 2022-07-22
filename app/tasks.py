@@ -4,6 +4,7 @@ import os
 from time import sleep
 
 from middleware.helper import logger
+logger = logger(__name__)
 
 from service import ModelService, DockerOperator
 
@@ -13,7 +14,7 @@ CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
 @app.task
-def predict(service_config=None, data=None, task_id=None):
+def predict(config, data=None, task_id=None):
 
     mtype = data.get('type').lower()
     point = data.get('point').lower()
@@ -25,12 +26,16 @@ def predict(service_config=None, data=None, task_id=None):
         'settings': data.get('config')
     }
 
-    if service_config:
+    docker_config = config.get('docker')
+    port = config.get('port')
+    # mtype = mtype
+
+    if config:
         
         container = DockerOperator()
-        container_id = container.deploy(mtype=self.mtype, port=self.port, point=point, config=self.docker_config)
+        container_id = container.deploy(mtype=mtype, port=port, point=point, config=docker_config[mtype])
 
-        service = ModelService(mtype, config=service_config)
+        service = ModelService(mtype, config=config)
 
         logger.debug(f'object created: {mtype}, {point}')
 
