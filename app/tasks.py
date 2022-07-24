@@ -11,6 +11,8 @@ CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 # logger.debug(f'connected to CELERY_BROKER {CELERY_BROKER} and CELERY_BACKEND {CELERY_BACKEND}')
+container = DockerOperator()
+service = ModelAsHTTPService()
 
 @app.task
 def predict(config, data):
@@ -34,8 +36,8 @@ def predict(config, data):
     else:
         logger.warn('Service-config empty!')  
               
-    container = DockerOperator()
-    service = ModelAsHTTPService()
+    # container = DockerOperator()
+    # service = ModelAsHTTPService()
     container_id = None
     config = service_config[mtype]
     logger.debug(f'object created: {mtype}, {point}')
