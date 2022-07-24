@@ -48,7 +48,7 @@ class Predict():
         else:
         
             try:
-                file_path = os.path.join(os.getcwd(), './config/service_config.yaml')
+                file_path = os.path.join(os.getcwd(), 'config/service_config.yaml')
                 logger.debug(f'Loaded config file : {file_path}')
                 
                 with open(file_path, 'r') as fl:
