@@ -26,9 +26,11 @@ services:
 
   celery:
     image: api
+    container_name: celery
     volumes:
       - ./app:/app
       - ./app/logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock
     networks: 
       - service_network
     command: celery -A tasks worker --loglevel=info  --logfile=logs/celery.log
@@ -41,11 +43,17 @@ services:
 
   redis:
     image: redis:6-alpine
+    container_name: redis
     networks: 
       - service_network
-
+  
   monitor:
     image: api
+    container_name: monitor
+    volumes:
+      - ./app:/app
+      - ./app/logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5555:5555
     networks: 
