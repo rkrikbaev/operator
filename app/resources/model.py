@@ -57,8 +57,10 @@ class Predict():
 
                 data =  req.media
                 task = predict(config=service_config, data=data) 
-                resp.media = {'ts': int(time.ctime()),'task_id': task.id, 'state':'success'}
-
+                resp.media = {'ts': time.ctime(),'task_id': task.id, 'state':'success'}
+                logger.debug(f'{"ts": time.ctime(),"task_id": task.id, "state":"success"}')
             except Exception as exc:
                 logger.error(exc)
                 resp.status = falcon.HTTP_500
+                resp.media = {'ts': time.ctime(),'task_id': task.id, 'state':'fail'}
+                logger.debug(f'{"ts": time.ctime(),"task_id": task.id, "state":"fail"}')
