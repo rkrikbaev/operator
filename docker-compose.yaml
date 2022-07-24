@@ -33,7 +33,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks: 
       - service_network
-    command: celery -A tasks worker --loglevel=info  --logfile=logs/celery.log
+    command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
