@@ -55,7 +55,7 @@ class DockerOperator():
             logger.error(f'Connection with docker.socket aborted {exc}')
             raise exc
 
-    def deploy(self, port, point, config):
+    def deploy_container(self, port, point, config):
 
         image = config.get('image')
         cpuset_cpus = config['limits'].get('cpuset_cpus')
@@ -103,7 +103,7 @@ class DockerOperator():
             logger.error(f'Docker API error: {exc}')
             logger.error('Fail to create container')
 
-    def remove(self, container_id):
+    def remove_container(self, container_id):
             
         '''
         Remove a docker container using a given id; passing keyword arguments

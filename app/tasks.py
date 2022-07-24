@@ -11,7 +11,8 @@ CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 # logger.debug(f'connected to CELERY_BROKER {CELERY_BROKER} and CELERY_BACKEND {CELERY_BACKEND}')
-container = DockerOperator()
+
+docker_engine = DockerOperator()
 service = ModelAsHTTPService()
 
 @app.task
@@ -43,7 +44,7 @@ def predict(config, data):
     logger.debug(f'object created: {mtype}, {point}')
 
     try:
-        container_info = container.deploy(port=port, point=point, config=config)
+        container_info = docker_engine.deploy_container(port=port, point=point, config=config)
         container_id = container_info.get('id')
         if container_id:
             result = service.call(payload, point, port=port)
@@ -54,6 +55,6 @@ def predict(config, data):
     except RuntimeError as error:
         logger.error(error)
     finally:
-        container.remove(point)
+        docker_engine.remove_container(point)
 
     
