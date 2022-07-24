@@ -12,6 +12,7 @@ CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
+logger.debug(f'connected to CELERY_BROKER {CELERY_BROKER} and CELERY_BACKEND {CELERY_BACKEND}')
 
 @app.task
 def predict(config, data):

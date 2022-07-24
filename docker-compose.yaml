@@ -16,7 +16,7 @@ services:
         window: 120s
     networks: 
       - service_network
-    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class gevent --log-level debug
+    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
@@ -28,6 +28,8 @@ services:
     volumes:
       - ./app:/app
       - ./app/logs:/app/logs
+    networks: 
+      - service_network
     command: celery -A tasks worker --loglevel=info  --logfile=logs/celery.log
     environment:
       - CELERY_BROKER=redis://redis:6379/0
@@ -38,11 +40,15 @@ services:
 
   redis:
     image: redis:6-alpine
+    networks: 
+      - service_network
 
   monitor:
     image: api
     ports:
       - 5555:5555
+    networks: 
+      - service_network
     command:  flower -A tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
       - api
