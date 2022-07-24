@@ -1,9 +1,10 @@
+from logging import Logger
 from wsgiref.simple_server import make_server
 
 from app import api
-from middleware.helper import logger
+from middleware.helper import get_logger
 
-logger = logger(__name__)
+logger = get_logger(name=__name__, loglevel='DEBUG')
 
 if __name__ == "__main__":
     
@@ -11,5 +12,6 @@ if __name__ == "__main__":
         # Serve until process is killed
         logger.debug("Start wsgi web-server")
         logger.debug("Listening Port 8015...")
+        
         httpd.serve_forever()
         

@@ -1,9 +1,8 @@
 import falcon
 from resources.model import Predict, Health
-import os
 
-from middleware.helper import logger
-logger = logger(__name__)
+from middleware.helper import get_logger
+logger = get_logger(name=__name__, loglevel='DEBUG')
 
 api = falcon.App()
 

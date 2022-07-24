@@ -4,46 +4,44 @@ from docker.errors import DockerException, APIError, ContainerError, ImageNotFou
 import time, os
 import requests, json
 
-from middleware.helper import logger
-logger = logger(__name__)
+from middleware.helper import get_logger
+logger = get_logger(__name__, loglevel='DEBUG')
 
-class ModelService():
+class ModelAsHTTPService():
 
-    def __init__(self, mtype) -> None:
+    def __init__(self) -> None:
+        pass
 
-        self.mtype = mtype 
-
-    def call(self, payload, point, container_id, port)->dict:
+    def call(self, payload, point, port)->dict:
 
         # time delay to deploy application in the container
         time.sleep(2)
-        if container_id:
 
-            url = f'http://{container_id}:{port}/action'
-            logger.debug(f'query url: {url}')
+        url = f'http://{point}:{port}/action'
+        logger.debug(f'query url: {url}')
 
-            response = {
-                        "state": 'executed',
-                        "point": point,
-                        "start_time": str(datetime.datetime.now())
-                        }
-            try:
+        response = {
+                    "state": 'executed',
+                    "point": point,
+                    "start_time": str(datetime.datetime.now())
+                    }
+        try:
 
-                result = requests.request(
-                    "POST", 
-                    url,
-                    headers={"Content-Type": "application/json"}, 
-                    data=json.dumps(payload))
+            result = requests.request(
+                'POST', 
+                url,
+                headers={'Content-Type': 'application/json'}, 
+                data=json.dumps(payload))
 
-                response["finish_time"] = str(datetime.datetime.now())
-                response['predictions'] = result.json().get('yhat')
-                logger.debug(f'response: {response}')
-            
-            except Exception as exp:
-                response['state'] = 'error'
-                logger.error(exp)
+            response["finish_time"] = str(datetime.datetime.now())
+            response['predictions'] = result.json().get('yhat')
+            logger.debug(f'response: {response}')
+        
+        except Exception as exp:
+            response['state'] = 'error'
+            logger.error(exp)
 
-            return response 
+        return response 
 
 class DockerOperator():
     """
@@ -57,11 +55,11 @@ class DockerOperator():
             logger.error(f'Connection with docker.socket aborted {exc}')
             raise exc
 
-    def deploy(self, mtype, port, point, config):
+    def deploy(self, port, point, config):
 
-        image = config[mtype].get('image')
-        cpuset_cpus = config[mtype]['limits'].get('cpuset_cpus')
-        con_mem_limit = config[mtype]['limits'].get('con_mem_limit')
+        image = config.get('image')
+        cpuset_cpus = config['limits'].get('cpuset_cpus')
+        con_mem_limit = config['limits'].get('con_mem_limit')
             
         try:
             container = self.client.containers.get(point)
@@ -70,13 +68,14 @@ class DockerOperator():
             container = self.client.containers.run(
                 image,
                 name=point,
-                ports={port:None}, 
+                ports={port:port}, 
                 volumes=[f'{point}:/application/mlruns'], 
                 detach=True, 
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
                 network='service_network'
                 )
+            
             container_id = container.short_id
             container_state = container.status.lower()   
             
@@ -92,13 +91,13 @@ class DockerOperator():
                     time.sleep(1)
                     wait_counter += 1
                 elif container_state in ['running']:
-                    container_ip = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
-                    logger.debug(f'container #{container_id} {container_state}')
+                    # service_ip = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
+                    logger.debug(f'container #{container_id}, state: {container_state} with name: {point}')
                     break                
                 else:
                     raise RuntimeError(f'Fail to deploy container for point {point}')
             
-            return container_id
+            return {'id':container_id, 'service_ip':point, 'state': container_state}
 
         except (APIError, DockerException, RuntimeError) as exc:
             logger.error(f'Docker API error: {exc}')

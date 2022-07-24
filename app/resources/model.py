@@ -10,8 +10,8 @@ import os
 from schemas import schema
 from tasks import predict
 
-from middleware.helper import logger
-logger = logger(__name__)
+from middleware.helper import get_logger
+logger = get_logger(__name__, loglevel='DEBUG')
 
 class Health():
 
@@ -41,6 +41,8 @@ class Predict():
 
             task_result = AsyncResult(task_id)
             result = {'status': task_result.status, 'result': task_result.result}
+            logger.debug(result)
+
             resp.status = falcon.HTTP_200
             resp.media = result
         
@@ -54,8 +56,8 @@ class Predict():
                     service_config =  yaml.safe_load(fl)   
 
                 data =  req.media
-                state = predict(config=service_config, data=data) 
-                resp.media = {'task_id': int(time.ctime()), 'state':state}
+                task = predict(config=service_config, data=data) 
+                resp.media = {'ts': int(time.ctime()),'task_id': task.id, 'state':'success'}
 
             except Exception as exc:
                 logger.error(exc)

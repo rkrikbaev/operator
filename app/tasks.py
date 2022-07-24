@@ -3,10 +3,10 @@ import celery
 import os
 from time import sleep
 
-from middleware.helper import logger
-logger = logger(__name__)
+from middleware.helper import get_logger
+logger = get_logger(__name__, loglevel='DEBUG')
 
-from service import ModelService, DockerOperator
+from service import ModelAsHTTPService, DockerOperator
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
@@ -14,7 +14,7 @@ CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
 @app.task
-def predict(config, data=None, task_id=None):
+def predict(config, data):
 
     mtype = data.get('type').lower()
     point = data.get('point').lower()
@@ -26,27 +26,33 @@ def predict(config, data=None, task_id=None):
         'settings': data.get('config')
     }
 
-    docker_config = config.get('docker')
+    service_config = config.get('docker')
     port = config.get('port')
-    # mtype = mtype
 
+    # do something if config empty, better use ParseConfig!
     if config:
-        
-        container = DockerOperator()
-        container_id = container.deploy(mtype=mtype, port=port, point=point, config=docker_config[mtype])
-
-        service = ModelService(mtype, config=config)
-
-        logger.debug(f'object created: {mtype}, {point}')
-
-        try:
-            feedback = service.call(payload, point)
-            logger.debug(f'feedback on request: {feedback}')
-        
-        except Exception as error:
-            logger.error(error)
-        finally:
-            container.remove(container_id)
+        pass
     else:
-        logger.warn('Service-config empty!') 
+        logger.warn('Service-config empty!')  
+              
+    container = DockerOperator()
+    service = ModelAsHTTPService()
+    container_id = None
+    config = service_config[mtype]
+    logger.debug(f'object created: {mtype}, {point}')
+
+    try:
+        container_info = container.deploy(port=port, point=point, config=config)
+        container_id = container_info.get('id')
+        if container_id:
+            result = service.call(payload, point, port=port)
+            logger.debug(f'feedback on request: {result}')
+            return result
+        else:
+            raise RuntimeError('Container not started...')
+    except RuntimeError as error:
+        logger.error(error)
+    finally:
+        container.remove(point)
+
     
