@@ -1,8 +1,9 @@
-version: "3"
+version: "3.8"
 services:
   api:
     build: .
     image: api
+    container_name: api
     ports:
       - 8015:8015
     volumes:
@@ -16,7 +17,7 @@ services:
         window: 120s
     networks: 
       - service_network
-    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
+    command: gunicorn -b 0.0.0.0:8015 app:api #--timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
