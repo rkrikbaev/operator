@@ -39,7 +39,7 @@ class Predict():
         if task_id:
             
             task_result = AsyncResult(task_id)
-            result = {'status': task_result.status, 'result': task_result.result}
+            result = {'status': str(task_result.status), 'result': str(task_result.result)}
             logger.debug(result)
 
             resp.status = falcon.HTTP_200
