@@ -1,12 +1,10 @@
-# project/app/tasks.py
 import celery
 import os
-from time import sleep
+
+from service import ModelAsHTTPService, DockerOperator
 
 from middleware.helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
-
-from service import ModelAsHTTPService, DockerOperator
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
