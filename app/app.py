@@ -64,7 +64,6 @@ class Predict():
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'fail'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"fail"')
 
-
 api = falcon.App()
 
 api.add_route('/predict/{task_id}', Predict())
