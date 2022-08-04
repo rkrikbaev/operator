@@ -1,7 +1,7 @@
 {
     "title": "Create Score",
     "type": "object",
-    "required": ["history", "future"],
+    "required": ["data", "regressor"],
     "properties": {
         "metadata": {
             "type": "object",
@@ -12,7 +12,12 @@
                 "type":{
                     "type": "string"
                 },
-
+                "image":{
+                    "type": "string"
+                },
+                "type":{
+                    "type": "string"
+                },                
                 "settings":{
             "type": "object",
             "properties": {
@@ -57,9 +62,9 @@
                 }
             }
         },
-        "history": {
+        "data": {
         },
-        "future": {
-        }  
+        "regressor": {
+        }
     }
 }

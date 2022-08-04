@@ -1,0 +1,14 @@
+port: 8005
+docker:
+  prophet:
+    image: 'rkrikbaev/fp-prophet:latest'
+    limits:
+      con_mem_limit: '512m'
+      cpuset_cpus: '1'
+      network: 'model'
+  tensorflow:
+    image: 'tensorflow/serving:latest'
+    limits:
+      con_mem_limit: '1024m'
+      cpuset_cpus: '1'
+      network: 'model'     
