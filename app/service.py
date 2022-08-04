@@ -60,6 +60,7 @@ class DockerOperator():
         image = config.get('image')
         cpuset_cpus = config['limits'].get('cpuset_cpus')
         con_mem_limit = config['limits'].get('con_mem_limit')
+        network = config.get('network')
             
         try:
             container = self.client.containers.get(point)
@@ -73,7 +74,7 @@ class DockerOperator():
                 detach=True, 
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
-                network='service_network'
+                network=network
                 )
             
             container_id = container.short_id
