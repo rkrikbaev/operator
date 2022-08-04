@@ -2,8 +2,8 @@ version: "3.8"
 services:
   api:
     build: .
-    image: api
-    container_name: api
+    image: operator_api
+    container_name: operator_api
     ports:
       - 8015:8015
     volumes:
@@ -26,8 +26,8 @@ services:
       - redis
 
   celery:
-    image: api
-    container_name: celery
+    image: operator_api
+    container_name: operator_celery
     volumes:
       - ./app:/app
       - ./app/logs:/app/logs
@@ -44,13 +44,13 @@ services:
 
   redis:
     image: redis:6-alpine
-    container_name: redis
+    container_name: operator_redis
     networks: 
       - model
   
   monitor:
-    image: api
-    container_name: monitor
+    image: operator_api
+    container_name: operator_monitor
     volumes:
       - ./app:/app
       - ./app/logs:/app/logs
