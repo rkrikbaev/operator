@@ -69,8 +69,7 @@ class DockerOperator():
             container = self.client.containers.run(
                 image,
                 name=point,
-                # ports={port:port}, 
-                volumes=[f'{point}:/application/mlruns'], 
+                volumes=['/usr/local/modeling/mlruns:/mlruns'], 
                 detach=True, 
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
