@@ -2,7 +2,7 @@ import logging, yaml, os, sys
 import logging.config
 from logging.handlers import RotatingFileHandler
 
-file_path = os.path.join(os.getcwd(), 'config/logger_config.yaml')
+file_path = os.path.join(os.getcwd(), 'log.log')
 
 def get_logger(name='root', loglevel='INFO'):
   
