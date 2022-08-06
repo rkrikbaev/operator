@@ -49,14 +49,14 @@ class Predict():
             f =  yaml.safe_load(fl)
             service_config = f.get('docker')[mtype]
 
-        if task_id or len(task_id)>10:
-            
-            task_result = AsyncResult(task_id)
-            result = {'status': str(task_result.status), 'result': str(task_result.result)}
-            logger.debug(result)
+        if task_id:
+            if len(task_id)>10:
+                task_result = AsyncResult(task_id)
+                result = {'status': str(task_result.status), 'result': str(task_result.result)}
+                logger.debug(result)
 
-            resp.status = falcon.HTTP_200
-            resp.media = result
+                resp.status = falcon.HTTP_200
+                resp.media = result
         
         else:
 
