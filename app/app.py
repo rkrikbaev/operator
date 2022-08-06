@@ -73,7 +73,7 @@ class Predict():
 
 api = falcon.App()
 
-api.add_route('/predict/{task_id}', Predict())
+api.add_route('/predict', Predict())
 api.add_route("/health", Health())
 
 logger.debug('Application started.')
