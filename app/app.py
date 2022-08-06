@@ -44,7 +44,7 @@ class Predict():
         regressor_names = request.get('regressor_names')
         model_id = request.get('model_id')
 
-        file_path = os.path.join(os.getcwd(), 'app/config/service_config.yaml')
+        file_path = os.path.join(os.getcwd(), 'config/service_config.yaml')
         with open(file_path, 'r') as fl:
             f =  yaml.safe_load(fl)
             service_config = f.get('docker')[mtype]
