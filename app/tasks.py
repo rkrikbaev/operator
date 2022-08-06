@@ -38,8 +38,9 @@ def predict(service_config, request, point, model_id, model_features, regressor_
         payload = {
             'data': request.get('request')
         }
-        
+
         if container_id:
+            logger.debug(f'Make prediction')
             result = service.call(payload, point, port)
             logger.debug(f'feedback on request: {result}')
             return result

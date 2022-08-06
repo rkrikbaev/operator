@@ -33,9 +33,8 @@ class Predict():
         pass
 
     @jsonschema.validate(req_schema=schema.load_schema('request'))
-    def on_post(self, req, resp, task_id):
+    def on_post(self, req, resp):
 
-        task_id = None
         request = req.media
         task_id = request.get('uid')
         mtype = request.get('type').lower()
@@ -49,7 +48,7 @@ class Predict():
             f =  yaml.safe_load(fl)
             service_config = f.get('docker')[mtype]
 
-        if task_id:
+        if task_id or len(task_id)==0:
             
             task_result = AsyncResult(task_id)
             result = {'status': str(task_result.status), 'result': str(task_result.result)}
