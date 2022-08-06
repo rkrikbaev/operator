@@ -55,16 +55,12 @@ class DockerOperator():
             logger.error(f'Connection with docker.socket aborted {exc}')
             raise exc
 
-    def deploy_container(self, port, point, config):
+    def deploy_container(self, point, service_config, model_features, tracking_server, model_uri, regressor_names):
 
-        image = config.get('image')
-        cpuset_cpus = config['limits'].get('cpuset_cpus')
-        con_mem_limit = config['limits'].get('con_mem_limit')
-        network = config.get('network')
-        features = config.get('features')
-        tracking_server = config.get('tracking_server')
-        model_uri = config.get('model_uri')
-        regressor_names = config.get('regressor_names')
+        image = service_config.get('image')
+        cpuset_cpus = service_config['limits'].get('cpuset_cpus')
+        con_mem_limit = service_config['limits'].get('con_mem_limit')
+        network = service_config.get('network')
 
         try:
             container = self.client.containers.get(point)
@@ -73,18 +69,18 @@ class DockerOperator():
             container = self.client.containers.run(
                 image,
                 name=point,
-                volumes=['/usr/local/modeling/mlruns:/mlruns'], 
+                volumes=['/usr/local/etc/modeling/mlruns:/application/mlruns'], 
                 detach=True, 
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
                 network=network,
                 environment=[
-                    f'FEATURES={features}', 
+                    f'FEATURES={model_features}', 
                     f'TRACKING_SERVER={tracking_server}', 
                     f'MODEL_URI={model_uri}',
                     f'REGRESSORS={regressor_names}'
                     ],
-                command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600 --worker-class gevent'
+                command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
                 )
             
             container_id = container.short_id

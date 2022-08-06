@@ -2,6 +2,7 @@ import falcon
 from falcon.media.validators import jsonschema
 from celery.result import AsyncResult
 import time
+from requests import request
 import yaml
 import os
 
@@ -34,7 +35,16 @@ class Predict():
     @jsonschema.validate(req_schema=schema.load_schema('request'))
     def on_post(self, req, resp, task_id):
 
-        logger.debug(f'Request received for task with id: {task_id}')
+        task_id = None
+        request = req.media
+        task_id = request.get('uid')
+        mtype = request.get('type').lower()
+        point = request.get('point').lower()
+
+        file_path = os.path.join(os.getcwd(), 'app/config/service_config.yaml')
+        with open(file_path, 'r') as fl:
+            f =  yaml.safe_load(fl)
+            service_config = f.get('docker')[mtype]
 
         if task_id:
             
@@ -48,22 +58,15 @@ class Predict():
         else:
 
             try:
-                file_path = os.path.join(os.getcwd(), 'config/service_config.yaml')
-                logger.debug(f'Loaded config file : {file_path}')
-                
-                with open(file_path, 'r') as fl:
-                    service_config =  yaml.safe_load(fl)   
 
-                data =  req.media
-                task = predict.delay(config=service_config, data=data) 
+                task = predict.delay(service_config, request, point) 
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
             
             except Exception as exc:
                 logger.error(exc)
                 resp.status = falcon.HTTP_500
-                resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'fail'}
-                logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"fail"')
+                resp.media = {'state':'fail', 'error':exc}
 
 api = falcon.App()
 

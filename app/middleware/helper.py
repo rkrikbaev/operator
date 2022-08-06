@@ -2,6 +2,7 @@ import logging, yaml, os, sys
 import logging.config
 from logging.handlers import RotatingFileHandler
 
+file_path = os.path.join(os.getcwd(), 'app/config/logger_config.yaml')
 
 # def logger(name='root', loglevel='INFO') -> None:
     
@@ -47,7 +48,7 @@ def get_logger(name='root', loglevel='INFO'):
     formate = '%(asctime)s [%(levelname)s] %(filename)-8s:: %(lineno)d : %(message)s'
     formate_date = '%Y-%m-%dT%T%Z'
     formatter = logging.Formatter(formate, formate_date)
-    file_handler = RotatingFileHandler('./logs/app.log', mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
+    file_handler = RotatingFileHandler(file_path, mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
