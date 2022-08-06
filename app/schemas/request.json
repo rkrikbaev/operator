@@ -1,7 +1,7 @@
 {
     "title": "Create Score",
     "type": "object",
-    "required": ["request"],
+    "required": ["data"],
     "properties": {
         "metadata": {
             "type": "object",

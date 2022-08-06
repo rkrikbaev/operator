@@ -42,7 +42,7 @@ class Predict():
         model_features = request.get('features')
         regressor_names = request.get('regressor_names')
         model_id = request.get('model_id')
-        payload = request.get('payload')
+        payload = request.get('data')
     
         file_path = os.path.join(os.getcwd(), 'service_config.yaml')
         with open(file_path, 'r') as fl:
