@@ -17,7 +17,7 @@ service = ModelAsHTTPService()
 tracking_server = TRACKING_SERVER
 
 @app.task
-def predict(service_config, request, point, model_id, model_features, regressor_names):
+def predict(service_config, payload, point, model_id, model_features, regressor_names):
     
     port = service_config.get('port')
 
@@ -34,10 +34,6 @@ def predict(service_config, request, point, model_id, model_features, regressor_
         
         container_id = container_info.get('id')
         logger.debug(f'Container created {container_id}')
-
-        payload = {
-            'data': request.get('request')
-        }
 
         if container_id:
             logger.debug(f'Make prediction')
