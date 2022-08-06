@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-
 import celery
 import os
 
@@ -7,8 +5,6 @@ from service import ModelAsHTTPService, DockerOperator
 
 from middleware.helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
-
-load_dotenv()
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
@@ -54,5 +50,3 @@ def predict(service_config, request, point, model_id, model_features, regressor_
     
     finally:
         docker_engine.remove_container(point)
-
-    
