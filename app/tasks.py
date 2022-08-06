@@ -10,7 +10,6 @@ CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
-# logger.debug(f'connected to CELERY_BROKER {CELERY_BROKER} and CELERY_BACKEND {CELERY_BACKEND}')
 
 docker_engine = DockerOperator()
 service = ModelAsHTTPService()
@@ -20,12 +19,14 @@ def predict(config, data):
 
     mtype = data.get('type').lower()
     point = data.get('point').lower()
+    tracking_server_uri = config.get('tracking_server_uri')
 
     payload = {
-        'history': data.get('data'),
         'future': data.get('regressor'),
         'features': ["yhat", "yhat_lower", "yhat_upper"],
-        'settings': data.get('config')
+        "model_uri":"dc9639f797cc4c1baf280926757c72c5",
+        "tracking_server_uri":tracking_server_uri,
+        "regressor_names":data.get('regressor')
     }
 
     service_config = config.get('docker')

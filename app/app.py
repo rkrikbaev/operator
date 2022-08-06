@@ -46,7 +46,7 @@ class Predict():
             resp.media = result
         
         else:
-        
+
             try:
                 file_path = os.path.join(os.getcwd(), 'config/service_config.yaml')
                 logger.debug(f'Loaded config file : {file_path}')
@@ -58,6 +58,7 @@ class Predict():
                 task = predict.delay(config=service_config, data=data) 
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
+            
             except Exception as exc:
                 logger.error(exc)
                 resp.status = falcon.HTTP_500

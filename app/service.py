@@ -61,7 +61,11 @@ class DockerOperator():
         cpuset_cpus = config['limits'].get('cpuset_cpus')
         con_mem_limit = config['limits'].get('con_mem_limit')
         network = config.get('network')
-            
+        features = config.get('features')
+        tracking_server = config.get('tracking_server')
+        model_uri = config.get('model_uri')
+        regressor_names = config.get('regressor_names')
+
         try:
             container = self.client.containers.get(point)
             container.remove(force=True)
@@ -73,7 +77,13 @@ class DockerOperator():
                 detach=True, 
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
-                network=network
+                network=network,
+                environment=[
+                    f'FEATURES={features}', 
+                    f'TRACKING_SERVER={tracking_server}', 
+                    f'MODEL_URI={model_uri}',
+                    f'REGRESSORS={regressor_names}'
+                    ]
                 )
             
             container_id = container.short_id
