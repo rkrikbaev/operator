@@ -40,6 +40,9 @@ class Predict():
         task_id = request.get('uid')
         mtype = request.get('type').lower()
         point = request.get('point').lower()
+        model_features = request.get('features')
+        regressor_names = request.get('regressor_names')
+        model_id = request.get('model_id')
 
         file_path = os.path.join(os.getcwd(), 'app/config/service_config.yaml')
         with open(file_path, 'r') as fl:
@@ -59,7 +62,7 @@ class Predict():
 
             try:
 
-                task = predict.delay(service_config, request, point) 
+                task = predict.delay(service_config, request, point, model_id, model_features, regressor_names) 
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
             

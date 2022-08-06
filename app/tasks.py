@@ -21,11 +21,7 @@ service = ModelAsHTTPService()
 tracking_server = TRACKING_SERVER
 
 @app.task
-def predict(service_config, request, point):
-
-    model_features = request.get('features')
-    regressor_names = request.get('regressor_names')
-    model_uri = request.get('model_uri')
+def predict(service_config, request, point, model_id, model_features, regressor_names):
     
     payload = {
         'data': request.get('request')
@@ -40,7 +36,7 @@ def predict(service_config, request, point):
             service_config,
             model_features,
             tracking_server,
-            model_uri,
+            model_id,
             regressor_names
             )
 
