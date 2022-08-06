@@ -49,7 +49,7 @@ class Predict():
             f =  yaml.safe_load(fl)
             service_config = f.get('docker')[mtype]
 
-        if task_id or len(task_id)==0:
+        if task_id or len(task_id)>10:
             
             task_result = AsyncResult(task_id)
             result = {'status': str(task_result.status), 'result': str(task_result.result)}
