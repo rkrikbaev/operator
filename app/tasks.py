@@ -8,17 +8,17 @@ logger = get_logger(__name__, loglevel='DEBUG')
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
-TRACKING_SERVER = os.environ.get('TRACKING_SERVER')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
 docker_engine = DockerOperator()
 service = ModelAsHTTPService()
-tracking_server = TRACKING_SERVER
+
 
 @app.task
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
     
+    tracking_server = os.environ.get('TRACKING_SERVER')
     port = service_config.get('port')
     
     try:

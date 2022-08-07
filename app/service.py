@@ -62,33 +62,39 @@ class DockerOperator():
         con_mem_limit = service_config['limits'].get('con_mem_limit')
         network = service_config.get('network')
 
+        if model_features is None:
+            model_features = service_config.get('features')
+
         try:
             container = self.client.containers.get(point)
             container.remove(force=True)
         except NotFound:
             logger.debug('Try to create container')
             logger.debug(f'{point},{service_config},{model_features},{tracking_server},{model_id},{regressor_names}')            
-            container = self.client.containers.run(
-                image,
-                name=point,
-                volumes=['/usr/local/etc/modeling/mlruns:/application/mlruns'], 
-                detach=True, 
-                mem_limit=con_mem_limit,
-                cpuset_cpus=cpuset_cpus,
-                network=network,
-                environment=[
-                    f'FEATURES={model_features}', 
-                    f'TRACKING_SERVER={tracking_server}', 
-                    f'MODEL_URI={model_id}',
-                    f'REGRESSORS={regressor_names}'
-                    ],
-                command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
-                )
+            try:
+                container = self.client.containers.run(
+                    image,
+                    name=point,
+                    volumes=['/usr/local/etc/modeling/mlruns:/application/mlruns'], 
+                    detach=True, 
+                    mem_limit=con_mem_limit,
+                    cpuset_cpus=cpuset_cpus,
+                    network=network,
+                    environment=[
+                        f'FEATURES={model_features}', 
+                        f'TRACKING_SERVER={tracking_server}', 
+                        f'MODEL_URI={model_id}',
+                        f'REGRESSORS={regressor_names}'
+                        ],
+                    command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
+                    )
+                
+                container_id = container.short_id
+                container_state = container.status.lower() 
+                logger.debug(f'container #{container_id} {container_state}')  
             
-            container_id = container.short_id
-            container_state = container.status.lower()   
-            
-            logger.debug(f'container #{container_id} {container_state}')
+            except Exception as exc:
+                logger.error(str(exc))
             
             time.sleep(2)
             wait_counter = 0
