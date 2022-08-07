@@ -67,7 +67,7 @@ class DockerOperator():
             container.remove(force=True)
         except NotFound:
             logger.debug('Try to create container')
-            logger.debug(point, service_config, model_features,tracking_server,model_id,regressor_names)            
+            logger.debug(f'{point},{service_config},{model_features},{tracking_server},{model_id},{regressor_names}')            
             container = self.client.containers.run(
                 image,
                 name=point,
