@@ -22,7 +22,7 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
     port = service_config.get('port')
 
     try:
-
+        logger.debug(f'Container created {container_id}')
         container_info = docker_engine.deploy_container(
             point, 
             service_config,

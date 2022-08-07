@@ -57,11 +57,8 @@ class Predict():
 
                 resp.status = falcon.HTTP_200
                 resp.media = result
-        
         else:
-
             try:
-
                 task = predict.delay(service_config, payload, point, model_id, model_features, regressor_names) 
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
