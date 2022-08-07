@@ -22,7 +22,7 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
     port = service_config.get('port')
 
     try:
-        logger.debug(f'Container created {container_id}')
+        logger.debug('Try to create container')
         container_info = docker_engine.deploy_container(
             point, 
             service_config,
@@ -47,4 +47,5 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
         logger.error(error)
     
     finally:
-        docker_engine.remove_container(point)
+        pass
+        # docker_engine.remove_container(point)
