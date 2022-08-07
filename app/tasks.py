@@ -20,9 +20,8 @@ tracking_server = TRACKING_SERVER
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
     
     port = service_config.get('port')
-
+    
     try:
-        logger.debug('Try to create container')
         container_info = docker_engine.deploy_container(
             point, 
             service_config,
