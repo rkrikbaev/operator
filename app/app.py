@@ -66,7 +66,7 @@ class Predict():
             except Exception as exc:
                 logger.error(exc)
                 resp.status = falcon.HTTP_500
-                resp.media = {'state':'fail', 'error':exc}
+                resp.media = {'state':'fail', 'error':exc.text}
 
 api = falcon.App()
 
