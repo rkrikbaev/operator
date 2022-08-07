@@ -36,7 +36,7 @@ class Predict():
     def on_post(self, req, resp):
 
         request = req.media
-        task_id = request.get('uid')
+        task_id = request.get('task_id')
         mtype = request.get('type').lower()
         point = request.get('point').lower()
         model_features = request.get('features')
