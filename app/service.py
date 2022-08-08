@@ -35,7 +35,7 @@ class ModelAsHTTPService():
             logger.debug(response)
         
         except Exception as exp:
-            response['state'] = 'error at model.call()'
+            response['state'] = 'error'
             logger.debug(exp)
 
         return response 
