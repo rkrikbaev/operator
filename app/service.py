@@ -90,33 +90,26 @@ class DockerOperator():
                     ],
                 command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
                 )
-            time.sleep(startup)
             container_id = container.short_id
-            container_state = container.status.lower()
-            logger.debug(f'container #{container_id} {container_state}')  
+            
+            wait_counter = 0
+            while wait_counter < startup:
+                container = self.client.containers.get(container_id)
+                container_state = container.status.lower()
+                # container_state = container.attrs['State'].get('Status').lower()           
+                if container_state == ['created']:
+                    time.sleep(1)
+                    wait_counter += 1
+                elif container_state in ['running']:
+                    logger.debug(f'container #{container_id}, started')
+                    break                
+            else:
+                raise RuntimeError(f'Fail to deploy container for point {point}')
+
         except Exception as exc:
             logger.error(str(exc))
         
-        # wait_counter = 0
-
-        # while wait_counter < 2:
-        #     container = self.client.containers.get(container_id)
-        #     container_state = container.attrs['State'].get('Status').lower()           
-        #     if container_state == ['created']:
-        #         time.sleep(1)
-        #         wait_counter += 1
-        #     elif container_state in ['running']:
-        #         # service_ip = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
-        #         logger.debug(f'container #{container_id}, state: {container_state} with name: {point}')
-        #         break                
-        #     else:
-        #         raise RuntimeError(f'Fail to deploy container for point {point}')
-        
         return {'id':container_id, 'service_ip':point, 'state': container_state}
-
-        # except (APIError, DockerException, RuntimeError) as exc:
-        #     logger.error(f'Docker API error: {exc}')
-        #     logger.error('Fail to create container')
 
     def remove_container(self, container_id):
             
