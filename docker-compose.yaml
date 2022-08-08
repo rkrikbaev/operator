@@ -34,7 +34,7 @@ services:
       - ./app/logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
     networks: 
-      - model
+      - backend
     command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
     environment:
       - CELERY_BROKER=redis://redis:6379/0
@@ -47,7 +47,7 @@ services:
     image: redis:6-alpine
     container_name: operator_redis
     networks: 
-      - model
+      - backend
   
   monitor:
     image: operator_api
@@ -59,7 +59,8 @@ services:
     ports:
       - 5555:5555
     networks: 
-      - model
+      - backend
+      - frontend
     command:  flower -A tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
       - api
