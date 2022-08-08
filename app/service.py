@@ -84,8 +84,8 @@ class DockerOperator():
                         f'FEATURES={model_features}', 
                         f'TRACKING_SERVER={tracking_server}', 
                         f'MODEL_URI={model_id}',
-                        f'REGRESSORS={regressor_names}'
-                        f'PATH_TO_MLRUNS='
+                        f'REGRESSORS={regressor_names}',
+                        f'PATH_TO_MLRUNS=/application/mlruns'
                         ],
                     command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
                     )
