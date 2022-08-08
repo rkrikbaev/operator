@@ -34,7 +34,7 @@ class ModelAsHTTPService():
             #     data=json.dumps({'data':payload}))
 
             response["finish_time"] = str(datetime.datetime.now())
-            response['predictions'] = result.json().get('yhat')
+            # response['predictions'] = result.json().get('yhat')
             logger.debug(f'response: {response}')
         
         except Exception as exp:
