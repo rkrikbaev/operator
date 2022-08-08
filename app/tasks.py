@@ -42,14 +42,14 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
 
         time.sleep(5)
         container_id = container_info.get('id')
-        state = container_info.get('id')
+        state = container_info.get('state')
 
         logger.debug(f'Container created {container_info}')
 
-        if container_id and state =='running':
-            logger.debug(f'Make prediction')
+        if container_id and state == 'running':
+            logger.debug(f'Make prediction with: {payload}, {point}, {port}')
             result = service.call(payload, point, port)
-            logger.debug(f'feedback on request: {result}')
+            logger.debug(f'Feedback on request: {result}')
             return result
         else:
             raise RuntimeError('Container not started...')
