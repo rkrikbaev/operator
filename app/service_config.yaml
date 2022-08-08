@@ -6,7 +6,7 @@ docker:
       con_mem_limit: '512m'
       cpuset_cpus: '1'
     features: 'yhat,yhat_lower,yhat_upper,trend'
-    port: 8005,
+    port: 8005
     startup: 5
   tensorflow:
     image: 'tensorflow/serving:latest'
