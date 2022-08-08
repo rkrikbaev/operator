@@ -31,8 +31,8 @@ class ModelAsHTTPService():
             result = requests.request('POST', url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
 
             response["finish_time"] = str(datetime.datetime.now())
-            response['predictions'] = result.json().get('yhat')
-            logger.debug(f'response: {response}')
+            response['response'] = result.json()
+            logger.debug(response)
         
         except Exception as exp:
             response['state'] = 'error at model.call()'
