@@ -75,7 +75,7 @@ class DockerOperator():
                 container = self.client.containers.run(
                     image,
                     name=point,
-                    volumes=['/usr/local/etc/modeling/mlruns:/application/mlruns'], 
+                    volumes=['/usr/local/etc/mlruns:/application/mlruns'], 
                     detach=True, 
                     mem_limit=con_mem_limit,
                     cpuset_cpus=cpuset_cpus,
@@ -85,6 +85,7 @@ class DockerOperator():
                         f'TRACKING_SERVER={tracking_server}', 
                         f'MODEL_URI={model_id}',
                         f'REGRESSORS={regressor_names}'
+                        f'PATH_TO_MLRUNS='
                         ],
                     command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
                     )
