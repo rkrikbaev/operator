@@ -58,6 +58,7 @@ class DockerOperator():
         cpuset_cpus = service_config['limits'].get('cpuset_cpus')
         con_mem_limit = service_config['limits'].get('con_mem_limit')
         network = service_config.get('network')
+        startup = service_config.get('startup')
 
         if model_features is None:
             model_features = service_config.get('features')
@@ -92,7 +93,7 @@ class DockerOperator():
             container_id = container.short_id
             container_state = container.status.lower() 
             logger.debug(f'container #{container_id} {container_state}')  
-            time.sleep(2)
+            time.sleep(startup)
         except Exception as exc:
             logger.error(str(exc))
         
