@@ -90,10 +90,10 @@ class DockerOperator():
                     ],
                 command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
                 )
-            container_id = container.short_id
-            container_state = container.status.lower() 
-            logger.debug(f'container #{container_id} {container_state}')  
             time.sleep(startup)
+            container_id = container.short_id
+            container_state = container.status.lower()
+            logger.debug(f'container #{container_id} {container_state}')  
         except Exception as exc:
             logger.error(str(exc))
         
