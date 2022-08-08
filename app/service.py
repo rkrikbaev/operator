@@ -61,60 +61,61 @@ class DockerOperator():
 
         if model_features is None:
             model_features = service_config.get('features')
-
         try:
             container = self.client.containers.get(point)
             container.remove(force=True)
+            logger.debug(f'Delete exist container with same point name: {point}')
         except NotFound:
-            logger.debug('Try to create container')
-            logger.debug(f'{point},{service_config},{model_features},{tracking_server},{model_id},{regressor_names}')            
-            try:
-                container = self.client.containers.run(
-                    image,
-                    name=point,
-                    volumes=['/usr/local/etc/mlruns:/application/mlruns'], 
-                    detach=True, 
-                    mem_limit=con_mem_limit,
-                    cpuset_cpus=cpuset_cpus,
-                    network=network,
-                    environment=[
-                        f'FEATURES={model_features}', 
-                        f'TRACKING_SERVER={tracking_server}', 
-                        f'MODEL_URI={model_id}',
-                        f'REGRESSORS={regressor_names}',
-                        f'PATH_TO_MLRUNS=/application/mlruns'
-                        ],
-                    command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
-                    )
-                
-                container_id = container.short_id
-                container_state = container.status.lower() 
-                logger.debug(f'container #{container_id} {container_state}')  
-            
-            except Exception as exc:
-                logger.error(str(exc))
-            
+            pass
+
+        logger.debug('Try to create container')
+        logger.debug(f'{point},{service_config},{model_features},{tracking_server},{model_id},{regressor_names}')            
+        
+        try:
+            container = self.client.containers.run(
+                image,
+                name=point,
+                volumes=['/usr/local/etc/mlruns:/application/mlruns'], 
+                detach=True, 
+                mem_limit=con_mem_limit,
+                cpuset_cpus=cpuset_cpus,
+                network=network,
+                environment=[
+                    f'FEATURES={model_features}', 
+                    f'TRACKING_SERVER={tracking_server}', 
+                    f'MODEL_URI={model_id}',
+                    f'REGRESSORS={regressor_names}',
+                    f'PATH_TO_MLRUNS=/application/mlruns'
+                    ],
+                command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
+                )
+            container_id = container.short_id
+            container_state = container.status.lower() 
+            logger.debug(f'container #{container_id} {container_state}')  
             time.sleep(2)
-            wait_counter = 0
+        except Exception as exc:
+            logger.error(str(exc))
+        
+        # wait_counter = 0
 
-            while wait_counter < 2:
-                container = self.client.containers.get(container_id)
-                container_state = container.attrs['State'].get('Status').lower()           
-                if container_state == ['created']:
-                    time.sleep(1)
-                    wait_counter += 1
-                elif container_state in ['running']:
-                    # service_ip = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
-                    logger.debug(f'container #{container_id}, state: {container_state} with name: {point}')
-                    break                
-                else:
-                    raise RuntimeError(f'Fail to deploy container for point {point}')
-            
-            return {'id':container_id, 'service_ip':point, 'state': container_state}
+        # while wait_counter < 2:
+        #     container = self.client.containers.get(container_id)
+        #     container_state = container.attrs['State'].get('Status').lower()           
+        #     if container_state == ['created']:
+        #         time.sleep(1)
+        #         wait_counter += 1
+        #     elif container_state in ['running']:
+        #         # service_ip = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
+        #         logger.debug(f'container #{container_id}, state: {container_state} with name: {point}')
+        #         break                
+        #     else:
+        #         raise RuntimeError(f'Fail to deploy container for point {point}')
+        
+        return {'id':container_id, 'service_ip':point, 'state': container_state}
 
-        except (APIError, DockerException, RuntimeError) as exc:
-            logger.error(f'Docker API error: {exc}')
-            logger.error('Fail to create container')
+        # except (APIError, DockerException, RuntimeError) as exc:
+        #     logger.error(f'Docker API error: {exc}')
+        #     logger.error('Fail to create container')
 
     def remove_container(self, container_id):
             
