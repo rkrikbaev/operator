@@ -8,6 +8,9 @@ logger = get_logger(__name__, loglevel='DEBUG')
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
+TRACKING_SERVER = os.environ.get('TRACKING_SERVER')
+tracking_server = TRACKING_SERVER
+print(tracking_server)
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
@@ -18,7 +21,11 @@ service = ModelAsHTTPService()
 @app.task
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
     
-    tracking_server = os.environ.get('TRACKING_SERVER')
+    global tracking_server
+
+    if tracking_server is None:
+        tracking_server = 'http://mlflow:5000'
+
     port = service_config.get('port')
     
     try:

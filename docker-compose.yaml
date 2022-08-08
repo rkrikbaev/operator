@@ -68,5 +68,9 @@ services:
 networks:
   model:
     driver: bridge
+    external: true
+    name: model
   backend:
     driver: bridge
+    external: true
+    name: backend
