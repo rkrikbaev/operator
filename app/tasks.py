@@ -1,5 +1,6 @@
 import celery
 import os
+import time
 
 from service import ModelAsHTTPService, DockerOperator
 
@@ -27,6 +28,7 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
         tracking_server = 'http://mlflow:5000'
 
     port = service_config.get('port')
+    logger.debug('try to create container with model')
     
     try:
         container_info = docker_engine.deploy_container(
@@ -37,7 +39,8 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
             model_id,
             regressor_names
             )
-        
+
+        time.sleep(2)
         container_id = container_info.get('id')
         logger.debug(f'Container created {container_id}')
 

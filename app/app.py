@@ -51,6 +51,7 @@ class Predict():
 
         if task_id:
             if len(task_id)>10:
+                logger.debug('request result from celery: {task_id}')
                 task_result = AsyncResult(task_id)
                 result = {'status': str(task_result.status), 'result': str(task_result.result)}
                 logger.debug(result)
@@ -59,6 +60,7 @@ class Predict():
                 resp.media = result
         else:
             try:
+                logger.debug(f'create new model: {model_id}')
                 task = predict.delay(service_config, payload, point, model_id, model_features, regressor_names) 
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
