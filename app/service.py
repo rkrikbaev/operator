@@ -19,7 +19,7 @@ class ModelAsHTTPService():
 
         url = f'http://{point}:{port}/action'
         logger.debug(f'query url: {url}')
-
+        logger.debug(f'query payload: {payload}')
         response = {
                     "state": 'executed',
                     "point": point,
@@ -31,15 +31,16 @@ class ModelAsHTTPService():
                 'POST', 
                 url,
                 headers={'Content-Type': 'application/json'}, 
-                data=json.dumps({'data':payload}))
+                data=json.dumps({'data':payload}),
+                timeout=60)
 
             response["finish_time"] = str(datetime.datetime.now())
             response['predictions'] = result.json().get('yhat')
             logger.debug(f'response: {response}')
         
         except Exception as exp:
-            response['state'] = 'error'
-            logger.error(exp)
+            response['state'] = 'error at model.call()'
+            logger.debug(exp)
 
         return response 
 

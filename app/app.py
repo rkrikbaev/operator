@@ -51,7 +51,7 @@ class Predict():
 
         if task_id:
             if len(task_id)>10:
-                logger.debug('request result from celery: {task_id}')
+                logger.debug(f'request result from celery: {task_id}')
                 task_result = AsyncResult(task_id)
                 result = {'status': str(task_result.status), 'result': str(task_result.result)}
                 logger.debug(result)
@@ -66,7 +66,7 @@ class Predict():
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
             
             except Exception as exc:
-                logger.error(exc)
+                logger.debug(exc)
                 resp.status = falcon.HTTP_500
                 resp.media = {'state':'fail', 'error':exc.text}
 
