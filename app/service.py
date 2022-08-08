@@ -31,8 +31,7 @@ class ModelAsHTTPService():
                 'POST', 
                 url,
                 headers={'Content-Type': 'application/json'}, 
-                data=json.dumps({'data':payload}),
-                timeout=60)
+                data=json.dumps({'data':payload}))
 
             response["finish_time"] = str(datetime.datetime.now())
             response['predictions'] = result.json().get('yhat')
