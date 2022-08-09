@@ -18,7 +18,7 @@ services:
     networks: 
       - model
       - backend
-    command: gunicorn -b 0.0.0.0:8015 app:api
+    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
