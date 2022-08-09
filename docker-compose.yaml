@@ -22,7 +22,7 @@ services:
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
-      - TRACKING_SERVER=${TRACKING_SERVER}
+      - TRACKING_SERVER=http://138.68.70.41:5000
     depends_on:
       - redis
 
