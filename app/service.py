@@ -28,9 +28,9 @@ class ModelAsHTTPService():
                     }
         try:
             # os.system("""'curl --location --request POST 'http://almaty2:8005/action' --header 'Content-Type: application/json' --data-raw '{"data": [[1626321114000],[1626321115000],[1626321116000]]}'""")
-            # result = requests.post('http://almaty2:8005/action', data=json.dumps({'data':payload}))
+            result = requests.post('http://almaty2:8005/action', data=json.dumps({'data':payload}))
             # result = requests.request('POST', url=url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
-            result = mureq.post('http://almaty2:8005/action', body=b'{"data":payload}')
+            # result = mureq.post('http://almaty2:8005/action', body=b'{"data":payload}')
 
             response["finish_time"] = str(datetime.datetime.now())
             response['response'] = result.json()
