@@ -4,7 +4,7 @@ services:
   nginx:
       restart: always
       build: ./nginx
-      image: mlflow_nginx
+      image: proxy_nginx
       container_name: nginx
       ports:
           - "80:80"
@@ -100,32 +100,27 @@ services:
       build: ./mlflow
       image: mlflow_server
       container_name: mlflow_server
-      expose:
-          - "5000"
+      ports:
+          - 5000:5000
       networks:
           - frontend
           - backend
-          - model
-      command: mlflow server \
-              --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} \
-              --default-artifact-root file:/usr/local/modeling/mlruns \
-              --host 0.0.0.0 -p 5000
+      command: mlflow server --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} --default-artifact-root file:${PWD}/mlruns --host 0.0.0.0 -p 5000
 
-  # jupyter:
-  #     image: prophet-notebook:latest # to be changed on jupyterhub
-  #     build: ./jupyter
-  #     container_name: jupyter_notebook
-  #     ports:
-  #         - 8888:8888
-  #     volumes:
-  #         - ./jupyter/project:/home/project
-  #         - /usr/local/modeling/mlruns:/mlruns
-  #     environment:
-  #         - JUPYTER_ENABLE_LAB=yes
-  #     networks:
-  #         - frontend
-  #         - backend
-  #     command: jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
+  jupyter:
+      image: prophet-notebook:latest
+      build: ./jupyter
+      container_name: mlflow_jupyter_notebook
+      ports:
+          - 8888:8888
+      volumes:
+          - ./jupyter/project:/home/project
+      environment:
+          - JUPYTER_ENABLE_LAB=yes
+      networks:
+          - frontend
+          - backend
+      command: jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
 
 
 volumes:
