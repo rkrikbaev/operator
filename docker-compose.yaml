@@ -109,6 +109,8 @@ services:
               --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} 
               --default-artifact-root file:/usr/local/etc/mlruns 
               --host 0.0.0.0 -p 5000'
+      depends_on:
+        - db
 
   # jupyter:
   #     image: prophet-jupyter_hub:latest
@@ -134,6 +136,6 @@ networks:
   model:
     driver: bridge
   backend:
-    external: true
+    driver: bridge
   frontend:
-    external: true
+    driver: bridge
