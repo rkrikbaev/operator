@@ -63,10 +63,12 @@ class DockerOperator():
 
         if model_features is None:
             model_features = service_config.get('features')
+        
         try:
             container = self.client.containers.get(point)
             container.remove(force=True)
             logger.debug(f'Delete exist container with same point name: {point}')
+            time.sleep(2)
         except NotFound:
             pass
 
