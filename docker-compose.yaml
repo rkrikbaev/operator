@@ -1,5 +1,18 @@
 version: "3.3"
 services:
+  
+  nginx:
+      restart: always
+      build: ./nginx
+      image: mlflow_nginx
+      container_name: mlflow_nginx
+      ports:
+          - "80:80"
+      networks:
+          - frontend
+      depends_on:
+          - mlflow
+
   api:
     build: .
     image: operator_api
@@ -66,9 +79,62 @@ services:
       - api
       - redis
 
+  db:
+      restart: always
+      image: mysql/mysql-server:5.7.28
+      container_name: mlflow_db
+      expose:
+          - "3306"
+      networks:
+          - backend
+      environment:
+          - MYSQL_DATABASE=${MYSQL_DATABASE}
+          - MYSQL_USER=${MYSQL_USER}
+          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      volumes:
+          - dbdata:/var/lib/mysql
+
+  mlflow:
+      restart: always
+      build: ./mlflow
+      image: mlflow_server
+      container_name: mlflow_server
+      expose:
+          - "5000"
+      networks:
+          - frontend
+          - backend
+          - model
+      command: mlflow server \
+              --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} \
+              --default-artifact-root file:/usr/local/modeling/mlruns \
+              --host 0.0.0.0 -p 5000
+
+  jupyter:
+      image: prophet-notebook:latest # to be changed on jupyterhub
+      build: ./jupyter
+      container_name: jupyter_notebook
+      ports:
+          - 8888:8888
+      volumes:
+          - ./jupyter/project:/home/project
+          - /usr/local/modeling/mlruns:/mlruns
+      environment:
+          - JUPYTER_ENABLE_LAB=yes
+      networks:
+          - frontend
+          - backend
+      command: jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
+
+
+volumes:
+  dbdata:
+
+
 networks:
   model:
-    external: true
+    name: model
   backend:
     external: true
   frontend:
