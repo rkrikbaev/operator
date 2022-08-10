@@ -9,11 +9,14 @@ RUN apt-get -y install \
     git \
     libc-dev
 
+RUN apt-get install nodejs npm
+
 RUN pip install --upgrade pip
+RUN pip install jupyterhub && npm install -g configurable-http-proxy && pip install jupyterlab notebook
 
 RUN pip install ipython==7.5.0
 RUN pip install prophet==1.1
-RUN pip install jupyter
+# RUN pip install jupyter
 RUN pip install mlflow==1.24.0
 
 WORKDIR /home/project

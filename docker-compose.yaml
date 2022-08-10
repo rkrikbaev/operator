@@ -107,20 +107,20 @@ services:
           - backend
       command: mlflow server --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} --default-artifact-root file:${PWD}/mlruns --host 0.0.0.0 -p 5000
 
-  jupyter:
-      image: prophet-notebook:latest
-      build: ./jupyter
-      container_name: mlflow_jupyter_notebook
-      ports:
-          - 8888:8888
-      volumes:
-          - ./jupyter/project:/home/project
-      environment:
-          - JUPYTER_ENABLE_LAB=yes
-      networks:
-          - frontend
-          - backend
-      command: jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
+  # jupyter:
+  #     image: prophet-jupyter_hub:latest
+  #     build: ./jupyter
+  #     container_name: jupyter_hub
+  #     ports:
+  #         - 8888:8888
+  #     volumes:
+  #         - ./jupyter/project:/home/project
+  #     environment:
+  #         - JUPYTER_ENABLE_LAB=yes
+  #     networks:
+  #         - frontend
+  #         - backend
+  #     command: jupyterhub --port=8888 #jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
 
 
 volumes:
