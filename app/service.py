@@ -40,7 +40,7 @@ class ModelAsHTTPService():
             response['state'] = 'error'
             logger.debug(exp)
 
-        return response 
+        return response
 
 class DockerOperator():
     """
