@@ -10,7 +10,7 @@ logger = get_logger(__name__, loglevel='DEBUG')
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 TRACKING_SERVER = os.environ.get('TRACKING_SERVER')
-TRACKING_SERVER='http://138.68.70.41:5000'
+# TRACKING_SERVER='http://138.68.70.41:5000'
 tracking_server = TRACKING_SERVER
 logger.debug(tracking_server)
 
@@ -22,8 +22,6 @@ service = ModelAsHTTPService()
 
 @app.task
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
-    
-    global tracking_server
 
     if tracking_server is None:
         tracking_server = 'http://mlflow:5000'
@@ -60,7 +58,3 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
     
     except RuntimeError as error:
         logger.error(error)
-    
-    finally:
-        pass
-        # docker_engine.remove_container(point)
