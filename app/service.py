@@ -20,12 +20,20 @@ class ModelAsHTTPService():
         health_ok = False
         logger.debug('Try to call the model first time')
 
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=100,
+            pool_maxsize=100)
+
+        session.mount('http://', adapter)
+
+
         while tries < 5:
             url = f'http://{ip_address}:{port}/health'
             logger.debug(f'query url: {url}')
             
             try:
-                health = requests.get(url, timeout=2)
+                health = session.get(url, timeout=2)
                 health_ok = health.ok
 
             except ConnectionError as exc:
@@ -128,7 +136,7 @@ class DockerOperator():
                     f'REGRESSORS={regressor_names}',
                     f'PATH_TO_MLRUNS=/application'
                     ],
-                command= 'python wsgi.py' #'gunicorn -b 0.0.0.0:8005 app:api'
+                command= 'gunicorn -b 0.0.0.0:8005 app:api'
                 )
             container_id = container.short_id
             
