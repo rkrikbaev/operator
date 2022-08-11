@@ -2,19 +2,20 @@ version: "2.4"
 services:
   
   nginx:
-      restart: always
-      build: ./nginx
-      image: proxy_nginx
-      container_name: nginx
-      ports:
-          - "80:80"
-      networks:
-          - frontend
-      depends_on:
-          - mlflow
+    restart: always
+    build: ./nginx
+    image: proxy_nginx
+    container_name: nginx
+    ports:
+        - "80:80"
+    networks:
+        - frontend
+    depends_on:
+        - mlflow
 
   operator:
-    build: .
+    restart: always
+    build: ./app
     image: operator
     container_name: operator
     ports:
@@ -22,12 +23,6 @@ services:
     volumes:
       - ./app:/app
       - /var/run/docker.sock:/var/run/docker.sock
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
     networks: 
       - models
       - backend
