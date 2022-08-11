@@ -24,10 +24,9 @@ class ModelAsHTTPService():
             logger.debug(f'query url: {url}')
             
             try:
-                health = requests.get(url)
+                health = requests.get(url, timeout=600)
             except Exception as exc:
                 logger.debug(f'query /health fail by: {exc}')
-                raise RuntimeError(f'model is not accessable by {url}')
             
             if health.ok:
                 
