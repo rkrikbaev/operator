@@ -22,7 +22,6 @@ class ModelAsHTTPService():
 
         while tries < 5:
             url = f'http://{ip_address}:{port}/health'
-            url = 'https://api.github.com'
             logger.debug(f'query url: {url}')
             
             try:
@@ -118,7 +117,7 @@ class DockerOperator():
                 name=point,
                 volumes=['/usr/local/etc/mlruns:/application/mlruns'], 
                 detach=True,
-                ports={8005:8005},
+                # ports={8005:8005},
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
                 network=network,
