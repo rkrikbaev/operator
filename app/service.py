@@ -17,16 +17,19 @@ class ModelAsHTTPService():
     def call(self, payload, container_id, port, point)->dict:
 
         # time delay to deploy application in the container
-        url = f'http://{container_id}:{port}/health'
+        url = f'http://{point}:{port}/health'
         tries = 0
         
         while tries < 5:
             health = requests.get(url)
             if health.ok:
+                
+                url = f'http://{point}:{port}/action'
+                
                 logger.debug(f'query /health success: {health.ok}')
-                url = f'http://{container_id}:{port}/action'
                 logger.debug(f'query url: {url}')
                 logger.debug(f'query payload: {payload}')
+
                 start_time = str(datetime.datetime.now())
                 
                 try:
