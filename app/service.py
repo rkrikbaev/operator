@@ -132,7 +132,7 @@ class DockerOperator():
         except Exception as exc:
             logger.error(str(exc))
         
-        return {'id':container_id, 'service_ip':point, 'state': container_state}
+        return container_id, container_state
 
     def remove_container(self, container_id):
             
