@@ -129,8 +129,9 @@ volumes:
 
 
 networks:
-  bus:
-    name: models
+  models:
+    external: True
+      
   backend:
     driver: bridge
   frontend:
