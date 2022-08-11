@@ -13,4 +13,4 @@ RUN pip install -r requirements.txt
 # Copy the current directory contents into the container at /app
 RUN mkdir app
 WORKDIR /app
-COPY ./app .
+COPY . .
