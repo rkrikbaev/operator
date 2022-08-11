@@ -13,34 +13,50 @@ class ModelAsHTTPService():
     def __init__(self) -> None:
         pass
 
-    def call(self, payload, point, port)->dict:
+    def call(self, payload, container_id, port, point)->dict:
 
         # time delay to deploy application in the container
-        time.sleep(2)
-
-        url = f'http://{point}:{port}/action'
-        logger.debug(f'query url: {url}')
-        logger.debug(f'query payload: {payload}')
-        response = {
-                    "state": 'executed',
-                    "point": point,
-                    "start_time": str(datetime.datetime.now())
-                    }
-        try:
-            # os.system("""'curl --location --request POST 'http://almaty2:8005/action' --header 'Content-Type: application/json' --data-raw '{"data": [[1626321114000],[1626321115000],[1626321116000]]}'""")
-            result = requests.post(url, data=json.dumps({'data':payload}))
-            # result = requests.request('POST', url=url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
-            # result = mureq.post('http://almaty2:8005/action', body=b'{"data":payload}')
-
-            response["finish_time"] = str(datetime.datetime.now())
-            response['response'] = result.json()
-            logger.debug(response)
+        url = f'http://{container_id}:{port}/health'
+        tries = 0
         
-        except Exception as exp:
-            response['state'] = 'error'
-            logger.debug(exp)
+        while tries < 5:
+            health = requests.get(url)
+            if health.ok:
+                logger.debug(f'query /health success: {health.ok}')
+                url = f'http://{container_id}:{port}/action'
+                logger.debug(f'query url: {url}')
+                logger.debug(f'query payload: {payload}')
+                start_time = str(datetime.datetime.now())
+                
+                try:
+                    # os.system("""'curl --location --request POST 'http://almaty2:8005/action' --header 'Content-Type: application/json' --data-raw '{"data": [[1626321114000],[1626321115000],[1626321116000]]}'""")
+                    result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
+                    # result = requests.request('POST', url=url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
+                    # result = mureq.post('http://almaty2:8005/action', body=b'{"data":payload}')
 
-        return response
+                    logger.debug("response executed")
+
+                    return {
+                            "state": 'predict executed',
+                            "point": point,
+                            "start_time": start_time,
+                            "finish_time":  str(datetime.datetime.now()),
+                            "predict": result.json()
+                            }
+                
+                except Exception as exp:
+                    logger.debug(str(exp))
+                    return {
+                            "state": 'predict caused error',
+                            "point": point,
+                            "start_time": start_time
+                            }
+            else:
+                logger.debug(f'query /health success: {health.ok}')
+                tries += 1
+                time.sleep(1)
+                logger.debug('trying request model')
+
 
 class DockerOperator():
     """
