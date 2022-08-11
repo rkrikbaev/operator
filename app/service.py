@@ -24,7 +24,7 @@ class ModelAsHTTPService():
             logger.debug(f'query url: {url}')
             
             try:
-                health = requests.get(url, timeout=600)
+                health = requests.get(url, timeout=2)
             except Exception as exc:
                 logger.debug(f'query /health fail by: {exc}')
             
