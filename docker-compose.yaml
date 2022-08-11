@@ -135,6 +135,7 @@ volumes:
 networks:
   model:
     driver: bridge
+    external: True
   backend:
     driver: bridge
   frontend:

@@ -53,9 +53,9 @@ class ModelAsHTTPService():
                             }
             else:
                 logger.debug(f'query /health success: {health.ok}')
+                logger.debug('trying request model')
                 tries += 1
                 time.sleep(1)
-                logger.debug('trying request model')
 
 
 class DockerOperator():
