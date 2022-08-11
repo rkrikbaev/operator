@@ -17,6 +17,7 @@ class ModelAsHTTPService():
     def call(self, payload, container_id, port, point, ip_address)->dict:
 
         tries = 0
+        health_ok = False
         logger.debug('Try to call the model first time')
 
         while tries < 5:
@@ -25,10 +26,12 @@ class ModelAsHTTPService():
             
             try:
                 health = requests.get(url, timeout=2)
+                health_ok = health.ok
+
             except Exception as exc:
                 logger.debug(f'query /health fail by: {exc}')
             
-            if health.ok:
+            if health_ok:
                 
                 url = f'http://{ip_address}:{port}/action'
 
@@ -62,7 +65,7 @@ class ModelAsHTTPService():
                             "text": str(exp)
                             }
             else:
-                logger.debug(f'query /health success: {health.ok}')
+                logger.debug(f'query /health success: {health_ok}')
                 logger.debug('trying request model again')
                 tries += 1
                 time.sleep(tries)
