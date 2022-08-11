@@ -101,7 +101,7 @@ class DockerOperator():
                 ports={8005:8005},
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
-                network=network,
+                network='models',
                 environment=[
                     f'FEATURES={model_features}', 
                     f'TRACKING_SERVER={tracking_server}', 

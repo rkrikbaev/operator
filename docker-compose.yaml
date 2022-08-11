@@ -29,7 +29,7 @@ services:
         max_attempts: 3
         window: 120s
     networks: 
-      - model
+      - models
       - backend
     command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
     environment:
@@ -134,7 +134,8 @@ volumes:
 
 
 networks:
-  model:
+  bus:
+    name: models
   backend:
     driver: bridge
   frontend:

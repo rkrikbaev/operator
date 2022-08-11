@@ -1,7 +1,7 @@
 docker:
   prophet:
     image: 'rkrikbaev/fp-prophet:latest'
-    network: 'model'
+    network: 'model_net'
     limits:
       con_mem_limit: '512m'
       cpuset_cpus: '1'
@@ -10,14 +10,14 @@ docker:
     startup: 5
   tensorflow:
     image: 'tensorflow/serving:latest'
-    network: 'model'
+    network: 'model_net'
     limits:
       con_mem_limit: '1024m'
       cpuset_cpus: '1'
     features: ''
   test:
     image: alpine:latest
-    network: 'model'
+    network: 'operator_model'
     limits:
       con_mem_limit: '512m'
       cpuset_cpus: '1'
