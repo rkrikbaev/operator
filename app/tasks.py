@@ -9,10 +9,6 @@ logger = get_logger(__name__, loglevel='DEBUG')
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
-TRACKING_SERVER = os.environ.get('TRACKING_SERVER')
-# TRACKING_SERVER='http://138.68.70.41:5000'
-tracking_server = TRACKING_SERVER
-logger.debug(tracking_server)
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
@@ -22,39 +18,33 @@ service = ModelAsHTTPService()
 
 @app.task
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
-
-    if tracking_server is None:
-        tracking_server = 'http://mlflow:5000'
+    
+    tracking_server=os.environ.get('TRACKING_SERVER')
+    logger.debug(tracking_server)
 
     port = service_config.get('port')
     logger.debug('try to create container with model')
-    
-    try:
-        container_info = docker_engine.deploy_container(
-            point, 
-            service_config,
-            model_features,
-            tracking_server,
-            model_id,
-            regressor_names
-            )
 
-        time.sleep(5)
+    if tracking_server:
+        pass
+    else:
+        raise RuntimeError('Address of tracking server was not set')
 
-        container_id = container_info.get('id')
-        state = container_info.get('state')
+    container_id, state = docker_engine.deploy_container(
+        point, 
+        service_config,
+        model_features,
+        model_id,
+        regressor_names,
+        tracking_server=tracking_server
+        )
 
-        logger.debug(f'Container state {container_info}')
+    logger.debug(f'Container state {container_id}')
+    logger.debug(f'Container state {state}')
 
-        if container_id and (state == 'running'):
+    if container_id and (state == 'running'):
+        logger.debug(f'Make prediction with: {payload}, {point}, {port}')
+        return service.call(payload, point, port)
 
-            logger.debug(f'Make prediction with: {payload}, {point}, {port}')
-            result = service.call(payload, point, port)
-            logger.debug(f'Feedback on request: {result}')
-            return result
-        
-        else:
-            raise RuntimeError('Container not started...')
-    
-    except RuntimeError as error:
-        logger.error(error)
+    else:
+        raise RuntimeError('Container not started...')

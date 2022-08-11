@@ -3,6 +3,7 @@ from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time, os
 import requests, json
+from requests import ConnectionError
 
 
 from middleware.helper import get_logger
@@ -44,12 +45,13 @@ class ModelAsHTTPService():
                             "predict": result.json()
                             }
                 
-                except Exception as exp:
+                except ConnectionError as exp:
                     logger.debug(str(exp))
                     return {
                             "state": 'predict caused error',
                             "point": point,
-                            "start_time": start_time
+                            "start_time": start_time,
+                            "text": str(exp)
                             }
             else:
                 logger.debug(f'query /health success: {health.ok}')
