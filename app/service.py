@@ -22,13 +22,14 @@ class ModelAsHTTPService():
 
         while tries < 5:
             url = f'http://{ip_address}:{port}/health'
+            url = 'https://api.github.com'
             logger.debug(f'query url: {url}')
             
             try:
                 health = requests.get(url, timeout=2)
                 health_ok = health.ok
 
-            except Exception as exc:
+            except ConnectionError as exc:
                 logger.debug(f'query /health fail by: {exc}')
             
             if health_ok:
@@ -56,7 +57,7 @@ class ModelAsHTTPService():
                             "predict": result.json()
                             }
                 
-                except ConnectionError as exp:
+                except Exception as exp:
                     logger.debug(str(exp))
                     return {
                             "state": 'predict caused error',
@@ -71,6 +72,7 @@ class ModelAsHTTPService():
                 time.sleep(tries)
         else:
             logger.debug(f'fail to call the model for point {point}')
+            raise RuntimeError(f'fail to call the model for point {point}')
 
 
 class DockerOperator():
