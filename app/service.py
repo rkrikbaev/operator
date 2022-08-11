@@ -128,7 +128,7 @@ class DockerOperator():
                     f'REGRESSORS={regressor_names}',
                     f'PATH_TO_MLRUNS=/application'
                     ],
-                command='gunicorn -b 0.0.0.0:8005 app:api --timeout 600'
+                command= 'python wsgi.py' #'gunicorn -b 0.0.0.0:8005 app:api'
                 )
             container_id = container.short_id
             
