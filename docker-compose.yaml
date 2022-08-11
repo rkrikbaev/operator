@@ -136,7 +136,6 @@ networks:
   model:
     driver: bridge
     external: True
-    name: model
   backend:
     driver: bridge
   frontend:
