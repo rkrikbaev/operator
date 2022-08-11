@@ -16,17 +16,19 @@ class ModelAsHTTPService():
 
     def call(self, payload, container_id, port, point, ip_address)->dict:
 
-        # time delay to deploy application in the container
         url = f'http://{ip_address}:{port}/health'
         tries = 0
+        logger.debug('Try to call the model first time')
         
         while tries < 5:
             health = requests.get(url)
+            logger.debug(f'query url: {url}')
+            logger.debug(f'query /health success: {health.ok}')
+            
             if health.ok:
                 
                 url = f'http://{ip_address}:{port}/action'
 
-                logger.debug(f'query /health success: {health.ok}')
                 logger.debug(f'query url: {url}')
                 logger.debug(f'query payload: {payload}')
 
@@ -58,9 +60,12 @@ class ModelAsHTTPService():
                             }
             else:
                 logger.debug(f'query /health success: {health.ok}')
-                logger.debug('trying request model')
+                logger.debug('trying request model again')
                 tries += 1
-                time.sleep(1)
+                time.sleep(tries)
+        else:
+            logger.debug(f'fail to call the model for point {point}')
+            raise RuntimeError(f'fail to call the model for point {point}')
 
 
 class DockerOperator():
