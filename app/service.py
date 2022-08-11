@@ -71,7 +71,6 @@ class ModelAsHTTPService():
                 time.sleep(tries)
         else:
             logger.debug(f'fail to call the model for point {point}')
-            raise RuntimeError(f'fail to call the model for point {point}')
 
 
 class DockerOperator():
