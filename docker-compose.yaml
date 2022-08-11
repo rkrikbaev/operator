@@ -15,7 +15,9 @@ services:
 
   operator:
     restart: always
-    build: ./app/docker
+    build: 
+      dockerfile: ./app/Dockerfile
+      context: ./app
     image: operator
     container_name: operator
     ports:
@@ -35,7 +37,7 @@ services:
       - redis
 
   celery:
-    image: operator_api
+    image: operator
     container_name: operator_celery
     volumes:
       - ./app:/app
@@ -58,7 +60,7 @@ services:
       - backend
   
   monitor:
-    image: operator_api
+    image: operator
     container_name: operator_monitor
     volumes:
       - ./app:/app
