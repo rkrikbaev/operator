@@ -1,0 +1,3 @@
+2022-08-11T18:09:36+06 [DEBUG] app.py  :: 78 : Application started.
+2022-08-11T18:09:36+06 [DEBUG] wsgi.py :: 13 : Start wsgi web-server
+2022-08-11T18:09:36+06 [DEBUG] wsgi.py :: 14 : Listening Port 8015...
