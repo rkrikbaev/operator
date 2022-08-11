@@ -14,18 +14,18 @@ class ModelAsHTTPService():
     def __init__(self) -> None:
         pass
 
-    def call(self, payload, container_id, port, point)->dict:
+    def call(self, payload, container_id, port, point, ip_address)->dict:
 
         # time delay to deploy application in the container
-        url = f'http://{point}:{port}/health'
+        url = f'http://{ip_address}:{port}/health'
         tries = 0
         
         while tries < 5:
             health = requests.get(url)
             if health.ok:
                 
-                url = f'http://{point}:{port}/action'
-                
+                url = f'http://{ip_address}:{port}/action'
+
                 logger.debug(f'query /health success: {health.ok}')
                 logger.debug(f'query url: {url}')
                 logger.debug(f'query payload: {payload}')
@@ -82,6 +82,7 @@ class DockerOperator():
         con_mem_limit = service_config['limits'].get('con_mem_limit')
         network = service_config.get('network')
         startup = service_config.get('startup')
+        ip_address = None
 
         if model_features is None:
             model_features = service_config.get('features')
@@ -122,11 +123,13 @@ class DockerOperator():
             while wait_counter < startup:
                 container = self.client.containers.get(container_id)
                 container_state = container.status.lower()
-                # container_state = container.attrs['State'].get('Status').lower()           
+                           
                 if container_state == ['created']:
                     time.sleep(1)
                     wait_counter += 1
-                elif container_state in ['running']:
+
+                if container_state in ['running']:
+                    ip_address = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
                     logger.debug(f'container #{container_id}, started')
                     break                
             else:
@@ -135,7 +138,7 @@ class DockerOperator():
         except Exception as exc:
             logger.error(str(exc))
         
-        return container_id, container_state
+        return ip_address, container_id, container_state
 
     def remove_container(self, container_id):
             

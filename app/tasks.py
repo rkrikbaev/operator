@@ -22,7 +22,7 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
     port = service_config.get('port')
     logger.debug('try to create container with model')
 
-    container_id, state = docker_engine.deploy_container(
+    ip_address, container_id, state = docker_engine.deploy_container(
         point, 
         service_config,
         model_features,
@@ -35,7 +35,7 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
 
     if container_id and (state == 'running'):
         logger.debug(f'Make prediction with: {payload}, {point}, {port}')
-        return service.call(payload, container_id, port, point)
+        return service.call(payload, container_id, port, point, ip_address)
 
     else:
         raise RuntimeError('Container not started...')
