@@ -99,6 +99,8 @@ class DockerOperator():
         logger.debug(f'{point},{service_config},{model_features},{model_id},{regressor_names}')            
         
         try:
+            network='models'
+
             container = self.client.containers.run(
                 image,
                 name=point,
@@ -107,7 +109,7 @@ class DockerOperator():
                 ports={8005:8005},
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
-                network='models',
+                network=network,
                 environment=[
                     f'FEATURES={model_features}', 
                     f'TRACKING_SERVER=http://mlflow:5000', 
@@ -129,8 +131,8 @@ class DockerOperator():
                     wait_counter += 1
 
                 if container_state in ['running']:
-                    ip_address = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
-                    logger.debug(f'container #{container_id}, started')
+                    ip_address = container.attrs['NetworkSettings']['Networks'][network]['IPAddress']
+                    logger.debug(f'container #{container_id}, started with IP: {ip_address}')
                     break                
             else:
                 raise RuntimeError(f'Fail to deploy container for point {point}')
