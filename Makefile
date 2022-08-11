@@ -29,7 +29,7 @@ mysql:
         -e MYSQL_USER=mlflow \
         -e MYSQL_PASSWORD=AAA123! \
         -v dbdata:/var/lib/mysql \
-        -v /root/model-training/mlflow/conf.d:/etc/mysql/conf.d \
+        -v /usr/local/db_mlflow/conf.d:/etc/mysql/conf.d \
         --name mlflow_db mysql/mysql-server:5.7.28
 stop:
         docker stop mlflow_db

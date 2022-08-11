@@ -93,7 +93,8 @@ services:
           - MYSQL_PASSWORD=${MYSQL_PASSWORD}
           - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       volumes:
-          - db_data:/var/lib/mysql
+          - dbdata:/var/lib/mysql
+          - /usr/local/etc/db_mlflow/conf.d:/etc/mysql/conf.d
 
   mlflow:
       restart: always
@@ -129,7 +130,7 @@ services:
 
 
 volumes:
-  db_data:
+  dbdata:
 
 
 networks:
