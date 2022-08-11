@@ -15,7 +15,7 @@ services:
 
   operator:
     restart: always
-    build: ./app
+    build: ./app/docker
     image: operator
     container_name: operator
     ports:
