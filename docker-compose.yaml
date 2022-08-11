@@ -18,8 +18,8 @@ services:
     build: ./app
     image: operator
     container_name: operator
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
+    # stdin_open: true # docker run -i
+    # tty: true        # docker run -t
     ports:
       - 8015:8015
     volumes:
@@ -28,7 +28,7 @@ services:
     networks: 
       - models
       - backend
-    command: bash #gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
+    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
