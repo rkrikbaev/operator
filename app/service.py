@@ -16,14 +16,18 @@ class ModelAsHTTPService():
 
     def call(self, payload, container_id, port, point, ip_address)->dict:
 
-        url = f'http://{ip_address}:{port}/health'
         tries = 0
         logger.debug('Try to call the model first time')
-        
+
         while tries < 5:
-            health = requests.get(url)
+            url = f'http://{ip_address}:{port}/health'
             logger.debug(f'query url: {url}')
-            logger.debug(f'query /health success: {health.ok}')
+            
+            try:
+                health = requests.get(url)
+            except Exception as exc:
+                logger.debug(f'query /health fail by: {exc}')
+                raise RuntimeError(f'model is not accessable by {url}')
             
             if health.ok:
                 
