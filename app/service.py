@@ -27,13 +27,12 @@ class ModelAsHTTPService():
 
         session.mount('http://', adapter)
 
-
         while tries < 5:
             url = f'http://{ip_address}:{port}/health'
             logger.debug(f'query url: {url}')
             
             try:
-                health = session.get(url, timeout=2)
+                health = session.get(url)
                 health_ok = health.ok
 
             except ConnectionError as exc:
