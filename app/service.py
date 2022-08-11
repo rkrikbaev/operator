@@ -72,7 +72,7 @@ class DockerOperator():
             logger.error(f'Connection with docker.socket aborted {exc}')
             raise exc
 
-    def deploy_container(self, point, service_config, model_features, tracking_server, model_id, regressor_names):
+    def deploy_container(self, point, service_config, model_features, model_id, regressor_names):
 
         image = service_config.get('image')
         cpuset_cpus = service_config['limits'].get('cpuset_cpus')
@@ -92,7 +92,7 @@ class DockerOperator():
             pass
 
         logger.debug('Try to create container')
-        logger.debug(f'{point},{service_config},{model_features},{tracking_server},{model_id},{regressor_names}')            
+        logger.debug(f'{point},{service_config},{model_features},{model_id},{regressor_names}')            
         
         try:
             container = self.client.containers.run(
@@ -106,7 +106,7 @@ class DockerOperator():
                 network='models',
                 environment=[
                     f'FEATURES={model_features}', 
-                    f'TRACKING_SERVER={tracking_server}', 
+                    f'TRACKING_SERVER=http://mlflow:5000', 
                     f'MODEL_URI={model_id}',
                     f'REGRESSORS={regressor_names}',
                     f'PATH_TO_MLRUNS=/application'

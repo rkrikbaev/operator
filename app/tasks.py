@@ -27,8 +27,7 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
         service_config,
         model_features,
         model_id,
-        regressor_names,
-        tracking_server='http://mlflow:5000'
+        regressor_names
         )
 
     logger.debug(f'Container state {container_id}')
