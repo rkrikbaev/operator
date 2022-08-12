@@ -32,7 +32,7 @@ class ModelAsHTTPService():
         while tries < 15:
           
             try:
-                health = session.get(url, timeout=2)
+                health = session.get(url, timeout=600)
                 health_ok = health.ok
                 logger.debug(f'query url: {url} status: {health_ok}')
 
