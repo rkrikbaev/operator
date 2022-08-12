@@ -4,6 +4,7 @@ from docker.errors import DockerException, APIError, ContainerError, ImageNotFou
 import time, os
 import requests, json
 from requests import ConnectionError
+import http.client
 
 
 from middleware.helper import get_logger
@@ -26,14 +27,18 @@ class ModelAsHTTPService():
             pool_maxsize=100)
 
         session.mount('http://', adapter)
-
+        url = f'http://{ip_address}:{port}/health'
+        logger.debug(f'query url: {url}')
+        self.connection = http.client.HTTPConnection(f'http://{ip_address}',port,timeout=10)
+        
         while tries < 5:
-            url = f'http://{ip_address}:{port}/health'
-            logger.debug(f'query url: {url}')
-            
+          
             try:
-                health = session.get(url, timeout=2)
-                health_ok = health.ok
+                self.connection.request("GET", "/health")
+                response = self.connection.getresponse()
+                # health = session.get(url, timeout=2)
+                # health_ok = health.ok
+                logger.debug(f'query url: {url} status: {response.status}')
 
             except ConnectionError as exc:
                 logger.debug(f'query /health fail by: {exc}')
