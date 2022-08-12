@@ -29,17 +29,18 @@ class ModelAsHTTPService():
         session.mount('http://', adapter)
         url = f'http://{ip_address}:{port}/health'
         
-        self.connection = http.client.HTTPConnection(f'http://{ip_address}',port,timeout=10)
+        # self.connection = http.client.HTTPConnection(f'http://{ip_address}',port,timeout=10)
         
         while tries < 5:
           
             try:
-                logger.debug(f'query url: {url}')
-                self.connection.request("GET", "/health")
-                response = self.connection.getresponse()
-                # health = session.get(url, timeout=2)
-                # health_ok = health.ok
-                logger.debug(f'query url: {url} status: {response.status}')
+                # logger.debug(f'query url: {url}')
+                # self.connection.request("GET", "/health")
+                # response = self.connection.getresponse()
+                health = session.get(url, timeout=2)
+                health_ok = health.ok
+                # logger.debug(f'query url: {url} status: {response.status}')
+                logger.debug(f'query url: {url} status: {health_ok}')
 
             except ConnectionError as exc:
                 logger.debug(f'query /health fail by: {exc}')
