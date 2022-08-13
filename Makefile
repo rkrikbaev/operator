@@ -15,7 +15,7 @@ run:
 
 mlflow:
         mlflow server \
-		—backend-store-uri mysql+pymysql://mlflow:strongpassword@db:3306/db \
+		—backend-store-uri mysql+pymysql://mlflow:AAA123!@db:3306/db \
 		—default-artifact-root /root/model-training/jupyter/project/mlflow/ \
 		—host 0.0.0.0
 jupyter:
@@ -30,7 +30,7 @@ mysql:
         -e MYSQL_PASSWORD=AAA123! \
         -v dbdata:/var/lib/mysql \
         -v /usr/local/db_mlflow/conf.d:/etc/mysql/conf.d \
-        --name mlflow_db mysql/mysql-server:5.7.28
+        --name db mysql/mysql-server:5.7.28
 stop:
         docker stop mlflow_db
         docker volume rm dbdata

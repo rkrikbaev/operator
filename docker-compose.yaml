@@ -18,16 +18,16 @@ services:
     build: ./app
     image: operator
     container_name: operator
-    # stdin_open: true # docker run -i
-    # tty: true        # docker run -t
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
     ports:
       - 8015:8015
     volumes:
       - ./app:/app
       - /var/run/docker.sock:/var/run/docker.sock
-    networks: 
-      - models
-      - backend
+    # networks: 
+    #   - models
+    #   - backend
     command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
@@ -42,8 +42,8 @@ services:
       - ./app:/app
       - ./app/logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
-    networks: 
-      - backend
+    # networks: 
+    #   - backend
     command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
     environment:
       - CELERY_BROKER=redis://redis:6379/0
@@ -55,8 +55,8 @@ services:
   redis:
     image: redis:6-alpine
     container_name: operator_redis
-    networks: 
-      - backend
+    # networks: 
+    #   - backend
   
   monitor:
     image: operator
@@ -67,22 +67,26 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5555:5555
-    networks: 
-      - backend
-      - frontend
+    # networks: 
+    #   - backend
+    #   - frontend
     command:  flower -A tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
       - operator
       - redis
   
-networks:
-  models:
-    external: True
+# networks:
+#   models:
+#     external: True
       
-  backend:
-    driver: bridge
-  frontend:
-    driver: bridge
+#   backend:
+#     driver: bridge
+#   frontend:
+#     driver: bridge
+
+
+
+
   # db:
   #     restart: always
   #     image: mysql/mysql-server:5.7.28
