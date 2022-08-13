@@ -99,7 +99,7 @@ class DockerOperator():
         image = service_config.get('image')
         cpuset_cpus = service_config['limits'].get('cpuset_cpus')
         con_mem_limit = service_config['limits'].get('con_mem_limit')
-        network = service_config.get('network')
+        network = 'operator_default' #service_config.get('network')
         startup = service_config.get('startup')
         ip_address = None
 
@@ -118,7 +118,6 @@ class DockerOperator():
         logger.debug(f'{point},{service_config},{model_features},{model_id},{regressor_names}')            
         
         try:
-            network='models'
 
             container = self.client.containers.run(
                 image,
