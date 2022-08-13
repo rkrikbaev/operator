@@ -74,52 +74,40 @@ services:
     depends_on:
       - operator
       - redis
-  
-# networks:
-#   models:
-#     external: True
-      
-#   backend:
-#     driver: bridge
-#   frontend:
-#     driver: bridge
 
+  db:
+      restart: always
+      image: mysql/mysql-server:5.7.28
+      container_name: mlflow_db
+      expose:
+          - "3306"
+      networks:
+          - backend
+      environment:
+          - MYSQL_DATABASE=${MYSQL_DATABASE}
+          - MYSQL_USER=${MYSQL_USER}
+          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      volumes:
+          - dbdata:/var/lib/mysql
+          - /usr/local/etc/db_mlflow/conf.d:/etc/mysql/conf.d
 
-
-
-  # db:
-  #     restart: always
-  #     image: mysql/mysql-server:5.7.28
-  #     container_name: mlflow_db
-  #     expose:
-  #         - "3306"
-  #     networks:
-  #         - backend
-  #     environment:
-  #         - MYSQL_DATABASE=${MYSQL_DATABASE}
-  #         - MYSQL_USER=${MYSQL_USER}
-  #         - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-  #         - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-  #     volumes:
-  #         - dbdata:/var/lib/mysql
-  #         - /usr/local/etc/db_mlflow/conf.d:/etc/mysql/conf.d
-
-  # mlflow:
-  #     restart: always
-  #     build: ./mlflow
-  #     image: mlflow_server
-  #     container_name: mlflow_server
-  #     ports:
-  #         - 5000:5000
-  #     networks:
-  #         - frontend
-  #         - backend
-  #     command: 'mlflow server 
-  #             --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} 
-  #             --default-artifact-root file:/usr/local/etc/mlruns 
-  #             --host 0.0.0.0 -p 5000'
-  #     depends_on:
-  #       - db
+  mlflow:
+      restart: always
+      build: ./mlflow
+      image: mlflow_server
+      container_name: mlflow_server
+      ports:
+          - 5000:5000
+      networks:
+          - frontend
+          - backend
+      command: 'mlflow server 
+              --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} 
+              --default-artifact-root file:/usr/local/etc/mlruns 
+              --host 0.0.0.0 -p 5000'
+      depends_on:
+        - db
 
   # jupyter:
   #     image: prophet-jupyter_hub:latest
@@ -137,5 +125,5 @@ services:
   #     command: jupyterhub --port=8888 #jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
 
 
-# volumes:
-#   dbdata:
+volumes:
+  dbdata:
