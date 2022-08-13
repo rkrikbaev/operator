@@ -61,7 +61,9 @@ class ModelAsHTTPService():
                             "point": point,
                             "start_time": start_time,
                             "finish_time":  str(datetime.datetime.now()),
-                            "predict": result.json()
+                            "prediction": result.json()['prediction'],
+                            "anomalies": result.json()['anomalies'],
+                            "model_uri": result.json()['model_uri']
                             }
                 
                 except Exception as exp:
