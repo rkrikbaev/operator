@@ -12,7 +12,7 @@ RUN apt-get -y install \
 # RUN apt-get install nodejs
 
 RUN pip install --upgrade pip
-RUN pip install jupyterhub && npm install -g configurable-http-proxy && pip install jupyterlab notebook
+RUN pip install jupyterhub && pip install jupyterlab notebook
 
 RUN pip install ipython==7.5.0
 RUN pip install prophet==1.1
