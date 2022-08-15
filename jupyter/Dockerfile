@@ -9,7 +9,7 @@ RUN apt-get -y install \
     git \
     libc-dev
 
-RUN apt-get install nodejs
+# RUN apt-get install nodejs
 
 RUN pip install --upgrade pip
 RUN pip install jupyterhub && npm install -g configurable-http-proxy && pip install jupyterlab notebook
