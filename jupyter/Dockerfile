@@ -19,6 +19,8 @@ RUN pip install prophet==1.1
 # RUN pip install jupyter
 RUN pip install mlflow==1.24.0
 
+FROM node:12
+
 WORKDIR /home/project
 
 RUN jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
