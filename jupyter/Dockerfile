@@ -14,7 +14,6 @@ RUN pip install --upgrade pip \
     && mlflow==1.24.0
 
 RUN mkdir /etc/jupyterhub
-RUN cp jupyterhub_config.py /etc/jupyterhub/
 
 WORKDIR /home/project
 
