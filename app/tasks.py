@@ -16,7 +16,6 @@ app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
 service = ModelAsHTTPService()
 
-
 @app.task
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
 
