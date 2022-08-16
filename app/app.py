@@ -2,10 +2,8 @@ import falcon
 from falcon.media.validators import jsonschema
 from celery.result import AsyncResult
 import time
-from requests import request
-import yaml
+
 import os
-from pathlib import Path
 
 from schemas import schema
 from tasks import predict
@@ -38,41 +36,25 @@ class Predict():
 
         request = req.media
         task_id = request.get('task_id')
-        mtype = request.get('type').lower()
-        point = request.get('point').lower()
-        model_features = request.get('features')
-        regressor_names = request.get('regressor_names')
-        model_id = request.get('model_id')
-        payload = request.get('data')
 
-        path = Path(__file__).parent.absolute()
-        file_path = os.path.join(path, 'service_config.yaml')
-        
-        with open(file_path, 'r') as fl:
-            f =  yaml.safe_load(fl)
-            service_config = f.get('docker')[mtype]
+        if task_id and len(task_id)>10:
+            logger.debug(f'Request result from celery: {task_id}')
 
-        if task_id:
-            
-            if len(task_id)>10:
-                logger.debug(f'request result from celery: {task_id}')
-                
-                try:
-                    task_result = AsyncResult(task_id)
-                    result = {'status': str(task_result.status), 'result': str(task_result.result), 'state': 'success'}
-                    resp.status = falcon.HTTP_200
-                    resp.media = result
+            try:
+                task_result = AsyncResult(task_id)
+                result = {'status': str(task_result.status), 'result': str(task_result.result), 'state': 'success'}
+                resp.status = falcon.HTTP_200
+                resp.media = result
 
-                except Exception as err:
-                    logger.debug(f'Broker call has exception: {err}')
-                    resp.status = falcon.HTTP_500
-                    resp.media = {'state': 'error', 'error_text': str(err)}
-        
+            except Exception as err:
+                logger.debug(f'Broker call has exception: {err}')
+                resp.status = falcon.HTTP_500
+                resp.media = {'state': 'error', 'error_text': str(err)}
+    
         else:
 
             try:
-                logger.debug(f'create new model: {model_id}')
-                task = predict.delay(service_config, payload, point, model_id, model_features, regressor_names) 
+                task = predict.delay(request) 
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
             

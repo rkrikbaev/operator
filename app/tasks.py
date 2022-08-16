@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from pathlib import Path
-
+import yaml
 import celery
 import os
 
@@ -17,9 +17,25 @@ app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 service = ModelAsHTTPService()
 
 @app.task
-def predict(service_config, payload, point, model_id, model_features, regressor_names):
+def predict(request):
+    mtype = request.get('mtype').lower()
+    point = request.get('point').lower()
+    model_features = request.get('features')
+    regressor_names = request.get('regressor_names')
+    model_id = request.get('model_id')
+    payload = request.get('data')
 
+    logger.debug(f'Create new model: {model_id}')
     logger.debug('Try to create container with model')
+
+    path = Path(__file__).parent.absolute()
+    file_path = os.path.join(path, 'service_config.yaml')
+    service_config = None
+    
+    with open(file_path, 'r') as fl:
+        f =  yaml.safe_load(fl)
+        service_config = f.get('docker')[mtype]
+
     docker_engine = DockerOperator(service_config)
 
     ip_address, state = docker_engine.deploy_container(

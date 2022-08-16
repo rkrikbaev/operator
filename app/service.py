@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from pathlib import Path
 
+from pathlib import Path
 import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
@@ -16,6 +17,7 @@ load_dotenv(dotenv_path=dotenv_path)
 
 PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
 logger.debug(f'PATH_TO_MLRUNS: {PATH_TO_MLRUNS}')
+
 
 class ModelAsHTTPService():
 
@@ -121,7 +123,7 @@ class DockerOperator():
             pass
 
         logger.debug('Try to create container')
-        logger.debug(f'{point},{model_features},{model_id},{regressor_names}')            
+        logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')            
 
         container = self.client.containers.run(
                                 image=self.image,
