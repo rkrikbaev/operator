@@ -13,4 +13,4 @@ jsonschema
 pyyaml
 # gevent
 six
-pydotenv==0.0.7
+python-dotenv==0.20.0
