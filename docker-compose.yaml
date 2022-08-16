@@ -111,20 +111,20 @@ services:
       depends_on:
         - db
 
-  # jupyter:
-  #     image: prophet-jupyter_hub:latest
-  #     build: ./jupyter
-  #     container_name: jupyter_hub
-  #     ports:
-  #         - 8888:8888
-  #     volumes:
-  #         - ./jupyter/project:/home/project
-  #     environment:
-  #         - JUPYTER_ENABLE_LAB=yes
-  #     networks:
-  #         - frontend
-  #         - backend
-  #     command: jupyterhub --port=8888 #jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
+  jupyter:
+      image: prophet-jupyter_hub:latest
+      build: ./jupyter
+      container_name: jupyter_hub
+      ports:
+          - 8888:8888
+      volumes:
+          - ./jupyter/project:/home/project
+      environment:
+          - JUPYTER_ENABLE_LAB=yes
+      networks:
+          - frontend
+          - backend
+      command: jupyterhub --port=8888 #jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
 
 
 volumes:
