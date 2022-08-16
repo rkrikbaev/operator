@@ -37,7 +37,7 @@ def predict(request):
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[mtype]
 
-    docker = DockerOperator(service_config, path_to_model=PATH_TO_MLRUNS)
+    docker = DockerOperator(service_config, path_to_models=PATH_TO_MLRUNS)
 
     ip_address, state = docker.deploy_container(
         point,

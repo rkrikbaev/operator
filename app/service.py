@@ -93,7 +93,7 @@ class DockerOperator():
         self.model_features = docker_config.get('features')
         self.network = 'operator_default'
         self.path_to_models = path_to_models
-        
+
     def deploy_container(self, point, model_features, model_id, regressor_names):
         ip_address = None
         
