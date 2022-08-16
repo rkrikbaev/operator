@@ -32,7 +32,7 @@ services:
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
-      - MLFLOW_MLRUNS=${PATH_TO_MLRUNS}
+      - PATH_TO_MLRUNS=${PATH_TO_MLRUNS}
     depends_on:
       - redis
 

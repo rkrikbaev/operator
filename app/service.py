@@ -16,6 +16,7 @@ load_dotenv(dotenv_path=dotenv_path)
 
 PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
 
+
 class ModelAsHTTPService():
 
     def __init__(self) -> None:
@@ -95,58 +96,55 @@ class DockerOperator():
     """
     Class to work with docker objects
     """
-    def __init__(self,):
+    def __init__(self, service_config):
 
-        try:
-            self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
-        except DockerException as exc:
-            logger.error(f'Connection with docker.socket aborted {exc}')
+        self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
+        self.image = service_config.get('image')
+        self.cpuset_cpus = service_config['limits'].get('cpuset_cpus')
+        self.con_mem_limit = service_config['limits'].get('con_mem_limit')       
+        self.startup = service_config.get('startup')
+        self.model_features = service_config.get('features')
+        self.network = 'operator_default'
+        
+        logger.debug(f'{service_config}')  
 
-    def deploy_container(self, point, service_config, model_features, model_id, regressor_names):
-
-        image = service_config.get('image')
-        cpuset_cpus = service_config['limits'].get('cpuset_cpus')
-        con_mem_limit = service_config['limits'].get('con_mem_limit')
-        network = 'operator_default' #service_config.get('network')
-        startup = service_config.get('startup')
+    def deploy_container(self, point, model_features, model_id, regressor_names):
         ip_address = None
-
-        if model_features is None:
-            model_features = service_config.get('features')
         
         try:
             container = self.client.containers.get(point)
             container.remove(force=True)
             logger.debug(f'Delete exist container with same point name: {point}')
             time.sleep(2)
+        
         except NotFound:
             pass
 
         logger.debug('Try to create container')
-        logger.debug(f'{point},{service_config},{model_features},{model_id},{regressor_names}')            
+        logger.debug(f'{point},{model_features},{model_id},{regressor_names}')            
 
         container = self.client.containers.run(
-            image,
-            name=point,
-            volumes=[f'{PATH_TO_MLRUNS}/mlruns:/application/mlruns'], 
-            detach=True,
-            mem_limit=con_mem_limit,
-            cpuset_cpus=cpuset_cpus,
-            network=network,
-            environment=[
-                f'FEATURES={model_features}', 
-                f'TRACKING_SERVER=http://mlflow:5000', 
-                f'MODEL_ID={model_id}',
-                f'REGRESSORS={regressor_names}',
-                f'PATH_TO_MLRUNS=/application'
-                ],
-            command= 'gunicorn -b 0.0.0.0:8005 app:api'
-            )
+                                image=self.image,
+                                name=point,
+                                volumes=[f'{PATH_TO_MLRUNS}/mlruns:/application/mlruns'], 
+                                detach=True,
+                                mem_limit=self.con_mem_limit,
+                                cpuset_cpus=self.cpuset_cpus,
+                                network=self.network,
+                                environment=[
+                                    f'FEATURES={model_features}', 
+                                    f'TRACKING_SERVER=http://mlflow:5000', 
+                                    f'MODEL_ID={model_id}',
+                                    f'REGRESSORS={regressor_names}',
+                                    f'PATH_TO_MLRUNS=/application'
+                                    ],
+                                command= 'gunicorn -b 0.0.0.0:8005 app:api'
+                                )
 
         container_id = container.short_id
         wait_counter = 0
 
-        while wait_counter < startup:
+        while wait_counter < self.startup:
             container = self.client.containers.get(container_id)
             container_state = container.status.lower()
                         
@@ -155,25 +153,9 @@ class DockerOperator():
                 wait_counter += 1
 
             if container_state in ['running']:
-                ip_address = container.attrs['NetworkSettings']['Networks'][network]['IPAddress']
+                ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 logger.debug(f'container #{point}, started with IP: {ip_address}')
                 
                 return ip_address, container_state                
         else:
-            raise RuntimeError(f'Fail to deploy container for point {point}')
-
-    def remove_container(self, container_id):
-            
-        '''
-        Remove a docker container using a given id; passing keyword arguments
-        documented to be accepted by docker's client.containers.remove function
-        No extra side effects. Handles and reraises APIError exceptions.
-        '''
-            
-        try:               
-            container = self.client.containers.get(container_id)
-            container.remove(force=True)
-            logger.debug(f'container {container.short_id} removed')
-        
-        except APIError as exc:
-            logger.error(f'Unable to remove container by APIError error: {exc}')
+            raise RuntimeError(f'Fail to deploy container for point: {point}')

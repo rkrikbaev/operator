@@ -14,18 +14,17 @@ CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
-docker_engine = DockerOperator()
 service = ModelAsHTTPService()
 
 
 @app.task
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
 
-    logger.debug('try to create container with model')
+    logger.debug('Try to create container with model')
+    docker_engine = DockerOperator(service_config)
 
     ip_address, state = docker_engine.deploy_container(
-        point, 
-        service_config,
+        point,
         model_features,
         model_id,
         regressor_names
