@@ -7,3 +7,6 @@
 2022-08-16T17:36:49+06 [ERROR] service.py:: 103 : Connection with docker.socket aborted Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
 2022-08-16T17:37:08+06 [ERROR] service.py:: 103 : Connection with docker.socket aborted Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
 2022-08-16T17:39:54+06 [ERROR] service.py:: 103 : Connection with docker.socket aborted Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
+2022-08-16T17:41:53+06 [ERROR] service.py:: 103 : Connection with docker.socket aborted Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
+2022-08-16T17:46:13+06 [ERROR] service.py:: 103 : Connection with docker.socket aborted Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
+2022-08-16T17:51:01+06 [ERROR] service.py:: 103 : Connection with docker.socket aborted Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))

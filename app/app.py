@@ -53,15 +53,23 @@ class Predict():
             service_config = f.get('docker')[mtype]
 
         if task_id:
+            
             if len(task_id)>10:
                 logger.debug(f'request result from celery: {task_id}')
-                task_result = AsyncResult(task_id)
-                result = {'status': str(task_result.status), 'result': str(task_result.result)}
-                logger.debug(result)
+                
+                try:
+                    task_result = AsyncResult(task_id)
+                    result = {'status': str(task_result.status), 'result': str(task_result.result), 'state': 'success'}
+                    resp.status = falcon.HTTP_200
+                    resp.media = result
 
-                resp.status = falcon.HTTP_200
-                resp.media = result
+                except Exception as err:
+                    logger.debug(f'Broker call has exception: {err}')
+                    resp.status = falcon.HTTP_500
+                    resp.media = {'state': 'error', 'error_text': str(err)}
+        
         else:
+
             try:
                 logger.debug(f'create new model: {model_id}')
                 task = predict.delay(service_config, payload, point, model_id, model_features, regressor_names) 
@@ -71,7 +79,7 @@ class Predict():
             except Exception as exc:
                 logger.debug(exc)
                 resp.status = falcon.HTTP_500
-                resp.media = {'state':'fail', 'error':exc.text}
+                resp.media = {'state':'error', 'error_text':exc.text}
 
 api = falcon.App()
 
