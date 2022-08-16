@@ -11,5 +11,6 @@ jsonschema
 # msgpack
 # pytest
 pyyaml
-gevent
+# gevent
 six
+pydotenv==0.0.7
