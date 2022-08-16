@@ -15,8 +15,6 @@ class ModelAsHTTPService():
         pass
 
     def call(self, payload, point, ip_address)->dict:
-
-        tries = 0
         health_ok = False
         logger.debug('Try to call the model first time')
 
@@ -28,51 +26,51 @@ class ModelAsHTTPService():
         session.mount('http://', adapter)
         url = f'http://{ip_address}:8005/health'
 
-        while tries < 15:
+        tries = 0
+        while tries < 2:
           
             try:
                 health = session.get(url, timeout=600)
                 health_ok = health.ok
                 logger.debug(f'query url: {url} status: {health_ok}')
 
-                return 
+                url = f'http://{ip_address}:8005/action'
+
+                logger.debug(f'query url: {url}')
+                logger.debug(f'query payload: {payload}')
+
+                start_time = str(datetime.datetime.now())
+                
+                try:
+                    result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}), timeout=10)
+
+                    return {
+                            "state": 'model successefully executed',
+                            "point": point,
+                            "start_time": start_time,
+                            "finish_time":  str(datetime.datetime.now()),
+                            "prediction": result.json().get('prediction'),
+                            "anomalies": result.json().get('anomalies'),
+                            "model_id": result.json().get('model_id'),
+                            "error": False
+                            }
+
+                except Exception as exp:
+                    logger.debug(str(exp))
+                    
+                    return {
+                            "state": 'model side caused error}',
+                            "point": point,
+                            "start_time": start_time,
+                            "error_text": str(exp),
+                            "error": True
+                            }
 
             except ConnectionError as exc:
                 logger.debug(f'query /health fail by: {exc}')
                 tries += 1
                 logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
                 time.sleep(tries)
-                
-            url = f'http://{ip_address}:8005/action'
-
-            logger.debug(f'query url: {url}')
-            logger.debug(f'query payload: {payload}')
-
-            start_time = str(datetime.datetime.now())
-            
-            try:
-                result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}), timeout=10)
-
-                return {
-                        "state": 'model successefully executed',
-                        "point": point,
-                        "start_time": start_time,
-                        "finish_time":  str(datetime.datetime.now()),
-                        "prediction": result.json().get('prediction'),
-                        "anomalies": result.json().get('anomalies'),
-                        "model_id": result.json().get('model_id'),
-                        "error": False
-                        }
-
-            except Exception as exp:
-                logger.debug(str(exp))
-                return {
-                        "state": 'model side caused error}',
-                        "point": point,
-                        "start_time": start_time,
-                        "error_text": str(exp),
-                        "error": True
-                        }
 
         else:
             logger.debug(f'fail to call the model for point {point}')
