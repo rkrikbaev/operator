@@ -18,7 +18,7 @@ service = ModelAsHTTPService()
 
 @app.task
 def predict(request):
-    mtype = request.get('mtype').lower()
+    mtype = request.get('type').lower()
     point = request.get('point').lower()
     model_features = request.get('features')
     regressor_names = request.get('regressor_names')

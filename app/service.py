@@ -61,12 +61,7 @@ class ModelAsHTTPService():
             start_time = str(datetime.datetime.now())
             
             try:
-                # os.system("""'curl --location --request POST 'http://almaty2:8005/action' --header 'Content-Type: application/json' --data-raw '{"data": [[1626321114000],[1626321115000],[1626321116000]]}'""")
                 result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}), timeout=10)
-                # result = requests.request('POST', url=url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
-                # result = mureq.post('http://almaty2:8005/action', body=b'{"data":payload}')
-
-                logger.debug("response executed")
 
                 return {
                         "state": 'model successefully executed',
@@ -123,12 +118,15 @@ class DockerOperator():
             pass
 
         logger.debug('Try to create container')
-        logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')            
+        logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
+
+        volume_path = f'{PATH_TO_MLRUNS}/mlruns:/application/mlruns'
+        logger.debug(f'The conatiner volume path: {volume_path}')          
 
         container = self.client.containers.run(
                                 image=self.image,
                                 name=point,
-                                volumes=[f'{PATH_TO_MLRUNS}/mlruns:/application/mlruns'], 
+                                volumes=[volume_path], 
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
