@@ -125,7 +125,7 @@ services:
       # networks:
       #     - frontend
       #     - backend
-      command: bash #jupyterhub -f /etc/jupyterhub/jupyterhub_config.py #     jupyterhub --ip 10.0.1.2 --port 443 --ssl-key my_ssl.key --ssl-cert my_ssl.cert
+      command: jupyterhub --port 8888 -f /etc/jupyterhub/jupyterhub_config.py #     jupyterhub --ip 10.0.1.2 --port 443 --ssl-key my_ssl.key --ssl-cert my_ssl.cert
 
 
 volumes:
