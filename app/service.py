@@ -1,14 +1,21 @@
+from dotenv import load_dotenv
+from pathlib import Path
+
 import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time, os
 import requests, json
 from requests import ConnectionError
-import http.client
-
 
 from middleware.helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
+
+dotenv_path = Path('.env')
+load_dotenv(dotenv_path=dotenv_path)
+
+PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
+print()
 
 class ModelAsHTTPService():
 
@@ -28,7 +35,7 @@ class ModelAsHTTPService():
 
         session.mount('http://', adapter)
         url = f'http://{ip_address}:{port}/health'
-        
+
         while tries < 15:
           
             try:
@@ -36,49 +43,50 @@ class ModelAsHTTPService():
                 health_ok = health.ok
                 logger.debug(f'query url: {url} status: {health_ok}')
 
+                return 
+
             except ConnectionError as exc:
                 logger.debug(f'query /health fail by: {exc}')
-            
-            if health_ok:
-                
-                url = f'http://{ip_address}:{port}/action'
-
-                logger.debug(f'query url: {url}')
-                logger.debug(f'query payload: {payload}')
-
-                start_time = str(datetime.datetime.now())
-                
-                try:
-                    # os.system("""'curl --location --request POST 'http://almaty2:8005/action' --header 'Content-Type: application/json' --data-raw '{"data": [[1626321114000],[1626321115000],[1626321116000]]}'""")
-                    result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}), timeout=10)
-                    # result = requests.request('POST', url=url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
-                    # result = mureq.post('http://almaty2:8005/action', body=b'{"data":payload}')
-
-                    logger.debug("response executed")
-
-                    return {
-                            "state": 'predict executed',
-                            "point": point,
-                            "start_time": start_time,
-                            "finish_time":  str(datetime.datetime.now()),
-                            "prediction": result.json()['prediction'],
-                            "anomalies": result.json()['anomalies'],
-                            "model_uri": result.json()['model_uri']
-                            }
-                
-                except Exception as exp:
-                    logger.debug(str(exp))
-                    return {
-                            "state": 'predict caused error',
-                            "point": point,
-                            "start_time": start_time,
-                            "text": str(exp)
-                            }
-            else:
-                logger.debug(f'query /health success: {health_ok}')
-                logger.debug('trying request model again')
                 tries += 1
+                logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
                 time.sleep(tries)
+                
+            url = f'http://{ip_address}:{port}/action'
+
+            logger.debug(f'query url: {url}')
+            logger.debug(f'query payload: {payload}')
+
+            start_time = str(datetime.datetime.now())
+            
+            try:
+                # os.system("""'curl --location --request POST 'http://almaty2:8005/action' --header 'Content-Type: application/json' --data-raw '{"data": [[1626321114000],[1626321115000],[1626321116000]]}'""")
+                result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}), timeout=10)
+                # result = requests.request('POST', url=url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}))
+                # result = mureq.post('http://almaty2:8005/action', body=b'{"data":payload}')
+
+                logger.debug("response executed")
+
+                return {
+                        "state": 'model successefully executed',
+                        "point": point,
+                        "start_time": start_time,
+                        "finish_time":  str(datetime.datetime.now()),
+                        "prediction": result.json().get('prediction'),
+                        "anomalies": result.json().get('anomalies'),
+                        "model_id": result.json().get('model_id'),
+                        "error": False
+                        }
+
+            except Exception as exp:
+                logger.debug(str(exp))
+                return {
+                        "state": 'model side caused error}',
+                        "point": point,
+                        "start_time": start_time,
+                        "error_text": str(exp),
+                        "error": True
+                        }
+
         else:
             logger.debug(f'fail to call the model for point {point}')
             raise RuntimeError(f'fail to call the model for point {point}')
@@ -124,9 +132,8 @@ class DockerOperator():
             container = self.client.containers.run(
                 image,
                 name=point,
-                volumes=['/usr/local/etc/mlruns:/application/mlruns'], 
+                volumes=[f'{PATH_TO_MLRUNS}:/application/mlruns'], 
                 detach=True,
-                # ports={8005:8005},
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
                 network=network,

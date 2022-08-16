@@ -32,6 +32,7 @@ services:
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - MLFLOW_MLRUNS=${PATH_TO_MLRUNS}
     depends_on:
       - redis
 
@@ -104,7 +105,7 @@ services:
       #     - backend
       command: 'mlflow server 
               --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} 
-              --default-artifact-root file:/usr/local/etc/mlruns 
+              --default-artifact-root file:${PATH_TO_MLRUNS} 
               --host 0.0.0.0 -p 5000'
       depends_on:
         - db

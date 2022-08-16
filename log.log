@@ -1,3 +1,4 @@
 2022-08-11T18:09:36+06 [DEBUG] app.py  :: 78 : Application started.
 2022-08-11T18:09:36+06 [DEBUG] wsgi.py :: 13 : Start wsgi web-server
 2022-08-11T18:09:36+06 [DEBUG] wsgi.py :: 14 : Listening Port 8015...
+2022-08-16T12:22:27+06 [ERROR] service.py:: 104 : Connection with docker.socket aborted Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
