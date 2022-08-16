@@ -21,10 +21,9 @@ service = ModelAsHTTPService()
 @app.task
 def predict(service_config, payload, point, model_id, model_features, regressor_names):
 
-    port = service_config.get('port')
     logger.debug('try to create container with model')
 
-    ip_address, container_id, state = docker_engine.deploy_container(
+    ip_address, state = docker_engine.deploy_container(
         point, 
         service_config,
         model_features,
@@ -32,12 +31,9 @@ def predict(service_config, payload, point, model_id, model_features, regressor_
         regressor_names
         )
 
-    logger.debug(f'Container state {container_id}')
-    logger.debug(f'Container state {state}')
+    logger.debug(f'Container: {point} has state {state}')
 
-    if container_id and (state == 'running'):
-        logger.debug(f'Make prediction with: {payload}, {point}, {port}')
-        return service.call(payload, container_id, port, point, ip_address)
-
-    else:
-        raise RuntimeError('Container not started...')
+    if ip_address and (state == 'running'):
+        logger.debug(f'Make prediction with: {payload}, {point}')
+        
+        return service.call(payload, point, ip_address)

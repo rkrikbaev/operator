@@ -5,6 +5,7 @@ import time
 from requests import request
 import yaml
 import os
+from pathlib import Path
 
 from schemas import schema
 from tasks import predict
@@ -43,8 +44,10 @@ class Predict():
         regressor_names = request.get('regressor_names')
         model_id = request.get('model_id')
         payload = request.get('data')
-    
-        file_path = os.path.join(os.getcwd(), 'service_config.yaml')
+
+        path = Path(__file__).parent.absolute()
+        file_path = os.path.join(path, 'service_config.yaml')
+        
         with open(file_path, 'r') as fl:
             f =  yaml.safe_load(fl)
             service_config = f.get('docker')[mtype]
