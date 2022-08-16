@@ -1,22 +1,12 @@
-from dotenv import load_dotenv
-from pathlib import Path
-
-from pathlib import Path
 import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
-import time, os
+import time
 import requests, json
 from requests import ConnectionError
 
 from middleware.helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
-
-dotenv_path = Path('.env')
-load_dotenv(dotenv_path=dotenv_path)
-
-PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
-logger.debug(f'PATH_TO_MLRUNS: {PATH_TO_MLRUNS}')
 
 
 class ModelAsHTTPService():
@@ -93,18 +83,17 @@ class DockerOperator():
     """
     Class to work with docker objects
     """
-    def __init__(self, service_config):
+    def __init__(self, docker_config, path_to_models):
 
         self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
-        self.image = service_config.get('image')
-        self.cpuset_cpus = service_config['limits'].get('cpuset_cpus')
-        self.con_mem_limit = service_config['limits'].get('con_mem_limit')       
-        self.startup = service_config.get('startup')
-        self.model_features = service_config.get('features')
+        self.image = docker_config.get('image')
+        self.cpuset_cpus = docker_config['limits'].get('cpuset_cpus')
+        self.con_mem_limit = docker_config['limits'].get('con_mem_limit')       
+        self.startup = docker_config.get('startup')
+        self.model_features = docker_config.get('features')
         self.network = 'operator_default'
+        self.path_to_models = path_to_models
         
-        logger.debug(f'{service_config}')  
-
     def deploy_container(self, point, model_features, model_id, regressor_names):
         ip_address = None
         
@@ -120,7 +109,7 @@ class DockerOperator():
         logger.debug('Try to create container')
         logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
 
-        volume_path = f'{PATH_TO_MLRUNS}/mlruns:/application/mlruns'
+        volume_path = f'{self.path_to_models}/mlruns:/application/mlruns'
         logger.debug(f'The conatiner volume path: {volume_path}')          
 
         container = self.client.containers.run(

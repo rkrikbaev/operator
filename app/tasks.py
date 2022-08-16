@@ -11,10 +11,11 @@ logger = get_logger(__name__, loglevel='DEBUG')
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
+PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
-service = ModelAsHTTPService()
+s = ModelAsHTTPService()
 
 @app.task
 def predict(request):
@@ -36,9 +37,9 @@ def predict(request):
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[mtype]
 
-    docker_engine = DockerOperator(service_config)
+    docker = DockerOperator(service_config, path_to_model=PATH_TO_MLRUNS)
 
-    ip_address, state = docker_engine.deploy_container(
+    ip_address, state = docker.deploy_container(
         point,
         model_features,
         model_id,
@@ -50,4 +51,4 @@ def predict(request):
     if ip_address and (state == 'running'):
         logger.debug(f'Make prediction with: {payload}, {point}')
         
-        return service.call(payload, point, ip_address)
+        return s.call(payload, point, ip_address)
