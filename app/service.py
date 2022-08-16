@@ -160,7 +160,6 @@ class DockerOperator():
                 
                 return ip_address, container_state                
         else:
-            
             raise RuntimeError(f'Fail to deploy container for point {point}')
 
     def remove_container(self, container_id):
