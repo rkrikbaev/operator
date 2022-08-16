@@ -15,7 +15,7 @@ dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
-
+logger.debug(f'PATH_TO_MLRUNS: {PATH_TO_MLRUNS}')
 
 class ModelAsHTTPService():
 
