@@ -15,7 +15,6 @@ dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
-print()
 
 class ModelAsHTTPService():
 
@@ -132,7 +131,7 @@ class DockerOperator():
             container = self.client.containers.run(
                 image,
                 name=point,
-                volumes=[f'{PATH_TO_MLRUNS}:/application/mlruns'], 
+                volumes=[f'{PATH_TO_MLRUNS}/mlruns:/application/mlruns'], 
                 detach=True,
                 mem_limit=con_mem_limit,
                 cpuset_cpus=cpuset_cpus,
