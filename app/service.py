@@ -140,7 +140,7 @@ class DockerOperator():
                 environment=[
                     f'FEATURES={model_features}', 
                     f'TRACKING_SERVER=http://mlflow:5000', 
-                    f'MODEL_URI={model_id}',
+                    f'MODEL_ID={model_id}',
                     f'REGRESSORS={regressor_names}',
                     f'PATH_TO_MLRUNS=/application'
                     ],
