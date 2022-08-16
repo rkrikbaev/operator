@@ -119,12 +119,13 @@ services:
           - 8888:8888
       volumes:
           - ./jupyter/project:/home/project
+          - ./jupyter/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py
       # environment:
       #     - JUPYTER_ENABLE_LAB=yes
       # networks:
       #     - frontend
       #     - backend
-      command: jupyterhub --port=8888 #jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
+      command: bash #jupyterhub -f /etc/jupyterhub/jupyterhub_config.py #     jupyterhub --ip 10.0.1.2 --port 443 --ssl-key my_ssl.key --ssl-cert my_ssl.cert
 
 
 volumes:

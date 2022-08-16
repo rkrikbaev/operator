@@ -13,6 +13,9 @@ RUN pip install --upgrade pip \
     && prophet==1.1 \
     && mlflow==1.24.0
 
+RUN mkdir /etc/jupyterhub
+RUN cp jupyterhub_config.py /etc/jupyterhub/
+
 WORKDIR /home/project
 
-CMD ["jupyterhub"]
+CMD ["jupyterhub", "-f", "/etc/jupyterhub/jupyterhub_config.py"]
