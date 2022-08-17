@@ -15,6 +15,4 @@ RUN pip install --upgrade pip \
 
 RUN mkdir /etc/jupyterhub
 
-WORKDIR /home/project
-
-CMD ["jupyterhub", "-f", "/etc/jupyterhub/jupyterhub_config.py"]
+WORKDIR /home
