@@ -1,4 +1,4 @@
-run:
+docker:
 	docker run --rm -it \
 	--name jupyter-notebook \
 	-p 8888:8888 \
@@ -6,9 +6,11 @@ run:
 	prophet-notebook:latest \
 	jupyter notebook --allow-root --no-browser --ip='0.0.0.0' --port=8888
 
-local:
-	RUN curl -L https://tljh.jupyter.org/bootstrap.py \
-    | sudo python3 - \
+install:
+	python3 -m venv .venv
+	source .venv/bin/activate
+	curl -L https://tljh.jupyter.org/bootstrap.py \
+    | sudo python - \
     --admin admin:admin \
 	--show-progress-page \
-	--user-requirements-txt-url 
+	--user-requirements-txt-url https://raw.githubusercontent.com/rkrikbaev/operator/dev/jupyter/requirements.txt
