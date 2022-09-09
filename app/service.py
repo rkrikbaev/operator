@@ -27,7 +27,7 @@ class ModelAsHTTPService():
         url = f'http://{ip_address}:8005/health'
 
         tries = 0
-        while tries < 2:
+        while tries < 5:
           
             try:
                 health = session.get(url, timeout=600)
@@ -73,8 +73,7 @@ class ModelAsHTTPService():
                 time.sleep(tries)
 
         else:
-            logger.debug(f'fail to call the model for point {point}')
-            raise RuntimeError(f'fail to call the model for point {point}')
+            logger.debug(f' Tried to call a model for point {point} {tries} times')
 
 
 class DockerOperator():
