@@ -53,7 +53,7 @@ def predict(request):
                     "model_config": model_config,
                     "model_features": model_features,
                     "regressor_names": regressor_names,
-                    "history_dataset": dataset, 
+                    "dataset": dataset, 
                     "period": period,
                     "model_uri": model_uri
                 }
