@@ -42,7 +42,7 @@ class Predict():
 
             try:
                 task_result = AsyncResult(task_id)
-                result = {'status': str(task_result.status), 'result': str(task_result.result), 'state': 'success'}
+                result = {'task_status': str(task_result.status), 'result': str(task_result.result)}
                 resp.status = falcon.HTTP_200
                 resp.media = result
 

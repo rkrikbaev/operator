@@ -59,7 +59,7 @@ class ProphetModelAsHTTPService():
                     
                     return {
                             "state": 'model side caused error}',
-                            "point": point,
+                            "point": model_point,
                             "start_time": start_time,
                             "error_text": str(exp)
                             }
@@ -71,7 +71,7 @@ class ProphetModelAsHTTPService():
                 time.sleep(tries)
 
         else:
-            logger.debug(f' Tried to call a model for point {point} {tries} times')
+            logger.debug(f' Tried to call a model for point {model_point} {tries} times')
 
 
 class DockerOperator():
