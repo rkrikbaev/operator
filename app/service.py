@@ -104,7 +104,7 @@ class DockerOperator():
         # logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
 
         volume_mlruns = f'{self.path_to_models}/mlruns:/application/mlruns'         
-        volume_mlruns = '.:/application' 
+        volume_mlruns = './app:/application' 
 
         container = self.client.containers.run(
                                 image=self.image,
