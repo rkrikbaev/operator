@@ -12,6 +12,7 @@ logger = get_logger(__name__, loglevel='DEBUG')
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
+PATH_TO_CODE = os.environ.get('PATH_TO_CODE', default='/opt/prophet-service')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
@@ -40,7 +41,7 @@ def predict(request):
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[model_type]
 
-    docker = DockerOperator(service_config, path_to_models=PATH_TO_MLRUNS)
+    docker = DockerOperator(service_config, path_to_models=PATH_TO_MLRUNS, path_to_code=PATH_TO_CODE)
     ip_address, state = docker.deploy_container(model_point)
 
     logger.debug(f'Container: {model_point} has state {state}')

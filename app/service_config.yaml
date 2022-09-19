@@ -1,6 +1,8 @@
 docker:
   prophet:
     image: 'rkrikbaev/fp-prophet:latest'
+    home: /opt/prophet-service
+    mlruns: 
     network: 'operator_default'
     limits:
       con_mem_limit: '512m'

@@ -78,7 +78,7 @@ class DockerOperator():
     """
     Class to work with docker objects
     """
-    def __init__(self, docker_config, path_to_models):
+    def __init__(self, docker_config, path_to_models, path_to_code):
 
         self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
         self.image = docker_config.get('image')
@@ -87,6 +87,7 @@ class DockerOperator():
         self.startup = docker_config.get('startup')
         self.network = 'operator_default'
         self.path_to_models = path_to_models
+        self.path_to_code = path_to_code
 
     def deploy_container(self, point):
         ip_address = None
@@ -106,7 +107,7 @@ class DockerOperator():
         path_to = os.getcwd()
 
         volume_mlruns = f'{self.path_to_models}/mlruns:/application/mlruns'         
-        volume_app = f'{path_to}/app:/application' 
+        volume_app = f'{self.path_to_code}/app:/application' 
 
         container = self.client.containers.run(
                                 image=self.image,
