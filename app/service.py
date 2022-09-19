@@ -1,7 +1,7 @@
 import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
-import time
+import time, os
 import requests, json
 from requests import ConnectionError
 
@@ -103,8 +103,10 @@ class DockerOperator():
         logger.debug('Try to create container')
         # logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
 
+        path_to = os.getcwd()
+
         volume_mlruns = f'{self.path_to_models}/mlruns:/application/mlruns'         
-        volume_mlruns = './app:/application' 
+        volume_mlruns = f'{path_to}/app:/application' 
 
         container = self.client.containers.run(
                                 image=self.image,
