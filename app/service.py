@@ -106,12 +106,12 @@ class DockerOperator():
         path_to = os.getcwd()
 
         volume_mlruns = f'{self.path_to_models}/mlruns:/application/mlruns'         
-        volume_mlruns = f'{path_to}/app:/application' 
+        volume_app = f'{path_to}/app:/application' 
 
         container = self.client.containers.run(
                                 image=self.image,
                                 name=point,
-                                volumes=[volume_mlruns, ], 
+                                volumes=[volume_mlruns, volume_app], 
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
