@@ -42,7 +42,7 @@ class ProphetModelAsHTTPService():
                 start_time = str(datetime.datetime.now())
                 
                 try:
-                    result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps({'data':payload}), timeout=10)
+                    result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(payload), timeout=10)
 
                     return {
                             "state": 'model successefully executed',
