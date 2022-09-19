@@ -9,7 +9,7 @@ from middleware.helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
 
-class ModelAsHTTPService():
+class ProphetModelAsHTTPService():
 
     def __init__(self) -> None:
         pass
@@ -51,8 +51,7 @@ class ModelAsHTTPService():
                             "finish_time":  str(datetime.datetime.now()),
                             "prediction": result.json().get('prediction'),
                             "anomalies": result.json().get('anomalies'),
-                            "model_id": result.json().get('model_id'),
-                            "error": False
+                            "model_uri": result.json().get('model_uri'),
                             }
 
                 except Exception as exp:
@@ -62,8 +61,7 @@ class ModelAsHTTPService():
                             "state": 'model side caused error}',
                             "point": point,
                             "start_time": start_time,
-                            "error_text": str(exp),
-                            "error": True
+                            "error_text": str(exp)
                             }
 
             except ConnectionError as exc:
@@ -91,7 +89,7 @@ class DockerOperator():
         self.network = 'operator_default'
         self.path_to_models = path_to_models
 
-    def deploy_container(self, point, model_features, model_id, regressor_names):
+    def deploy_container(self, point):
         ip_address = None
         
         try:
@@ -104,7 +102,7 @@ class DockerOperator():
             pass
 
         logger.debug('Try to create container')
-        logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
+        # logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
 
         volume_path = f'{self.path_to_models}/mlruns:/application/mlruns'
         logger.debug(f'The conatiner volume path: {volume_path}')          
@@ -118,10 +116,7 @@ class DockerOperator():
                                 cpuset_cpus=self.cpuset_cpus,
                                 network=self.network,
                                 environment=[
-                                    f'FEATURES={model_features}', 
                                     f'TRACKING_SERVER=http://mlflow:5000', 
-                                    f'MODEL_ID={model_id}',
-                                    f'REGRESSORS={regressor_names}',
                                     f'PATH_TO_MLRUNS=/application'
                                     ],
                                 command= 'gunicorn -b 0.0.0.0:8005 app:api'

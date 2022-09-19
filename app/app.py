@@ -54,7 +54,7 @@ class Predict():
         else:
 
             try:
-                task = predict.delay(request) 
+                task = predict.delay(request)
                 resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
             
