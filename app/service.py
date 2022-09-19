@@ -45,7 +45,6 @@ class ProphetModelAsHTTPService():
                     result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(payload), timeout=10)
 
                     return {
-                            "state": 'model successefully executed',
                             "point": model_point,
                             "start_time": start_time,
                             "finish_time":  str(datetime.datetime.now()),
