@@ -31,7 +31,7 @@ class Predict():
     def __init__(self):
         pass
 
-    @jsonschema.validate(req_schema=schema.load_schema('request'))
+    # @jsonschema.validate(req_schema=schema.load_schema('request'))
     def on_post(self, req, resp):
 
         request = req.media
