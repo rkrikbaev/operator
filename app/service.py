@@ -103,13 +103,13 @@ class DockerOperator():
         logger.debug('Try to create container')
         # logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
 
-        volume_path = f'{self.path_to_models}/mlruns:/application/mlruns'
-        logger.debug(f'The conatiner volume path: {volume_path}')          
+        volume_mlruns = f'{self.path_to_models}/mlruns:/application/mlruns'         
+        volume_mlruns = '.:/application' 
 
         container = self.client.containers.run(
                                 image=self.image,
                                 name=point,
-                                volumes=[volume_path], 
+                                volumes=[volume_mlruns, ], 
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
