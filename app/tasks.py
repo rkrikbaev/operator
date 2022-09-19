@@ -21,14 +21,13 @@ s = ProphetModelAsHTTPService()
 def predict(request):
 
     model_type = request.get('model_type').lower()
-    point = request.get('model_point').lower()
-    # model_features = request.get('features')
-    # regressor_names = request.get('regressor_names')
+    model_point = request.get('model_point').lower()
+    model_features = request.get('model_features')
+    regressor_names = request.get('regressor_names')
     model_uri = request.get('model_uri')
     model_config = request.get('model_config')
-    history_dataset = request.get('data')
-    future_dataset = request.get('period')
-    model_config = request.get('model_config')
+    dataset = request.get('dataset')
+    period = request.get('period')
 
     logger.debug(f'Create new model: {model_uri}')
     logger.debug('Try to create container with model')
@@ -42,31 +41,24 @@ def predict(request):
         service_config = f.get('docker')[model_type]
 
     docker = DockerOperator(service_config, path_to_models=PATH_TO_MLRUNS)
+    ip_address, state = docker.deploy_container(model_point)
 
-    ip_address, state = docker.deploy_container(
-        point
-        # model_features,
-        # model_uri,
-        # regressor_names
-        )
-
-    logger.debug(f'Container: {point} has state {state}')
-
+    logger.debug(f'Container: {model_point} has state {state}')
     if ip_address and (state == 'running'):
 
-
         payload = {
-                    "point": point, 
-                    "type": model_type,
-                    "config": model_config,
-                    "history_dataset": history_dataset, 
-                    "future_dataset": future_dataset,
-                    "regressor_names": ["temp"],
+                    "model_point": model_point, 
+                    "model_type": model_type,
+                    "model_config": model_config,
+                    "model_features": model_features,
+                    "regressor_names": regressor_names,
+                    "history_dataset": dataset, 
+                    "period": period,
                     "model_uri": model_uri
                 }
 
-        logger.debug(f'Make prediction with: {payload}, {point}')
+        logger.debug(f'Make prediction with: {payload}, {model_point}')
         
-        response = s.call(payload, point, ip_address)
+        response = s.call(payload, model_point, ip_address)
 
         return response

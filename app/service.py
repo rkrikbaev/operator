@@ -14,7 +14,7 @@ class ProphetModelAsHTTPService():
     def __init__(self) -> None:
         pass
 
-    def call(self, payload, point, ip_address)->dict:
+    def call(self, payload, model_point, ip_address)->dict:
         health_ok = False
         logger.debug('Try to call the model first time')
 
@@ -46,7 +46,7 @@ class ProphetModelAsHTTPService():
 
                     return {
                             "state": 'model successefully executed',
-                            "point": point,
+                            "point": model_point,
                             "start_time": start_time,
                             "finish_time":  str(datetime.datetime.now()),
                             "prediction": result.json().get('prediction'),
@@ -85,7 +85,6 @@ class DockerOperator():
         self.cpuset_cpus = docker_config['limits'].get('cpuset_cpus')
         self.con_mem_limit = docker_config['limits'].get('con_mem_limit')       
         self.startup = docker_config.get('startup')
-        self.model_features = docker_config.get('features')
         self.network = 'operator_default'
         self.path_to_models = path_to_models
 
