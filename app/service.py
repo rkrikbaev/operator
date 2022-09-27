@@ -5,11 +5,11 @@ import time, os
 import requests, json
 from requests import ConnectionError
 
-from middleware.helper import get_logger
+from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
 
-class ProphetModelAsHTTPService():
+class ModelAsHTTPService():
 
     def __init__(self) -> None:
         pass
@@ -73,7 +73,7 @@ class ProphetModelAsHTTPService():
             logger.debug(f' Tried to call a model for point {model_point} {tries} times')
 
 
-class DockerOperator():
+class DockerController():
     """
     Class to work with docker objects
     """
@@ -100,13 +100,8 @@ class DockerOperator():
         except NotFound:
             pass
 
-        logger.debug('Try to create container')
-        # logger.debug(f'Models config: {point},{model_features},{model_id},{regressor_names}')
-
-        path_to = os.getcwd()
-
         volume_mlruns = f'{self.path_to_models}/mlruns:/application/mlruns'         
-        volume_app = f'{self.path_to_code}/app:/application' 
+        volume_app = f'{self.path_to_code}:/application' 
 
         container = self.client.containers.run(
                                 image=self.image,

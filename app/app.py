@@ -1,14 +1,14 @@
 import falcon
-from falcon.media.validators import jsonschema
+
 from celery.result import AsyncResult
 import time
 
 import os
 
-from schemas import schema
+# from schemas import schema
 from tasks import predict
 
-from middleware.helper import get_logger
+from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
 

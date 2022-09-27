@@ -4,19 +4,19 @@ import yaml
 import celery
 import os
 
-from service import ProphetModelAsHTTPService, DockerOperator
+from service import ModelAsHTTPService, DockerController
 
-from middleware.helper import get_logger
+from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
-PATH_TO_CODE = os.environ.get('PATH_TO_CODE', default='/opt/prophet-service')
+PATH_TO_MODEL_ENV = os.environ.get('PATH_TO_MODEL_ENV', default=f'{os.getcwd()}/mlservices')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
-s = ProphetModelAsHTTPService()
+model_service = ModelAsHTTPService()
 
 @app.task
 def predict(request):
@@ -41,7 +41,7 @@ def predict(request):
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[model_type]
 
-    docker = DockerOperator(service_config, path_to_models=PATH_TO_MLRUNS, path_to_code=PATH_TO_CODE)
+    docker = DockerController(service_config, path_to_models=PATH_TO_MLRUNS, path_to_code=PATH_TO_MODEL_ENV + '/_' + model_type)
     ip_address, state = docker.deploy_container(model_point)
 
     logger.debug(f'Container: {model_point} has state {state}')
@@ -60,6 +60,6 @@ def predict(request):
 
         logger.debug(f'Make prediction with: {payload}, {model_point}')
         
-        response = s.call(payload, model_point, ip_address)
+        response = model_service.call(payload, model_point, ip_address)
 
         return response

@@ -1,0 +1,5 @@
+falcon==3.0.1
+jsonschema
+pydotenv==0.0.7
+pytest
+mlflow
