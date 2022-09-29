@@ -87,6 +87,9 @@ class DockerController():
         self.network = 'operator_default'
         self.path_to_models = path_to_models
         self.path_to_code = path_to_code
+        
+        logger.debug('Path to model env code')
+        logger.debug(self.path_to_code)
 
     def deploy_container(self, point):
         ip_address = None

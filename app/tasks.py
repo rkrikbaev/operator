@@ -30,36 +30,32 @@ def predict(request):
     dataset = request.get('dataset')
     period = request.get('period')
 
-    logger.debug(f'Create new model: {model_uri}')
-    logger.debug('Try to create container with model')
-
     path = Path(__file__).parent.absolute()
     file_path = os.path.join(path, 'service_config.yaml')
-    service_config = None
     
     with open(file_path, 'r') as fl:
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[model_type]
 
-    docker = DockerController(service_config, path_to_models=PATH_TO_MLRUNS, path_to_code=PATH_TO_MODEL_ENV + '/_' + model_type)
-    ip_address, state = docker.deploy_container(model_point)
+        docker = DockerController(service_config, path_to_models=PATH_TO_MLRUNS, path_to_code=PATH_TO_MODEL_ENV + '/_' + model_type)
+        ip_address, state = docker.deploy_container(model_point)
 
-    logger.debug(f'Container: {model_point} has state {state}')
-    if ip_address and (state == 'running'):
+        logger.debug(f'Container: {model_point} has state {state}')
+        if ip_address and (state == 'running'):
 
-        payload = {
-                    "model_point": model_point, 
-                    "model_type": model_type,
-                    "model_config": model_config,
-                    "model_features": model_features,
-                    "regressor_names": regressor_names,
-                    "dataset": dataset, 
-                    "period": period,
-                    "model_uri": model_uri
-                }
+            payload = {
+                        "model_point": model_point, 
+                        "model_type": model_type,
+                        "model_config": model_config,
+                        "model_features": model_features,
+                        "regressor_names": regressor_names,
+                        "dataset": dataset, 
+                        "period": period,
+                        "model_uri": model_uri
+                    }
 
-        logger.debug(f'Make prediction with: {payload}, {model_point}')
-        
-        response = model_service.call(payload, model_point, ip_address)
+            logger.debug(f'Make prediction with: {payload}, {model_point}')
+            
+            response = model_service.call(payload, model_point, ip_address)
 
-        return response
+            return response
