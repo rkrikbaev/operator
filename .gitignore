@@ -1,6 +1,6 @@
 python.idea/
-.vscode/
-__pycache__/
+.vscode
+__pycache__
 *.tar.gz
 *.tar
 /model
@@ -9,3 +9,4 @@ logs
 .env
 pipe*
 mlruns
+.pytest_cache
