@@ -1,5 +1,5 @@
 docker:
-  prophet:
+  prophet_model:
     image: 'rkrikbaev/fp-prophet:latest'
     home: /opt/prophet-service
     mlruns: 
@@ -10,7 +10,7 @@ docker:
     features: 'yhat,yhat_lower,yhat_upper,trend'
     port: 8005
     startup: 5
-  tensorflow:
+  tensorflow_model:
     image: 'tensorflow/serving:latest'
     network: 'operator_default'
     limits:
