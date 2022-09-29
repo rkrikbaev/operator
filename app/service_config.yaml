@@ -1,5 +1,6 @@
 docker:
   prophet_model:
+    name: 'prophet_model'
     image: 'rkrikbaev/fp-prophet:latest'
     home: /opt/prophet-service
     mlruns: 

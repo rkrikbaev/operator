@@ -77,7 +77,7 @@ class DockerController():
     """
     Class to work with docker objects
     """
-    def __init__(self, docker_config, path_to_models, path_to_code):
+    def __init__(self, docker_config, model_type, path_to):
 
         self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
         self.image = docker_config.get('image')
@@ -85,8 +85,8 @@ class DockerController():
         self.con_mem_limit = docker_config['limits'].get('con_mem_limit')       
         self.startup = docker_config.get('startup')
         self.network = 'operator_default'
-        self.path_to_models = path_to_models
-        self.path_to_code = path_to_code
+        self.path_to = path_to
+        self.model_type = model_type
         
         logger.debug('Path to model env code')
         logger.debug(self.path_to_code)
@@ -103,8 +103,8 @@ class DockerController():
         except NotFound:
             pass
 
-        volume_mlruns = f'{self.path_to_models}/mlruns:/application/mlruns'         
-        volume_app = f'{self.path_to_code}:/application' 
+        volume_mlruns = f'{self.path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
+        volume_app = f'{self.path_to}/mlservices/{self.model_type}:/application' 
 
         container = self.client.containers.run(
                                 image=self.image,

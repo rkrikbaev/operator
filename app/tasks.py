@@ -9,13 +9,10 @@ from service import ModelAsHTTPService, DockerController
 from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
-path_cwd = os.getcwd()
-logger.debug(path_cwd)
-
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
-PATH_TO_MODEL_ENV = os.environ.get('PATH_TO_MODEL_ENV', default=f'{path_cwd}/mlservices')
+PATH_TO_MODEL_ENV = os.environ.get('PATH_TO_MODEL_ENV', default='/usr/local/etc/operator')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
@@ -40,7 +37,7 @@ def predict(request):
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[model_type]
 
-        docker = DockerController(service_config, path_to_models=PATH_TO_MLRUNS, path_to_code=PATH_TO_MODEL_ENV + '/' + model_type)
+        docker = DockerController(service_config, model_type, path_to=PATH_TO_MODEL_ENV)
         ip_address, state = docker.deploy_container(model_point)
 
         logger.debug(f'Container: {model_point} has state {state}')
