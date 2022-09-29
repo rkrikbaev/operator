@@ -89,7 +89,7 @@ class DockerController():
         self.model_type = model_type
         
         logger.debug('Path to model env code')
-        logger.debug(self.path_to_code)
+        logger.debug(self.path_to)
 
     def deploy_container(self, point):
         ip_address = None
