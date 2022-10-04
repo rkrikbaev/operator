@@ -31,7 +31,6 @@ class Predict():
     def __init__(self):
         pass
 
-    # @jsonschema.validate(req_schema=schema.load_schema('request'))
     def on_post(self, req, resp):
 
         request = req.media
@@ -42,7 +41,13 @@ class Predict():
 
             try:
                 task_result = AsyncResult(task_id)
-                result = {'task_status': str(task_result.status), 'result': str(task_result.result)}
+                result = {
+                    'ts': str(time.ctime()),
+                    'task_status': str(task_result.status), 
+                    'result': str(task_result.result),
+                    'task_id': str(task_id)
+                    }
+
                 resp.status = falcon.HTTP_200
                 resp.media = result
 
@@ -52,10 +57,16 @@ class Predict():
                 resp.media = {'state': 'error', 'error_text': str(err)}
     
         else:
-
             try:
                 task = predict.delay(request)
-                resp.media = {'ts': str(time.ctime()),'task_id': task.id, 'state':'success'}
+
+                resp.media = {
+                    'ts': str(time.ctime()),
+                    'task_id': task.id,
+                    'task_status': None,
+                    'result': None
+                    }
+
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
             
             except Exception as exc:
