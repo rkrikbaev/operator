@@ -23,12 +23,14 @@ def predict(request):
 
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point').lower()
-    model_features = request.get('model_features')
-    regressor_names = request.get('regressor_names')
+    metadata = request.get('metadata')
+    model_features = metadata.get('model_features')
+    regressor_names = metadata.get('regressor_names')
     model_uri = request.get('model_uri')
     model_config = request.get('model_config')
     dataset = request.get('dataset')
     period = request.get('period')
+
 
     path = Path(__file__).parent.absolute()
     file_path = os.path.join(path, 'service_config.yaml')
