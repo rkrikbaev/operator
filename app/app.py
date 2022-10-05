@@ -44,7 +44,7 @@ class Predict():
                 result = {
                     'ts': str(time.ctime()),
                     'task_status': str(task_result.status), 
-                    'result': str(task_result.result),
+                    'result': task_result.result,
                     'task_id': str(task_id)
                     }
 
