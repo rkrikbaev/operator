@@ -41,15 +41,15 @@ class Predict():
 
             try:
                 task_result = AsyncResult(task_id)
-                result = {
+                result = task_result.result
+                resp.media = {
                     'ts': str(time.ctime()),
                     'task_status': str(task_result.status), 
-                    'result': task_result.result,
-                    'task_id': str(task_id)
+                    'task_id': str(task_id),
+                    'result':result
                     }
 
                 resp.status = falcon.HTTP_200
-                resp.media = result
 
             except Exception as err:
                 logger.debug(f'Broker call has exception: {err}')
