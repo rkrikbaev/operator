@@ -49,8 +49,8 @@ def predict(request):
                         "model_point": model_point, 
                         "model_type": model_type,
                         "model_config": model_config,
-                        "model_features": model_features,
-                        "regressor_names": regressor_names,
+                        "model_features": model_features.split(','),
+                        "regressor_names": regressor_names.split(','),
                         "dataset": dataset, 
                         "period": period,
                         "model_uri": model_uri
