@@ -52,7 +52,7 @@ class ModelAsHTTPService():
                         "model_uri": result.json().get('model_uri'),
                         }
 
-            except [ConnectionError, Timeout]:
+            except (ConnectionError, Timeout):
                 tries += 1
                 logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
                 time.sleep(tries)

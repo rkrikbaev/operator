@@ -68,10 +68,10 @@ class Predict():
 
                 logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
             
-            except Exception as exc:
-                logger.debug(exc)
+            except Exception as err:
+                logger.debug(err)
                 resp.status = falcon.HTTP_500
-                resp.media = {'state':'error', 'error_text': str(exc)}
+                resp.media = {'state':'error', 'error_text': str(err)}
 
 api = falcon.App()
 
