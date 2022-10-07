@@ -3,7 +3,7 @@ from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time, os
 import requests, json
-from requests import ConnectionError
+from requests import ConnectionError, Timeout
 
 from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
@@ -41,37 +41,30 @@ class ModelAsHTTPService():
 
                 start_time = str(datetime.datetime.now())
                 
-                try:
-                    result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(payload), timeout=10)
+                result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(payload), timeout=10)
 
-                    return {
-                            "point": model_point,
-                            "start_time": start_time,
-                            "finish_time":  str(datetime.datetime.now()),
-                            "prediction": result.json().get('prediction'),
-                            "anomalies": result.json().get('anomalies'),
-                            "model_uri": result.json().get('model_uri'),
-                            }
+                return {
+                        "point": model_point,
+                        "start_time": start_time,
+                        "finish_time":  str(datetime.datetime.now()),
+                        "prediction": result.json().get('prediction'),
+                        "anomalies": result.json().get('anomalies'),
+                        "model_uri": result.json().get('model_uri'),
+                        }
 
-                except Exception as exp:
-                    logger.debug(str(exp))
-                    
-                    return {
-                            "state": 'model side caused error}',
-                            "point": model_point,
-                            "start_time": start_time,
-                            "error_text": str(exp)
-                            }
-
-            except ConnectionError as exc:
-                logger.debug(f'query /health fail by: {exc}')
+            except [ConnectionError, Timeout] as exc:
                 tries += 1
                 logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
                 time.sleep(tries)
 
         else:
             logger.debug(f' Tried to call a model for point {model_point} {tries} times')
-
+            return {
+                    "state": 'model side caused error',
+                    "point": model_point,
+                    "start_time": start_time,
+                    "error_text": "ConnectionError"
+                    }
 
 class DockerController():
     """

@@ -1,4 +1,4 @@
-import logging, yaml, os, sys
+import logging, os, sys
 import logging.config
 from logging.handlers import RotatingFileHandler
 

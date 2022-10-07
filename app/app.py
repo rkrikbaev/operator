@@ -1,13 +1,8 @@
 import falcon
-
 from celery.result import AsyncResult
 import time
 
-import os
-
-# from schemas import schema
 from tasks import predict
-
 from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
@@ -26,6 +21,7 @@ class Health():
         except:
             resp.status = falcon.HTTP_500
 
+
 class Predict():
 
     def __init__(self):
@@ -35,17 +31,20 @@ class Predict():
 
         request = req.media
         task_id = request.get('task_id')
+        _time = int(time.time())
 
         if task_id and len(task_id)>10:
             logger.debug(f'Request result from celery: {task_id}')
 
             try:
-                task_result = AsyncResult(task_id)
-                result = task_result.result
+                task = AsyncResult(task_id)
+                result = task.result
+                status = task.status
+
                 resp.media = {
-                    'ts': str(time.ctime()),
-                    'task_status': str(task_result.status), 
-                    'task_id': str(task_id),
+                    'time_exec': _time,
+                    'task_status': status, 
+                    'task_id': task_id,
                     'result':result
                     }
 
@@ -61,7 +60,7 @@ class Predict():
                 task = predict.delay(request)
 
                 resp.media = {
-                    'ts': str(time.ctime()),
+                    'time_exec': _time,
                     'task_id': task.id,
                     'task_status': None,
                     'result': None
