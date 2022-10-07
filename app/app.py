@@ -62,7 +62,7 @@ class Predict():
                 resp.media = {
                     'time_exec': _time,
                     'task_id': task.id,
-                    'task_status': None,
+                    'task_status': "DEPLOYED",
                     'result': None
                     }
 
