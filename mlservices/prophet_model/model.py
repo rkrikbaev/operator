@@ -9,6 +9,7 @@
 
 """
 
+from email.policy import default
 from dotenv import load_dotenv
 from pathlib import Path
 import pandas as pd
@@ -30,9 +31,7 @@ class Model(object):
     def __init__(self, tracking_server):
 
         self.output_fields = ['ds', 'yhat']
-        # self.model_path = model_path
         self.model = None
-
         try:
             mlflow.set_tracking_uri(tracking_server)
         except:
@@ -41,17 +40,33 @@ class Model(object):
 
     def run(self, data):
 
-        regressor_names = data.get('regressor_names')
+        metadata = data.get('metadata')
+        regressor_names = metadata.get('regressor_names')
+        model_features = metadata.get('model_features')
+        
+        if isinstance(regressor_names, str):
+            regressor_names = regressor_names.split(',')
+        elif regressor_names is None:
+            regressor_names = []
+        else:    
+            raise TypeError()
+
+        if isinstance(model_features, str):
+              model_features=model_features.split(',')
+        elif model_features is None:
+            model_features = []
+        else:    
+            raise TypeError()
+        
+        self.output_fields = self.output_fields + model_features
+
         self.model_uri = data.get('model_uri')
         self.model_point = data.get('model_point')
 
         dataset = data.get('dataset')
-        logger.debug(dataset)
+        # logger.debug(dataset)
         period = data.get('period')
-        logger.debug(period)
-        
-        if regressor_names == None:
-            regressor_names = []
+        # logger.debug(period)
 
         df_dataset = self._create_df(
             data=dataset,
@@ -72,7 +87,6 @@ class Model(object):
         else:
             self.model_uri, self.model = self._fit_model(
                 data=df_dataset,
-                experiment=self.model_point, 
                 settings=json.loads(data.get('model_config'))
                 )
         
@@ -98,15 +112,10 @@ class Model(object):
                 "model_uri": self.model_uri
                 }
 
-    def _fit_model(self, data, experiment, settings):
+    def _fit_model(self, data, settings):
 
         def extract_params(pr_model):
             return {attr: getattr(pr_model, attr) for attr in serialize.SIMPLE_ATTRIBUTES}
-
-        # mlflow.set_experiment(experiment)
-        # experiment = mlflow.get_experiment_by_name(experiment)
-
-        # with mlflow.start_run(experiment_id=experiment.experiment_id):
 
         model = Prophet(
             growth=settings.get('growth'),

@@ -20,12 +20,13 @@ model_service = ModelAsHTTPService()
 
 @app.task
 def predict(request):
-
+    
+    logger.debug(request)
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point').lower()
     metadata = request.get('metadata')
-    model_features = metadata.get('model_features')
-    regressor_names = metadata.get('regressor_names')
+    # model_features = metadata.get('model_features')
+    # regressor_names = metadata.get('regressor_names')
     model_uri = request.get('model_uri')
     model_config = request.get('model_config')
     dataset = request.get('dataset')
@@ -43,14 +44,14 @@ def predict(request):
         ip_address, state = docker.deploy_container(model_point)
 
         logger.debug(f'Container: {model_point} has state {state}')
+        
         if ip_address and (state == 'running'):
 
             payload = {
                         "model_point": model_point, 
                         "model_type": model_type,
                         "model_config": model_config,
-                        "model_features": model_features.split(','),
-                        "regressor_names": regressor_names.split(','),
+                        "metadata": metadata,
                         "dataset": dataset, 
                         "period": period,
                         "model_uri": model_uri

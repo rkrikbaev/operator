@@ -8,7 +8,7 @@ import mlflow
 try:
     import model as prophet_model
 except:
-    pass
+    raise RuntimeError('Cannot import service to run the model')
 
 
 from helper import get_logger

@@ -32,7 +32,8 @@ class Predict():
         request = req.media
         task_id = request.get('task_id')
         _time = int(time.time())
-
+        logger.debug(request)
+        
         if task_id and len(task_id)>10:
             logger.debug(f'Request result from celery: {task_id}')
 
@@ -57,6 +58,7 @@ class Predict():
     
         else:
             try:
+
                 task = predict.delay(request)
 
                 resp.media = {
