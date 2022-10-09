@@ -42,7 +42,7 @@ class ModelAsHTTPService():
                 start_time = str(datetime.datetime.now())
                 
                 result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(payload), timeout=10)
-
+                logger.debug(result)
                 return {
                         "point": model_point,
                         "start_time": start_time,

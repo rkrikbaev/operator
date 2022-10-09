@@ -100,11 +100,14 @@ class Model(object):
                 forecast,
                 dataset=df_dataset
                 )
-            
-            logger.debug('Filter response')
+
+            logger.debug('Filter value')
+            logger.debug(self.output_fields)
 
             filtred_result = forecast[self.output_fields].values.tolist()
-
+            logger.debug('Filter response')
+            logger.debug(filtred_result)
+            
             return {
                 "prediction": filtred_result,
                 "anomalies": anomalies, 
