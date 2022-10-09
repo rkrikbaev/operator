@@ -29,8 +29,6 @@ ARTIFACT_PATH = 'model'
 class Model(object):
 
     def __init__(self, tracking_server):
-
-        self.output_fields = ['ds', 'yhat']
         self.model = None
         try:
             mlflow.set_tracking_uri(tracking_server)
@@ -59,6 +57,8 @@ class Model(object):
             raise TypeError()
         
         self.output_fields = self.output_fields + model_features
+        logger.debug('output_fields')
+        logger.debug('output_fields')
 
         self.model_uri = data.get('model_uri')
         self.model_point = data.get('model_point')
@@ -68,14 +68,16 @@ class Model(object):
         period = data.get('period')
         # logger.debug(period)
 
+        base_columns_names = ['ds', 'y'] + regressor_names
+
         df_dataset = self._create_df(
             data=dataset,
-            columns=['ds', 'y'] + regressor_names
+            columns = base_columns_names
             )
-
+        
         df_period = self._create_df(
             data=period,
-            columns=['ds'] + regressor_names
+            columns = ['ds'] + regressor_names
     )
 
         if self.model_uri:
@@ -102,9 +104,9 @@ class Model(object):
                 )
 
             logger.debug('Filter value')
-            logger.debug(self.output_fields)
+            logger.debug(base_columns_names)
 
-            filtred_result = forecast[self.output_fields].values.tolist()
+            filtred_result = forecast[base_columns_names].values.tolist()
             logger.debug('Filter response')
             logger.debug(filtred_result)
             
