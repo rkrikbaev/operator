@@ -97,7 +97,13 @@ class DockerController():
             pass
 
         volume_mlruns = f'{self.path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
-        volume_app = f'{self.path_to}/mlservices/{self.model_type}:/application' 
+        volume_app = f'{self.path_to}/mlservices/{self.model_type}:/application'
+
+        logger.debug('Path to volume_mlruns')
+        logger.debug(volume_mlruns)
+
+        logger.debug('Path to volume_app')
+        logger.debug(volume_app)
 
         container = self.client.containers.run(
                                 image=self.image,
