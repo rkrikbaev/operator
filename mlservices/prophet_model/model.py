@@ -10,6 +10,7 @@
 """
 
 from email.policy import default
+from xml.sax.handler import feature_namespaces
 from dotenv import load_dotenv
 from pathlib import Path
 import pandas as pd
@@ -55,10 +56,6 @@ class Model(object):
             model_features = []
         else:    
             raise TypeError()
-        
-        self.output_fields = self.output_fields + model_features
-        logger.debug('output_fields')
-        logger.debug('output_fields')
 
         self.model_uri = data.get('model_uri')
         self.model_point = data.get('model_point')
@@ -68,11 +65,9 @@ class Model(object):
         period = data.get('period')
         # logger.debug(period)
 
-        base_columns_names = ['ds', 'y'] + regressor_names
-
         df_dataset = self._create_df(
             data=dataset,
-            columns = base_columns_names
+            columns = ['ds', 'y'] + regressor_names
             )
         
         df_period = self._create_df(
@@ -103,10 +98,11 @@ class Model(object):
                 dataset=df_dataset
                 )
 
+            filter = ['ds', 'yhat'] + model_features
             logger.debug('Filter value')
-            logger.debug(base_columns_names)
+            logger.debug(filter)
 
-            filtred_result = forecast[base_columns_names].values.tolist()
+            filtred_result = forecast[filter].values.tolist()
             logger.debug('Filter response')
             logger.debug(filtred_result)
             
