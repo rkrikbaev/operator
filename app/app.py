@@ -32,6 +32,8 @@ class Predict():
         request = req.media
         task_id = request.get('task_id')
         _time = int(time.time())
+
+        logger.debug('Request')
         logger.debug(request)
         
         if task_id and len(task_id)>10:

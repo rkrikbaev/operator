@@ -44,14 +44,14 @@ class Model(object):
         model_features = metadata.get('model_features')
         
         if isinstance(regressor_names, str):
-            regressor_names = regressor_names.split(',')
+            regressor_names = json.loads(regressor_names)
         elif regressor_names is None:
             regressor_names = []
         else:    
             raise TypeError()
 
         if isinstance(model_features, str):
-              model_features=model_features.split(',')
+              model_features=json.loads(model_features)
         elif model_features is None:
             model_features = []
         else:    
