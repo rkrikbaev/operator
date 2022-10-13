@@ -34,36 +34,33 @@ class Model(object):
         try:
             mlflow.set_tracking_uri(tracking_server)
         except:
-            logger.error(
-            """Couldn't connect to remote MLFLOW tracking server""")
+            logger.error("""Couldn't connect to remote MLFLOW tracking server""")
+            raise RuntimeError('Could not connect to remote MLFLOW tracking server')
 
     def run(self, data):
 
-        metadata = data.get('metadata')
+        try:
+            metadata = data.get('metadata')
+            self.model_uri = data.get('model_uri')
+            self.model_point = data.get('model_point') 
+            dataset = data.get('dataset')
+            period = data.get('period')
+        except (KeyError, AttributeError) as err:
+            logger.error(err)
+            raise RuntimeError(err)
+
+        for item in metadata:
+            value = metadata[item]
+            if isinstance(value, str):
+                metadata[item] = json.loads(value)
+            elif isinstance(value, list):
+                pass
+            elif value is None:
+                metadata[item] = []
+            else:    
+                raise TypeError()
+
         regressor_names = metadata.get('regressor_names')
-        model_features = metadata.get('model_features')
-        
-        if isinstance(regressor_names, str):
-            regressor_names = json.loads(regressor_names)
-        elif regressor_names is None:
-            regressor_names = []
-        else:    
-            raise TypeError()
-
-        if isinstance(model_features, str):
-              model_features=json.loads(model_features)
-        elif model_features is None:
-            model_features = []
-        else:    
-            raise TypeError()
-
-        self.model_uri = data.get('model_uri')
-        self.model_point = data.get('model_point')
-
-        dataset = data.get('dataset')
-        # logger.debug(dataset)
-        period = data.get('period')
-        # logger.debug(period)
 
         df_dataset = self._create_df(
             data=dataset,
@@ -73,7 +70,7 @@ class Model(object):
         df_period = self._create_df(
             data=period,
             columns = ['ds'] + regressor_names
-    )
+        )
 
         if self.model_uri:
             try:
@@ -89,7 +86,6 @@ class Model(object):
         
         if self.model:
             forecast = self.model.predict(df_period)
-            forecast['ds'] = forecast['ds'].astype('string')
 
             logger.debug('Find anomalies')
 
@@ -98,9 +94,11 @@ class Model(object):
                 dataset=df_dataset
                 )
 
-            filter = ['ds', 'yhat'] + model_features
+            filter = ['ts', 'yhat'] + metadata.get('model_features')
             logger.debug('Filter value')
             logger.debug(filter)
+            forecast['ts'] = forecast[['ds']].apply(lambda x: x[0].timestamp(), axis=1).astype(int)
+            forecast['ds'] = forecast['ds'].astype('string')
 
             filtred_result = forecast[filter].values.tolist()
             logger.debug('Filter response')

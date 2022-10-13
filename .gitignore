@@ -10,3 +10,4 @@ logs
 pipe*
 mlruns
 .pytest_cache
+log.log

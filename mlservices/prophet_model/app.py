@@ -40,16 +40,13 @@ class Predict:
     def on_post(self, req, resp):
         
         request = req.media
-        logger.debug(request)
-        
         experiment = request.get('model_point')
 
-        #
+        # add experiment as point
         mlflow.set_experiment(experiment)
         experiment = mlflow.get_experiment_by_name(experiment)
 
         with mlflow.start_run(experiment_id=experiment.experiment_id):
-        
             resp.media = self.model_instance.run(request)
 
 api = falcon.App()
