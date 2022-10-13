@@ -31,7 +31,7 @@ class Predict():
 
         request = req.media
         task_id = request.get('task_id')
-        _time = int(time.ctime())
+        _time = int(time.time())
 
         logger.debug('Request')
         logger.debug(request)
