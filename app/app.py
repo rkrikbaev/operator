@@ -31,7 +31,7 @@ class Predict():
 
         request = req.media
         task_id = request.get('task_id')
-        _time = int(time.time())
+        _time = int(time.ctime())
 
         logger.debug('Request')
         logger.debug(request)
@@ -58,7 +58,7 @@ class Predict():
                 resp.status = falcon.HTTP_500
                 resp.media = {'state': 'error', 'error_text': str(err)}
     
-        else:
+        elif task_id is None:
             try:
 
                 task = predict.delay(request)
@@ -69,13 +69,22 @@ class Predict():
                     'task_status': "DEPLOYED",
                     'result': None
                     }
-
-                logger.debug(f'"ts": {time.ctime()},"task_id": {task.id}, "state":"success"')
+                logger.debug(f'"time_exec": {time.ctime()},"task_id": {task.id}, "state":"success"')
             
             except Exception as err:
                 logger.debug(err)
                 resp.status = falcon.HTTP_500
                 resp.media = {'state':'error', 'error_text': str(err)}
+        
+        else:
+                resp.media = {
+                    'time_exec': _time,
+                    'task_id': None,
+                    'task_status': "ERROR",
+                    'result': None
+                    }
+                resp.status = falcon.HTTP_400
+
 
 api = falcon.App()
 
