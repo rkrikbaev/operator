@@ -40,14 +40,21 @@ class Predict:
     def on_post(self, req, resp):
         
         request = req.media
-        experiment = request.get('model_point')
+        
+        list_of_keys = ['model_config', 'dataset', 'period', 'metadata', 'model_uri']
+        if all(k in request for k in list_of_keys):
 
-        # add experiment as point
-        mlflow.set_experiment(experiment)
-        experiment = mlflow.get_experiment_by_name(experiment)
+            experiment = request.get('model_point')
 
-        with mlflow.start_run(experiment_id=experiment.experiment_id):
-            resp.media = self.model_instance.run(request)
+            # add experiment as point
+            mlflow.set_experiment(experiment)
+            experiment = mlflow.get_experiment_by_name(experiment)
+
+            with mlflow.start_run(experiment_id=experiment.experiment_id):
+                resp.media = self.model_instance.run(request)
+        else:
+            resp.state = falcon.HTTP_400
+            logger.info(resp.state)
 
 api = falcon.App()
 
