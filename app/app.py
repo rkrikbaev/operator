@@ -14,12 +14,10 @@ class Health():
 
     def on_get(self, req, resp):
 
-        try:
-            logger.debug('Health check')
-            resp.status = falcon.HTTP_200
-            resp.media = {'state': 'ok'}
-        except:
-            resp.status = falcon.HTTP_500
+        logger.debug('Health check')
+        resp.status = falcon.HTTP_200
+        resp.media = {'state': 'ok'}
+
 
 
 class Predict():
@@ -33,8 +31,7 @@ class Predict():
         task_id = request.get('task_id')
         _time = int(time.time())
 
-        logger.debug('Request')
-        logger.debug(request)
+        resp.status = falcon.HTTP_200
         
         if task_id and len(task_id)>10:
             logger.debug(f'Request result from celery: {task_id}')
@@ -51,16 +48,13 @@ class Predict():
                     'result':result
                     }
 
-                resp.status = falcon.HTTP_200
-
             except Exception as err:
                 logger.debug(f'Broker call has exception: {err}')
                 resp.status = falcon.HTTP_500
-                resp.media = {'state': 'error', 'error_text': str(err)}
     
         elif task_id is None:
-            try:
 
+            try:
                 task = predict.delay(request)
 
                 resp.media = {
@@ -69,22 +63,19 @@ class Predict():
                     'task_status': "DEPLOYED",
                     'result': None
                     }
-                logger.debug(f'"time_exec": {time.ctime()},"task_id": {task.id}, "state":"success"')
             
             except Exception as err:
                 logger.debug(err)
                 resp.status = falcon.HTTP_500
-                resp.media = {'state':'error', 'error_text': str(err)}
         
         else:
                 resp.media = {
                     'time_exec': _time,
                     'task_id': None,
-                    'task_status': "ERROR",
+                    'task_status': None,
                     'result': None
                     }
                 resp.status = falcon.HTTP_400
-
 
 api = falcon.App()
 
