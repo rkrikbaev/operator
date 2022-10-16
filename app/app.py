@@ -19,7 +19,6 @@ class Health():
         resp.media = {'state': 'ok'}
 
 
-
 class Predict():
 
     def __init__(self):
