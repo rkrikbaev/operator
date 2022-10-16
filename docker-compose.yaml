@@ -1,55 +1,67 @@
-version: "3.8"
+version: "3"
 services:
-  api:
-    build: .
-    image: operator_api
-    container_name: operator_api
+  
+  nginx:
+    restart: always
+    build: ./nginx
+    image: proxy_nginx
+    container_name: nginx
+    ports:
+        - "80:80"
+    # networks:
+    #     - frontend
+    depends_on:
+        - mlflow
+
+  operator:
+    restart: always
+    build: ./app
+    image: operator
+    container_name: operator
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
     ports:
       - 8015:8015
     volumes:
       - ./app:/app
       - /var/run/docker.sock:/var/run/docker.sock
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-    networks: 
-      - model
-      - backend
-    command: gunicorn -b 0.0.0.0:8015 app:api
+    # networks: 
+    #   - models
+    #   - backend
+    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - PATH_TO_MLRUNS=${PATH_TO_MLRUNS}
     depends_on:
       - redis
 
   celery:
-    image: operator_api
+    image: operator
     container_name: operator_celery
     volumes:
       - ./app:/app
       - ./app/logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
-    networks: 
-      - model
+    # networks: 
+    #   - backend
     command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - PATH_TO_MLRUNS=${PATH_TO_MLRUNS}
     depends_on:
-      - api
+      - operator
       - redis
 
   redis:
     image: redis:6-alpine
     container_name: operator_redis
-    networks: 
-      - model
+    # networks: 
+    #   - backend
   
   monitor:
-    image: operator_api
+    image: operator
     container_name: operator_monitor
     volumes:
       - ./app:/app
@@ -57,16 +69,68 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5555:5555
-    networks: 
-      - model
+    # networks: 
+    #   - backend
+    #   - frontend
     command:  flower -A tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
-      - api
+      - operator
       - redis
 
-networks:
-  model:
-    driver: bridge
-    external: true
-  backend:
-    driver: bridge
+  db:
+      restart: always
+      image: mysql/mysql-server:5.7.28
+      container_name: mlflow_db
+      expose:
+          - "3306"
+      # networks:
+      #     - backend
+      environment:
+          - MYSQL_DATABASE=${MYSQL_DATABASE}
+          - MYSQL_USER=${MYSQL_USER}
+          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      volumes:
+          - dbdata:/var/lib/mysql
+          - /usr/local/etc/db_mlflow/conf.d:/etc/mysql/conf.d
+
+  mlflow:
+      restart: always
+      build: ./mlflow
+      image: mlflow_server
+      container_name: mlflow_server
+      ports:
+          - 5000:5000
+      # networks:
+      #     - frontend
+      #     - backend
+      command: 'mlflow server 
+              --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} 
+              --default-artifact-root file:${PATH_TO_MLRUNS} 
+              --host 0.0.0.0 -p 5000'
+      depends_on:
+        - db
+
+  jupyter:
+      image: rkrikbaev/jupyterhub:latest
+      build: ./jupyter
+      container_name: jupyter_hub
+      ports:
+          - 8888:8888
+      volumes:
+          - ./jupyter/project:/home/project
+          - ./jupyter/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py
+      # environment:
+      #     - JUPYTER_ENABLE_LAB=yes
+      # networks:
+      #     - frontend
+      #     - backend
+      command: jupyterhub --port 8888 -f /etc/jupyterhub/jupyterhub_config.py #     jupyterhub --ip 10.0.1.2 --port 443 --ssl-key my_ssl.key --ssl-cert my_ssl.cert
+
+
+volumes:
+  dbdata:
+   
+# networks:
+#   backend:
+#   fronend:

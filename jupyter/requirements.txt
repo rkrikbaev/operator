@@ -1,0 +1,11 @@
+# datascience
+# matplotlib
+# pandas
+# scipy
+# gradememaybe
+# ipython==7.5.0
+mlflow==1.24.0
+pystan==2.19.1.1
+prophet==1.0
+protobuf==3.20.*
+seaborn

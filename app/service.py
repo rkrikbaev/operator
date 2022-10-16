@@ -3,117 +3,138 @@ from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time, os
 import requests, json
+from requests import ConnectionError, Timeout
 
-from middleware.helper import get_logger
+from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
+
 
 class ModelAsHTTPService():
 
     def __init__(self) -> None:
         pass
 
-    def call(self, payload, point, port)->dict:
+    def call(self, payload, model_point, ip_address)->dict:
+        health_ok = False
+        logger.debug('Try to call the model first time')
 
-        # time delay to deploy application in the container
-        time.sleep(2)
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=100,
+            pool_maxsize=100)
 
-        url = f'http://{point}:{port}/action'
-        logger.debug(f'query url: {url}')
+        session.mount('http://', adapter)
+        url = f'http://{ip_address}:8005/health'
 
-        response = {
-                    "state": 'executed',
-                    "point": point,
-                    "start_time": str(datetime.datetime.now())
+        tries = 0
+        while tries < 5:
+          
+            try:
+                health = session.get(url, timeout=600)
+                health_ok = health.ok
+                logger.debug(f'query url: {url} status: {health_ok}')
+
+                url = f'http://{ip_address}:8005/action'
+
+                logger.debug(f'query url: {url}')
+                logger.debug(f'query payload: {payload}')
+
+                start_time = str(datetime.datetime.now())
+                
+                result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(payload), timeout=10)
+                logger.debug(result)
+                return {
+                        "point": model_point,
+                        "start_time": start_time,
+                        "finish_time":  str(datetime.datetime.now()),
+                        "prediction": result.json().get('prediction'),
+                        "anomalies": result.json().get('anomalies'),
+                        "model_uri": result.json().get('model_uri'),
+                        }
+
+            except (ConnectionError, Timeout):
+                tries += 1
+                logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
+                time.sleep(tries)
+
+        else:
+            logger.debug(f' Tried to call a model for point {model_point} {tries} times')
+            return {
+                    "state": 'model side caused error',
+                    "point": model_point,
+                    "start_time": start_time,
+                    "error_text": "ConnectionError"
                     }
-        try:
 
-            result = requests.request(
-                'POST', 
-                url,
-                headers={'Content-Type': 'application/json'}, 
-                data=json.dumps(payload))
-
-            response["finish_time"] = str(datetime.datetime.now())
-            response['predictions'] = result.json().get('yhat')
-            logger.debug(f'response: {response}')
-        
-        except Exception as exp:
-            response['state'] = 'error'
-            logger.error(exp)
-
-        return response 
-
-class DockerOperator():
+class DockerController():
     """
     Class to work with docker objects
     """
-    def __init__(self,):
+    def __init__(self, docker_config, model_type, path_to):
 
-        try:
-            self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
-        except DockerException as exc:
-            logger.error(f'Connection with docker.socket aborted {exc}')
-            raise exc
+        self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
+        self.image = docker_config.get('image')
+        self.cpuset_cpus = docker_config['limits'].get('cpuset_cpus')
+        self.con_mem_limit = docker_config['limits'].get('con_mem_limit')       
+        self.startup = docker_config.get('startup')
+        self.network = 'operator_default'
+        self.path_to = path_to
+        self.model_type = model_type
+        
+        logger.debug('Path to model env code')
+        logger.debug(self.path_to)
 
-    def deploy_container(self, port, point, config):
-
-        image = config.get('image')
-        cpuset_cpus = config['limits'].get('cpuset_cpus')
-        con_mem_limit = config['limits'].get('con_mem_limit')
-            
+    def deploy_container(self, point):
+        ip_address = None
+        
         try:
             container = self.client.containers.get(point)
             container.remove(force=True)
-        except NotFound:
-            container = self.client.containers.run(
-                image,
-                name=point,
-                # ports={port:port}, 
-                volumes=[f'{point}:/application/mlruns'], 
-                detach=True, 
-                mem_limit=con_mem_limit,
-                cpuset_cpus=cpuset_cpus,
-                network='service_network'
-                )
-            
-            container_id = container.short_id
-            container_state = container.status.lower()   
-            
-            logger.debug(f'container #{container_id} {container_state}')
-            
+            logger.debug(f'Delete exist container with same point name: {point}')
             time.sleep(2)
-            wait_counter = 0
+        
+        except NotFound:
+            pass
 
-            while wait_counter < 2:
-                container = self.client.containers.get(container_id)
-                container_state = container.attrs['State'].get('Status').lower()           
-                if container_state == ['created']:
-                    time.sleep(1)
-                    wait_counter += 1
-                elif container_state in ['running']:
-                    # service_ip = container.attrs['NetworkSettings']['Networks']['service_network']['IPAddress']
-                    logger.debug(f'container #{container_id}, state: {container_state} with name: {point}')
-                    break                
-                else:
-                    raise RuntimeError(f'Fail to deploy container for point {point}')
-            
-            return {'id':container_id, 'service_ip':point, 'state': container_state}
+        volume_mlruns = f'{self.path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
+        volume_app = f'{self.path_to}/mlservices/{self.model_type}:/application'
 
-        except (APIError, DockerException, RuntimeError) as exc:
-            logger.error(f'Docker API error: {exc}')
-            logger.error('Fail to create container')
+        logger.debug('Path to volume_mlruns')
+        logger.debug(volume_mlruns)
 
-    def remove_container(self, container_id):
-            
-        '''
-        Remove a docker container using a given id; passing keyword arguments
-        documented to be accepted by docker's client.containers.remove function
-        No extra side effects. Handles and reraises APIError exceptions.
-        '''
-            
-        try:               
+        logger.debug('Path to volume_app')
+        logger.debug(volume_app)
+
+        container = self.client.containers.run(
+                                image=self.image,
+                                name=point,
+                                volumes=[volume_mlruns, volume_app], 
+                                detach=True,
+                                mem_limit=self.con_mem_limit,
+                                cpuset_cpus=self.cpuset_cpus,
+                                network=self.network,
+                                environment=[
+                                    f'TRACKING_SERVER=http://mlflow:5000', 
+                                    f'PATH_TO_MLRUNS=/application'
+                                    ],
+                                command= 'gunicorn -b 0.0.0.0:8005 app:api'
+                                )
+
+        container_id = container.short_id
+        wait_counter = 0
+
+        while wait_counter < self.startup:
             container = self.client.containers.get(container_id)
-            container.remove(force=True)
-            logger.debug(f'container {container.short_id} removed')
-        except APIError as exc:
-            logger.error(f'unable to remove container by APIError error: {exc}')
+            container_state = container.status.lower()
+                        
+            if container_state == ['created']:
+                time.sleep(1)
+                wait_counter += 1
+
+            if container_state in ['running']:
+                ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+                logger.debug(f'container #{point}, started with IP: {ip_address}')
+                
+                return ip_address, container_state                
+        else:
+            raise RuntimeError(f'Fail to deploy container for point: {point}')
