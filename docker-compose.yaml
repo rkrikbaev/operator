@@ -39,6 +39,7 @@ services:
   celery:
     image: operator
     container_name: operator_celery
+    restart: always
     volumes:
       - ./app:/app
       - ./app/logs:/app/logs
@@ -57,12 +58,14 @@ services:
   redis:
     image: redis:6-alpine
     container_name: operator_redis
+    restart: always
     # networks: 
     #   - backend
   
   monitor:
     image: operator
     container_name: operator_monitor
+    restart: always
     volumes:
       - ./app:/app
       - ./app/logs:/app/logs
@@ -115,6 +118,7 @@ services:
       image: rkrikbaev/jupyterhub:latest
       build: ./jupyter
       container_name: jupyter_hub
+      restart: always
       ports:
           - 8888:8888
       volumes:
