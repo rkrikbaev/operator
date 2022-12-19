@@ -2,7 +2,7 @@ from logging import Logger
 from wsgiref.simple_server import make_server
 
 from app import api
-from middleware.helper import get_logger
+from helper import get_logger
 
 logger = get_logger(name=__name__, loglevel='DEBUG')
 

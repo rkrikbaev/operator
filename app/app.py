@@ -28,7 +28,16 @@ class Predict():
 
         request = req.media
         task_id = request.get('task_id')
+        point = request.get('model_point')
         _time = int(time.time())
+
+        response_body = {
+                    'time_exec': _time,
+                    'task_status': None, 
+                    'task_id': task_id,
+                    'point': point,
+                    'result':None
+                    }
 
         resp.status = falcon.HTTP_200
         
@@ -40,12 +49,10 @@ class Predict():
                 result = task.result
                 status = task.status
 
-                resp.media = {
-                    'time_exec': _time,
-                    'task_status': status, 
-                    'task_id': task_id,
-                    'result':result
-                    }
+                response_body['task_status'] = status
+                response_body['task_id'] = task_id
+                response_body['point'] = point
+                response_body['result'] = result
 
             except Exception as err:
                 logger.debug(f'Broker call has exception: {err}')
@@ -56,25 +63,18 @@ class Predict():
             try:
                 task = predict.delay(request)
 
-                resp.media = {
-                    'time_exec': _time,
-                    'task_id': task.id,
-                    'task_status': "DEPLOYED",
-                    'result': None
-                    }
-            
+                response_body['task_status'] = "DEPLOYED"
+                response_body['task_id'] = task.id
+
             except Exception as err:
                 logger.debug(err)
                 resp.status = falcon.HTTP_500
         
         else:
-                resp.media = {
-                    'time_exec': _time,
-                    'task_id': None,
-                    'task_status': None,
-                    'result': None
-                    }
+                response_body['task_status'] = "FAILED"
                 resp.status = falcon.HTTP_400
+
+        resp.media = response_body
 
 api = falcon.App()
 
