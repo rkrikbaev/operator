@@ -22,7 +22,7 @@ model_service = ModelAsHTTPService()
 def predict(request):
 
     model_type = request.get('model_type').lower()
-    model_point = request.get('model_point').lower()
+    model_point = request.get('model_point')
     metadata = request.get('metadata')
     model_uri = request.get('model_uri')
     model_config = request.get('model_config')
@@ -37,7 +37,7 @@ def predict(request):
         service_config = f.get('docker')[model_type]
 
         docker = DockerController(service_config, model_type, path_to=PATH_TO_MODEL_ENV)
-        ip_address, state = docker.deploy_container(model_point)
+        ip_address, state = docker.deploy_container(model_point.lower())
 
         logger.debug(f'Container: {model_point} has state {state}')
         
