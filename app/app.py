@@ -37,7 +37,7 @@ class Predict():
         if required_fields == keys:
 
             self.task_id = request.get('task_id')
-            self.point = request.get('model_point')
+            self.model_point = request.get('model_point')
             self.model_uri = request.get('model_uri')
 
             if self.task_id and len(self.task_id)>10:
@@ -77,7 +77,7 @@ class Predict():
             }
         logger.debug(_response)
         resp.media = _response
-        
+
 api = falcon.App()
 
 api.add_route('/predict', Predict())
