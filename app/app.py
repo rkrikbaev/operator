@@ -6,7 +6,7 @@ from tasks import predict
 from helper import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
-
+            
 class Health():
 
     def __init__(self):
@@ -22,59 +22,58 @@ class Health():
 class Predict():
 
     def __init__(self):
-        pass
+
+        self.response_body = {
+            'time_exec': None,
+            'task_status': None, 
+            'task_id': None,
+            'point': None,
+            'result':None
+            }
 
     def on_post(self, req, resp):
 
-        request = req.media
-        task_id = request.get('task_id')
-        point = request.get('model_point')
-        _time = int(time.time())
-
-        response_body = {
-                    'time_exec': _time,
-                    'task_status': None, 
-                    'task_id': task_id,
-                    'point': point,
-                    'result':None
-                    }
-
+        ts = int(time.time())
         resp.status = falcon.HTTP_200
+
+        request = req.media
+
+        if ['task_id', 'point'] in request:
+
+            task_id = request.get('task_id')
+            point = request.get('model_point')
+
+            self.response_body['time_exec'] = ts
+            self.response_body['task_id'] = task_id
+            self.response_body['point'] = point
+
+            if task_id and len(task_id)>10:
+                logger.debug(f'Request result from celery: {task_id}')
+
+                try:
+                    task = AsyncResult(task_id)
+                    self.response_body['task_status'] = task.status
+                    self.response_body['result'] = task.result
+
+                except Exception as err:
+                    logger.debug(f'Broker call has exception: {err}')
+                    resp.status = falcon.HTTP_500
         
-        if task_id and len(task_id)>10:
-            logger.debug(f'Request result from celery: {task_id}')
+            elif task_id is None:
+                try:
+                    task = predict.delay(request)
+                    self.response_body['task_status'] = "DEPLOYED"
+                    self.response_body['task_id'] = task.id
 
-            try:
-                task = AsyncResult(task_id)
-                result = task.result
-                status = task.status
-
-                response_body['task_status'] = status
-                response_body['task_id'] = task_id
-                response_body['point'] = point
-                response_body['result'] = result
-
-            except Exception as err:
-                logger.debug(f'Broker call has exception: {err}')
-                resp.status = falcon.HTTP_500
-    
-        elif task_id is None:
-
-            try:
-                task = predict.delay(request)
-
-                response_body['task_status'] = "DEPLOYED"
-                response_body['task_id'] = task.id
-
-            except Exception as err:
-                logger.debug(err)
-                resp.status = falcon.HTTP_500
-        
+                except Exception as err:
+                    logger.debug(err)
+                    resp.status = falcon.HTTP_500
         else:
-                response_body['task_status'] = "FAILED"
-                resp.status = falcon.HTTP_400
+            self.response_body['task_status'] = "FAILED"
+            resp.status = falcon.HTTP_400
+            resp.media = self.response_body 
 
-        resp.media = response_body
+        resp.media = self.response_body
 
 api = falcon.App()
 
