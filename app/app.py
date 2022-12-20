@@ -24,7 +24,7 @@ class Predict():
     def __init__(self):
 
         self.response_body = {
-            'time_exec': None,
+            'ts': None,
             'task_status': None, 
             'task_id': None,
             'point': None,
@@ -33,19 +33,20 @@ class Predict():
 
     def on_post(self, req, resp):
 
-        ts = int(time.time())
+        required_fields = {'dataset', 'metadata', 'model_config','model_type','model_uri','period', 'task_id', 'model_point'}
+        self.response_body['ts'] = int(time.time())
         resp.status = falcon.HTTP_200
 
         request = req.media
+        keys = set(request.keys())
 
-        if ['task_id', 'point'] in request:
+        if required_fields == keys:
 
             task_id = request.get('task_id')
             point = request.get('model_point')
 
-            self.response_body['time_exec'] = ts
             self.response_body['task_id'] = task_id
-            self.response_body['point'] = point
+            self.response_body['model_point'] = point
 
             if task_id and len(task_id)>10:
                 logger.debug(f'Request result from celery: {task_id}')
@@ -69,9 +70,9 @@ class Predict():
                     logger.debug(err)
                     resp.status = falcon.HTTP_500
         else:
+
             self.response_body['task_status'] = "FAILED"
             resp.status = falcon.HTTP_400
-            resp.media = self.response_body 
 
         resp.media = self.response_body
 
