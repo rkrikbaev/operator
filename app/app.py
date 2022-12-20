@@ -66,8 +66,8 @@ class Predict():
 
             self.task_status = "FAILED"
             resp.status = falcon.HTTP_400
-
-        resp.media = {
+        
+        _response = {
             'ts': self.ts,
             'task_status': self.task_status, 
             'task_id': self.task_id,
@@ -75,7 +75,9 @@ class Predict():
             'result':self.result,
             'model_uri': self.model_uri
             }
-
+        logger.debug(_response)
+        resp.media = _response
+        
 api = falcon.App()
 
 api.add_route('/predict', Predict())
