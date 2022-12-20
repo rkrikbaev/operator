@@ -19,7 +19,7 @@ class Health():
 class Predict():
     def __init__(self):
         self.ts = None,
-        self.task_status = None, 
+        self.task_state = None, 
         self.task_id = None,
         self.model_point = None,
         self.result = None,
@@ -47,7 +47,7 @@ class Predict():
                     task = AsyncResult(self.task_id)
                     self.result = task.result
                     self.model_uri = task.result.get('model_uri')
-                    self.task_status = task.status
+                    self.task_state = task.status
                     
                 except Exception as err:
                     logger.debug(f'Broker call has exception: {err}')
@@ -56,7 +56,7 @@ class Predict():
             elif self.task_id is None:
                 try:
                     task = predict.delay(request)
-                    self.task_status = "DEPLOYED"
+                    self.task_state = "DEPLOYED"
                     self.task_id = task.id
 
                 except Exception as err:
@@ -64,12 +64,12 @@ class Predict():
                     resp.status = falcon.HTTP_500
         else:
 
-            self.task_status = "FAILED"
+            self.task_state = "FAILED"
             resp.status = falcon.HTTP_400
         
         _response = {
             'ts': self.ts,
-            'task_status': self.task_status, 
+            'task_state': self.task_state, 
             'task_id': self.task_id,
             'model_point': self.model_point,
             'result':self.result,
