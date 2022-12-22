@@ -1,10 +1,10 @@
-from logging import Logger
+import os
 from wsgiref.simple_server import make_server
 
 from app import api
 from helper import get_logger
-
-logger = get_logger(name=__name__, loglevel='DEBUG')
+LOG_LEVEL = os.environ.get('LOG_LEVEL')
+logger = get_logger(name=__name__, loglevel=LOG_LEVEL)
 
 if __name__ == "__main__":
     

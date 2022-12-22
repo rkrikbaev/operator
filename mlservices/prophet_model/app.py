@@ -31,7 +31,6 @@ class CheckHealth():
     def on_get(self, req, resp):
         resp.media = "ok"
 
-
 class Predict:
     
     def __init__(self) -> None:

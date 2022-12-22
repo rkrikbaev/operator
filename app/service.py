@@ -5,8 +5,9 @@ import time, os
 import requests, json
 from requests import ConnectionError, Timeout
 
+LOG_LEVEL = os.environ.get('LOG_LEVEL')
 from helper import get_logger
-logger = get_logger(__name__, loglevel='DEBUG')
+logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 
 class ModelAsHTTPService():

@@ -6,8 +6,10 @@ import os
 
 from service import ModelAsHTTPService, DockerController
 
+LOG_LEVEL = os.environ.get('LOG_LEVEL')
+
 from helper import get_logger
-logger = get_logger(__name__, loglevel='DEBUG')
+logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
@@ -53,8 +55,5 @@ def predict(request):
                         "model_uri": model_uri
                     }
 
-            logger.debug(f'Make prediction with: {payload}, {model_point}')
-            
-            response = model_service.call(payload, model_point, ip_address)
-
-            return response
+            # logger.debug(f'Make prediction with: {payload}, {model_point}')
+            return model_service.call(payload, model_point, ip_address)
