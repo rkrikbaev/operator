@@ -6,6 +6,9 @@ import requests, json
 from requests import ConnectionError, Timeout
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL')
+if LOG_LEVEL==None:
+    LOG_LEVEL='INFO'
+    
 from helper import get_logger
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 

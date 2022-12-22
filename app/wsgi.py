@@ -4,6 +4,8 @@ from wsgiref.simple_server import make_server
 from app import api
 from helper import get_logger
 LOG_LEVEL = os.environ.get('LOG_LEVEL')
+if LOG_LEVEL==None:
+    LOG_LEVEL='INFO'
 logger = get_logger(name=__name__, loglevel=LOG_LEVEL)
 
 if __name__ == "__main__":
