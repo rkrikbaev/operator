@@ -10,13 +10,15 @@ try:
 except:
     raise RuntimeError('Cannot import service to run the model')
 
+LOG_LEVEL = os.environ.get('LOG_LEVEL')
+if LOG_LEVEL==None:
+    LOG_LEVEL='INFO'
 
 from helper import get_logger
+logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
-logger = get_logger(__name__, loglevel='DEBUG')
-
-dotenv_path = Path('./.env')
-load_dotenv(dotenv_path=dotenv_path)
+# dotenv_path = Path('./.env')
+# load_dotenv(dotenv_path=dotenv_path)
 
 TRACKING_SERVER = os.getenv('TRACKING_SERVER', default='http://mlflow:5000')
 
@@ -60,4 +62,4 @@ api = falcon.App()
 api.add_route("/health", CheckHealth())
 api.add_route("/action", Predict())
 
-logger.info("Server Loaded")
+logger.info("Service started")

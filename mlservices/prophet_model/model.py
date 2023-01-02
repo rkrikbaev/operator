@@ -15,15 +15,22 @@ from dotenv import load_dotenv
 from pathlib import Path
 import pandas as pd
 import json
+import os
 
 import mlflow
 from prophet import Prophet, serialize
 
-from helper import get_logger
-logger = get_logger(__name__, loglevel='DEBUG')
-
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
+
+LOG_LEVEL = os.environ.get('LOG_LEVEL')
+if LOG_LEVEL==None:
+    LOG_LEVEL='INFO'
+
+from helper import get_logger
+logger = get_logger(__name__, loglevel=LOG_LEVEL)
+
+logger.info(LOG_LEVEL)
 
 ARTIFACT_PATH = 'model'
 
@@ -116,40 +123,26 @@ class Model(object):
         def extract_params(pr_model):
             return {attr: getattr(pr_model, attr) for attr in serialize.SIMPLE_ATTRIBUTES}
 
-        model = Prophet(
-            growth=settings.get('growth'),
-            seasonality_mode=settings.get('seasonality_mode'),
-            changepoint_prior_scale=settings.get(
-                'changepoint_prior_scale'),
-            seasonality_prior_scale=settings.get(
-                'seasonality_prior_scale'),
-            interval_width=settings.get('interval_width'),
-            daily_seasonality=settings.get('daily_seasonality'),
-            weekly_seasonality=settings.get('weekly_seasonality'),
-            yearly_seasonality=settings.get('yearly_seasonality')
-        )
+        init_settings = settings.get('init')
         seasonality = settings.get('seasonality')
-        
-        for item in seasonality:
-            model.add_seasonality(
-                name=item.get('name'), 
-                period=item.get('period'), 
-                fourier_order=item.get('fourier_order'))
-        
-        logger.debug('fit data')
-        logger.debug(data)
-        model.fit(data)
 
-        params = extract_params(model)
+        self.model = Prophet(**init_settings)
+        
+        if seasonality:
+            [self.model.add_seasonality(**items) for items in seasonality]
+                
 
-        mlflow.prophet.log_model(model, artifact_path=ARTIFACT_PATH)
+        self.model.fit(data)
+        params = extract_params(self.model)
+
+        mlflow.prophet.log_model(self.model, artifact_path=ARTIFACT_PATH)
         mlflow.log_params(params)
 
         # mlflow.log_metrics(metrics)
         model_uri = mlflow.get_artifact_uri(ARTIFACT_PATH)
         print(f"Model artifact logged to: {model_uri}") 
 
-        return model_uri, model
+        return model_uri, self.model
 
     def _create_df(self, data, columns) -> pd.DataFrame:
 
