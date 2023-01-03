@@ -41,7 +41,9 @@ services:
     restart: always
     volumes:
       - ./app:/app
-      - ./app/logs:/app/logs
+      - ./main.config:/app/main.config
+      - ./service_config.yaml:/app/service_config.yaml
+      - ./logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
     # networks: 
     #   - backend
@@ -67,7 +69,9 @@ services:
     restart: always
     volumes:
       - ./app:/app
-      - ./app/logs:/app/logs
+      - ./main.config:/app/main.config
+      - ./service_config.yaml:/app/service_config.yaml
+      - ./logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5555:5555
@@ -103,9 +107,6 @@ services:
       container_name: mlflow_server
       ports:
           - 5000:5000
-      # networks:
-      #     - frontend
-      #     - backend
       command: 'mlflow server 
               --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} 
               --default-artifact-root file:${PATH_TO_MLRUNS} 
