@@ -4,21 +4,21 @@ from docker.errors import DockerException, APIError, ContainerError, ImageNotFou
 import time, os
 import requests, json
 from requests import ConnectionError, Timeout
-
-LOG_LEVEL = os.environ.get('LOG_LEVEL')
-if LOG_LEVEL==None:
-    LOG_LEVEL='INFO'
     
-from helper import get_logger
+from helper import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 
-class ModelAsHTTPService():
+class ModelAPI():
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, model_point, ip_address) -> None:
+        self.model_point = model_point
+        self.ip_address = ip_address
+        self.payload = None
 
-    def call(self, payload, model_point, ip_address)->dict:
+    def call(self, payload)->dict:
+        self.payload = payload
+
         health_ok = False
         logger.debug('Try to call the model first time')
 
@@ -28,7 +28,7 @@ class ModelAsHTTPService():
             pool_maxsize=100)
 
         session.mount('http://', adapter)
-        url = f'http://{ip_address}:8005/health'
+        url = f'http://{self.ip_address}:8005/health'
 
         tries = 0
         while tries < 5:
@@ -38,17 +38,18 @@ class ModelAsHTTPService():
                 health_ok = health.ok
                 logger.debug(f'query url: {url} status: {health_ok}')
 
-                url = f'http://{ip_address}:8005/action'
+                url = f'http://{self.ip_address}:8005/action'
 
                 logger.debug(f'query url: {url}')
-                logger.debug(f'query payload: {payload}')
+                logger.debug(f'query payload: {self.payload}')
 
                 start_time = str(datetime.datetime.now())
                 
-                result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(payload), timeout=10)
+                result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=10)
                 logger.debug(result)
+
                 return {
-                        "point": model_point,
+                        "point": self.model_point,
                         "start_time": start_time,
                         "finish_time":  str(datetime.datetime.now()),
                         "prediction": result.json().get('prediction'),
@@ -62,28 +63,29 @@ class ModelAsHTTPService():
                 time.sleep(tries)
 
         else:
-            logger.debug(f' Tried to call a model for point {model_point} {tries} times')
+            logger.debug(f' Tried to call a model for point {self.model_point} {tries} times')
             return {
                     "state": 'model side caused error',
-                    "point": model_point,
+                    "point": self.model_point,
                     "start_time": start_time,
                     "error_text": "ConnectionError"
                     }
 
-class DockerController():
+class ModelEnv():
     """
     Class to work with docker objects
     """
-    def __init__(self, docker_config, model_type, path_to):
+    def __init__(self, service_config):
 
         self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
-        self.image = docker_config.get('image')
-        self.cpuset_cpus = docker_config['limits'].get('cpuset_cpus')
-        self.con_mem_limit = docker_config['limits'].get('con_mem_limit')       
-        self.startup = docker_config.get('startup')
+
+        self.image = service_config.get('image')
+        self.cpuset_cpus = service_config['limits'].get('cpuset_cpus')
+        self.con_mem_limit = service_config['limits'].get('con_mem_limit')       
+        self.startup = service_config.get('startup')
         self.network = 'operator_default'
-        self.path_to = path_to
-        self.model_type = model_type
+        self.path_to = service_config.get('path_to_env')
+        self.model_type = service_config.get('name')
         
         logger.debug('Path to model env code')
         logger.debug(self.path_to)

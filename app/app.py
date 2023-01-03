@@ -5,13 +5,10 @@ import os
 
 from tasks import predict
 
-LOG_LEVEL = os.environ.get('LOG_LEVEL')
-if LOG_LEVEL==None:
-    LOG_LEVEL='INFO'
-
-from helper import get_logger
+from helper import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
+logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
             
 class Health():
     def __init__(self):
@@ -55,7 +52,7 @@ class Predict():
                     self.task_state = task.status
                     
                 except Exception as err:
-                    logger.debug(f'Broker call has exception: {err}')
+                    logger.error(f'Broker call has exception: {err}')
                     resp.status = falcon.HTTP_500
         
             elif self.task_id is None:
@@ -63,16 +60,15 @@ class Predict():
                     task = predict.delay(request)
                     self.task_state = "DEPLOYED"
                     self.task_id = task.id
-
                 except Exception as err:
-                    logger.debug(err)
+                    self.task_state = "FAILED"
+                    logger.error(f'Task call with error: {err}')
                     resp.status = falcon.HTTP_500
         else:
-
-            self.task_state = "FAILED"
-            resp.status = falcon.HTTP_400
+            self.task_state = "FIELDS MISMATCH"
+            logger.info(self.task_state)
         
-        _response = {
+        response = {
             'ts': self.ts,
             'task_state': self.task_state, 
             'task_id': self.task_id,
@@ -80,12 +76,11 @@ class Predict():
             'result':self.result,
             'model_uri': self.model_uri
             }
-        logger.debug(_response)
-        resp.media = _response
+            
+        logger.debug(response)
+        resp.media = response
 
 api = falcon.App()
 
 api.add_route('/predict', Predict())
 api.add_route("/health", Health())
-
-logger.debug('Application started.')

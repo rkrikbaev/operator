@@ -4,6 +4,16 @@ from logging.handlers import RotatingFileHandler
 
 file_path = os.path.join(os.getcwd(), 'log.log')
 
+import configparser
+config = configparser.ConfigParser()
+config.read_file(open(r'app/main.config'))
+
+LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
+if LOG_LEVEL==None:
+    LOG_LEVEL='INFO'
+
+
+
 def get_logger(name='root', loglevel='INFO'):
   
   logger = logging.getLogger(name)

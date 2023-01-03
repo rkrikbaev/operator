@@ -4,49 +4,50 @@ import yaml
 import celery
 import os
 
-from service import ModelAsHTTPService, DockerController
+from service import ModelAPI, ModelEnv
 
-LOG_LEVEL = os.environ.get('LOG_LEVEL')
-if LOG_LEVEL==None:
-    LOG_LEVEL='INFO'
+import configparser
+config = configparser.ConfigParser()
+config.read_file(open(r'app/main.config'))
 
-from helper import get_logger
+from helper import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
-CELERY_BROKER = os.environ.get('CELERY_BROKER')
-CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
-# PATH_TO_MLRUNS = os.environ.get('PATH_TO_MLRUNS')
-PATH_TO_MODEL_ENV = os.environ.get('PATH_TO_MODEL_ENV', default='/usr/local/etc/operator')
+CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
+CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
+# PATH_TO_MODEL_ENV = config.get('APP', 'PATH_TO_MODEL_ENV')
+CONFIG_FILEPATH = config.get('APP', 'CONFIG_FILEPATH')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
-
-model_service = ModelAsHTTPService()
 
 @app.task
 def predict(request):
 
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point')
-    metadata = request.get('metadata')
-    model_uri = request.get('model_uri')
-    model_config = request.get('model_config')
-    dataset = request.get('dataset')
-    period = request.get('period')
 
-    path = Path(__file__).parent.absolute()
-    file_path = os.path.join(path, 'service_config.yaml')
+    # path = Path(__file__).parent.absolute()
+    # file_path = os.path.join(path, 'service_config.yaml')
+    file_path = CONFIG_FILEPATH
     
     with open(file_path, 'r') as fl:
+
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[model_type]
 
-        docker = DockerController(service_config, model_type, path_to=PATH_TO_MODEL_ENV)
-        ip_address, state = docker.deploy_container(model_point.lower())
+        env = ModelEnv(**service_config)
+        ip_address, state = env.deploy_container(model_point.lower())
 
         logger.debug(f'Container: {model_point} has state {state}')
         
         if ip_address and (state == 'running'):
-
+            
+            metadata = request.get('metadata')
+            model_uri = request.get('model_uri')
+            model_config = request.get('model_config')
+            dataset = request.get('dataset')
+            period = request.get('period')
+            
             payload = {
                         "model_point": model_point, 
                         "model_type": model_type,
@@ -58,4 +59,5 @@ def predict(request):
                     }
 
             # logger.debug(f'Make prediction with: {payload}, {model_point}')
-            return model_service.call(payload, model_point, ip_address)
+            model_service = ModelAPI(model_point, ip_address)
+            return model_service.call(payload)
