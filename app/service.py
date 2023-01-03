@@ -85,7 +85,7 @@ class ModelEnv():
         self.con_mem_limit = service_config['limits'].get('con_mem_limit')       
         self.startup = service_config.get('startup')
         self.network = 'operator_default'
-        # self.path_to = service_config.get('path_to_env')
+        self.path_to = service_config.get('path_to_env')
         self.model_type = service_config.get('type')
         
     def deploy_container(self, point):
@@ -99,8 +99,8 @@ class ModelEnv():
         except NotFound:
             pass
 
-        volume_mlruns = f'{path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
-        volume_model_app = f'{path_to}/mlservices/{self.model_type}:/application'
+        volume_mlruns = f'/root/operator/mlservices/{self.model_type}/mlruns:/application/mlruns'         
+        volume_model_app = f'/root/operator/mlservices/{self.model_type}:/application'
 
         logger.debug('Path to volume_mlruns')
         logger.debug(volume_mlruns)
