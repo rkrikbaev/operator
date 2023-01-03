@@ -126,11 +126,12 @@ class Model(object):
         init_settings = settings.get('init')
         seasonality = settings.get('seasonality')
 
-        self.model = Prophet(**init_settings)
-        
-        if seasonality:
-            [self.model.add_seasonality(**items) for items in seasonality]
-                
+        if init_settings:
+            self.model = Prophet(init_settings)
+            if seasonality:
+                [self.model.add_seasonality(**items) for items in seasonality]
+        else:
+            self.model = Prophet()
 
         self.model.fit(data)
         params = extract_params(self.model)
