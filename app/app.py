@@ -21,11 +21,12 @@ class Predict():
         self.ts = None,
         self.task_state = None, 
         self.task_id = None,
-        self.model_point = None,
-        self.result = None,
         self.model_uri = None
+        self.model_point = None,
 
     def on_post(self, req, resp):
+
+        self.result = None,
 
         required_fields = {'dataset', 'metadata', 'model_config','model_type','model_uri','period', 'task_id', 'model_point'}
         self.ts = int(time.time())
