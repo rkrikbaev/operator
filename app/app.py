@@ -76,7 +76,7 @@ class Predict():
             'model_uri': self.model_uri
             }
 
-        logger.debug(response)
+        logger.debug(response.get('task_id'))
         resp.media = response
 
 api = falcon.App()
