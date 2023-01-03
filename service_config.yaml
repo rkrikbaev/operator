@@ -2,8 +2,6 @@ docker:
   prophet_model:
     type: 'prophet_model'
     image: 'rkrikbaev/fp-prophet:latest'
-    home: /opt/prophet-service
-    path_to_env: /Users/rustamkrikbayev/operator
     mlruns: 
     network: 'operator_default'
     limits:

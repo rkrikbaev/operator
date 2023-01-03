@@ -7,7 +7,7 @@ from requests import ConnectionError, Timeout
     
 from helper import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
-
+path_to, _ = os.path.split(os.getcwd())
 
 class ModelAPI():
 
@@ -85,12 +85,11 @@ class ModelEnv():
         self.con_mem_limit = service_config['limits'].get('con_mem_limit')       
         self.startup = service_config.get('startup')
         self.network = 'operator_default'
-        self.path_to = service_config.get('path_to_env')
+        # self.path_to = service_config.get('path_to_env')
         self.model_type = service_config.get('type')
         
     def deploy_container(self, point):
         ip_address = None
-        
         try:
             container = self.client.containers.get(point)
             container.remove(force=True)
@@ -99,11 +98,9 @@ class ModelEnv():
         
         except NotFound:
             pass
-        
-        self.path_to, _ = os.path.split(os.getcwd())
 
-        volume_mlruns = f'{self.path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
-        volume_model_app = f'{self.path_to}/mlservices/{self.model_type}:/application'
+        volume_mlruns = f'{path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
+        volume_model_app = f'{path_to}/mlservices/{self.model_type}:/application'
 
         logger.debug('Path to volume_mlruns')
         logger.debug(volume_mlruns)

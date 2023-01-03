@@ -3,7 +3,6 @@ from celery.result import AsyncResult
 import time
 
 from tasks import predict
-
 from helper import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
