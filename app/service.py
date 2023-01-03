@@ -88,9 +88,6 @@ class ModelEnv():
         self.path_to = service_config.get('path_to_env')
         self.model_type = service_config.get('type')
         
-        # logger.debug('Path to model env code')
-        
-
     def deploy_container(self, point):
         ip_address = None
         
@@ -102,9 +99,11 @@ class ModelEnv():
         
         except NotFound:
             pass
+        
+        self.path_to, _ = os.path.split(os.getcwd())
 
         volume_mlruns = f'{self.path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
-        volume_app = f'{self.path_to}/mlservices/{self.model_type}:/application'
+        volume_model_app = f'{self.path_to}/mlservices/{self.model_type}:/application'
 
         logger.debug('Path to volume_mlruns')
         logger.debug(volume_mlruns)
@@ -115,7 +114,7 @@ class ModelEnv():
         container = self.client.containers.run(
                                 image=self.image,
                                 name=point,
-                                volumes=[volume_mlruns, volume_app], 
+                                volumes=[volume_mlruns, volume_model_app], 
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
