@@ -104,10 +104,13 @@ class Model(object):
             filter = ['ts', 'yhat'] + metadata.get('model_features')
             logger.debug('Filter value')
             logger.debug(filter)
-            forecast['ts'] = forecast[['ds']].apply(lambda x: x[0].timestamp(), axis=1).astype(int)
+            forecast['ts'] = forecast[['ds']].apply(lambda x: x[0].timestamp()*1000, axis=1)
+            forecast['ts'] = forecast['ts'].astype(int)
             forecast['ds'] = forecast['ds'].astype('string')
 
             filtred_result = forecast[filter].values.tolist()
+            filtred_result = list(map(lambda x: [int(x[0]), x[1]], filtred_result))
+
             logger.debug('Filter response')
             logger.debug(filtred_result)
             
