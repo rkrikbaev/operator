@@ -24,16 +24,14 @@ services:
       - 8015:8015
     volumes:
       - ./app:/app
+      - main.config:/app/main.config
+      - service_config.yaml:/app/service_config.yaml
+      - ./logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
-    # networks: 
-    #   - models
-    #   - backend
     command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
-      - PATH_TO_MLRUNS=${PATH_TO_MLRUNS}
-      - LOG_LEVEL=${LOG_LEVEL}
     depends_on:
       - redis
 

@@ -1,18 +1,27 @@
 import logging, os, sys
 import logging.config
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
-file_path = os.path.join(os.getcwd(), 'log.log')
+
+
+path_abs = Path(__file__).parent.absolute()
+
+path = os.getcwd()
+
+file_path_log = os.path.join(path, 'logs/log.log')
+PATH_TO_CONFG = os.path.join(path, 'main.config')
+
+# file_path_log = '../log.log'
+# file_path_config = '../main.config'
 
 import configparser
 config = configparser.ConfigParser()
-config.read_file(open(r'app/main.config'))
+config.read_file(open(PATH_TO_CONFG))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
 if LOG_LEVEL==None:
     LOG_LEVEL='INFO'
-
-
 
 def get_logger(name='root', loglevel='INFO'):
   
@@ -37,7 +46,7 @@ def get_logger(name='root', loglevel='INFO'):
     terminal_handler.setFormatter(formatter)
     logger.addHandler(terminal_handler)
 
-    file_handler = RotatingFileHandler(file_path, mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
+    file_handler = RotatingFileHandler(file_path_log, mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
     file_handler.setLevel(logging.ERROR)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

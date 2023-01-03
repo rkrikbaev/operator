@@ -7,16 +7,17 @@ import os
 from service import ModelAPI, ModelEnv
 
 import configparser
-config = configparser.ConfigParser()
-config.read_file(open(r'app/main.config'))
 
-from helper import get_logger, LOG_LEVEL
+from helper import get_logger, LOG_LEVEL, PATH_TO_CONFG
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
+
+config = configparser.ConfigParser()
+config.read_file(open(PATH_TO_CONFG))
 
 CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
 CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
 # PATH_TO_MODEL_ENV = config.get('APP', 'PATH_TO_MODEL_ENV')
-CONFIG_FILEPATH = config.get('APP', 'CONFIG_FILEPATH')
+CONFIG_FILEPATH = config.get('APP', 'SERVICES_CONF')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
@@ -26,8 +27,6 @@ def predict(request):
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point')
 
-    # path = Path(__file__).parent.absolute()
-    # file_path = os.path.join(path, 'service_config.yaml')
     file_path = CONFIG_FILEPATH
     
     with open(file_path, 'r') as fl:

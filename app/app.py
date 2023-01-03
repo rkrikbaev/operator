@@ -1,7 +1,6 @@
 import falcon
 from celery.result import AsyncResult
 import time
-import os
 
 from tasks import predict
 
@@ -76,7 +75,7 @@ class Predict():
             'result':self.result,
             'model_uri': self.model_uri
             }
-            
+
         logger.debug(response)
         resp.media = response
 
