@@ -84,11 +84,11 @@ class Model(object):
                 self.model = mlflow.prophet.load_model(self.model_uri)
             except Exception as exc:
                 logger.error(exc)
-        
         else:
+            settings = data.get('model_config')          
             self.model_uri, self.model = self._fit_model(
                 data=df_dataset,
-                settings=json.loads(data.get('model_config'))
+                settings=settings
                 )
         
         if self.model:
@@ -122,17 +122,23 @@ class Model(object):
 
         def extract_params(pr_model):
             return {attr: getattr(pr_model, attr) for attr in serialize.SIMPLE_ATTRIBUTES}
-
-        init_settings = settings.get('init')
-        seasonality = settings.get('seasonality')
+        
+        init_settings = None
+        seasonality = None       
+        
+        if type(settings) == 'string':
+            _settings = json.loads(settings)
+            init_settings = _settings.get('init')
+            seasonality = _settings.get('seasonality') 
 
         if init_settings:
             self.model = Prophet(init_settings)
-            if seasonality:
-                [self.model.add_seasonality(**items) for items in seasonality]
         else:
             self.model = Prophet()
-
+        
+        if seasonality:
+            [self.model.add_seasonality(**items) for items in seasonality]
+        
         self.model.fit(data)
         params = extract_params(self.model)
 
