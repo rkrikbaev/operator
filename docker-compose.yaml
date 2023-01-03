@@ -24,8 +24,8 @@ services:
       - 8015:8015
     volumes:
       - ./app:/app
-      - main.config:/app/main.config
-      - service_config.yaml:/app/service_config.yaml
+      - ./main.config:/app/main.config
+      - ./service_config.yaml:/app/service_config.yaml
       - ./logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
     command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
