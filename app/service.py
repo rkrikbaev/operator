@@ -109,7 +109,7 @@ class ModelEnv():
         logger.debug(volume_mlruns)
 
         logger.debug('Path to volume_app')
-        logger.debug(volume_app)
+        logger.debug(volume_model_app)
 
         container = self.client.containers.run(
                                 image=self.image,
