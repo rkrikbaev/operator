@@ -33,12 +33,12 @@ def predict(request):
 
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[model_type]
-
+        logger.debug(f'Service config: {service_config}')
+        
         env = ModelEnv(**service_config)
         ip_address, state = env.deploy_container(model_point.lower())
 
         logger.debug(f'Container: {model_point} has state {state}')
-        
         if ip_address and (state == 'running'):
             
             metadata = request.get('metadata')

@@ -51,7 +51,7 @@ class Predict():
                     self.task_state = task.status
                     
                 except Exception as err:
-                    logger.error(f'Broker call has exception: {err}')
+                    logger.error(f'Broker call has error: {err}')
                     resp.status = falcon.HTTP_500
         
             elif self.task_id is None:

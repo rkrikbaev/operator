@@ -1,3 +1,5 @@
 README.md
 Dockerfile
 .dockerignore
+logs
+*.log

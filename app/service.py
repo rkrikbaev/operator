@@ -75,7 +75,7 @@ class ModelEnv():
     """
     Class to work with docker objects
     """
-    def __init__(self, service_config):
+    def __init__(self, **service_config):
 
         self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
 
@@ -85,7 +85,7 @@ class ModelEnv():
         self.startup = service_config.get('startup')
         self.network = 'operator_default'
         self.path_to = service_config.get('path_to_env')
-        self.model_type = service_config.get('name')
+        self.model_type = service_config.get('type')
         
         logger.debug('Path to model env code')
         logger.debug(self.path_to)
