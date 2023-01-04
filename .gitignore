@@ -11,3 +11,4 @@ pipe*
 mlruns
 .pytest_cache
 log.log
+*.h5
