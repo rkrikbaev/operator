@@ -49,7 +49,6 @@ class Model(object):
         try:
             metadata = data.get('metadata')
             self.model_uri = data.get('model_uri')
-            # self.model_point = data.get('model_point') 
             dataset = data.get('dataset')
             period = data.get('period')
         except (KeyError, AttributeError) as err:
