@@ -89,5 +89,5 @@ class Model(object):
             "prediction": predict_values,
             "anomalies": None, 
             "error": False,
-            "model_uri": self.uri
+            "model_uri": uri
             } 
