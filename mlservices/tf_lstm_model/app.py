@@ -39,7 +39,7 @@ class Predict:
             data = request.get('dataset')
 
             window = config.get('window')
-            experiment_id = config.get('experiment_id')
+            experiment_id = metadata.get('experiment_id')
             run_id = metadata.get('run_id')
 
             # add experiment as the point
