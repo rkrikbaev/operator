@@ -11,7 +11,7 @@ docker:
     port: 8005
     startup: 5
   tf_lstm_model:
-    image: 'rkrikbaev/tfs-env:latest'
+    image: 'rkrikbaev/tf-env:latest'
     network: 'operator_default'
     limits:
       con_mem_limit: '1024m'

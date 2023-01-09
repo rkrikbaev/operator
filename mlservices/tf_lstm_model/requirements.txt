@@ -1,6 +1,6 @@
 falcon==3.0.1
 jsonschema
-pydotenv==0.0.7
+# pydotenv==0.0.7
 pytest
 mlflow==2.1.1
 joblib

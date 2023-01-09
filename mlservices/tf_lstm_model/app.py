@@ -17,16 +17,7 @@ if LOG_LEVEL==None:
 from helper import get_logger
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
-# dotenv_path = Path('./.env')
-# load_dotenv(dotenv_path=dotenv_path)
-
-TRACKING_SERVER = os.getenv('TRACKING_SERVER', default='http://mlflow:5000')
-
-# LIST_OF_SUPPORTED_MODELS = os.getenv('LIST_OF_SUPPORTED_MODELS', default={
-#     'prophet_model': prophet_model.Model(tracking_server=TRACKING_SERVER),
-#     'tensorflow_model': tensorflow_model.Model(tracking_server=TRACKING_SERVER)
-#     })
-
+TRACKING_SERVER = os.getenv('TRACKING_SERVER', default='http://138.68.70.41:5000')
 
 class CheckHealth():
 
@@ -42,17 +33,23 @@ class Predict:
         
         request = req.media
         
-        list_of_keys = ['model_config', 'dataset', 'period', 'metadata', 'model_uri']
+        list_of_keys = ['model_config', 'dataset', 'period', 'metadata']
         if all(k in request for k in list_of_keys):
 
             experiment = request.get('model_point')
+            config = request.get('model_config')
+            metadata = request.get('metadata')
+            data = request.get('dataset')
 
-            # add experiment as point
+            window = config.get('window')
+            run_id = metadata.get('run_id')
+
+            # add experiment as the point
             mlflow.set_experiment(experiment)
             experiment = mlflow.get_experiment_by_name(experiment)
 
             with mlflow.start_run(experiment_id=experiment.experiment_id):
-                resp.media = self.model_instance.run(data=request)
+                resp.media = self.model_instance.run(data, window=window, run_id=run_id)
         else:
             resp.state = falcon.HTTP_400
             logger.info(resp.state)

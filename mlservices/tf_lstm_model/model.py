@@ -3,81 +3,91 @@
     
 
 """
+
 import pandas as pd
 import numpy as np
 
-from sklearn.preprocessing import MinMaxScaler
-
-from dotenv import load_dotenv
-from pathlib import Path
-import pandas as pd
-import json
-
 import mlflow
-import tensorflow as tf
-from tensorflow import keras
+import mlflow.keras
+
+from pathlib import Path
 
 from helper import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
 
+path_abs = Path(__file__).parent.absolute()
+
 class Model(object):
 
     def __init__(self, tracking_server):
         self.model = None
-        self.output_fields = None
+
         try:
             mlflow.set_tracking_uri(tracking_server)
         except:
             logger.error(
             """Couldn't connect to remote MLFLOW tracking server""")
 
-    def run(self, data):
+    def run( self, dataset, **kwargs ):
 
-        metadata = data.get('metadata')
-        self.model_uri = data.get('model_uri')
-        dataset = data.get('dataset')
-        period = data.get('period')
-
-        if self.model_uri:
-            self.model = mlflow.tensorflow.load_model(self.model_uri)
+        window = kwargs.get('window')
+        run_id = kwargs.get('run_id')
         
-        _dataset = self.prepare_dataset(dataset)
-        predict = self.model.predict(_dataset)
+        
+        assert window != None
+        assert run_id != None
 
-        _result = predict[self.output_fields].values.tolist()
+        # uri = '/Users/rustamkrikbayev/operator/mlservices/tf_lstm_model/mlruns/571625146127493926/6776c0c6dda044bd8f120d2875463883/mlmodel'
+        uri = f'file://{path_abs}/mlruns/{run_id}/mlmodel'
+
+        model = mlflow.tensorflow.load_model(uri)
+        
+        # Convert dataset to pandas DataFrame
+        X = pd.DataFrame(dataset)
+
+        # Replace N/A values with previouse value
+        X.fillna( method='ffill', inplace=True )
+        # Replace 0 with previouse value
+        X.replace(to_replace=0, method='ffill', inplace=True )
+
+        X.set_index(X.columns[0], inplace=True)
+        X['dt'] = pd.to_datetime(X.index)
+
+        # create additional features from date
+        # Day of week
+        X['of_day'] = X['dt'].dt.dayofweek
+        # of week
+        X['of_week'] = X['dt'].dt.week
+        # of month
+        X['of_month'] = X['dt'].dt.month
+
+        # drop columns
+        X.drop('dt', inplace=True, axis=1)
+
+        # Normalize features back
+        _max = X[X.columns[0]].max()
+        _min = X[X.columns[0]].min()
+
+        X_series = np.array(X.values)
+        assert X_series.shape[0] == window +1
+
+        # create sclice
+        N = X_series.shape[0]
+        k = N - window
+        X_slice = np.array([range(i, i + window) for i in range(k)])
+        X_data = X_series[X_slice,:]
+
+        in_data = X_data[0]
+        in_data = np.reshape(in_data, (1, window, X_data.shape[2]))
+
+        predict = model.predict(in_data)[0] * _max + _min
+        predict_values = list(predict)
 
         return {
-            "prediction": _result,
+            "prediction": predict_values,
             "anomalies": None, 
             "error": False,
-            "model_uri": self.model_uri
-            }
-
-    def prepare_dataset(self, dataset):
-
-        # Load dataset as pandas dataframe
-        df = pd.DataFrame(dataset)
-        # Replace Nan with previouse value
-        df.fillna( method='ffill', inplace=True )
-        # Replace 0 with previouse value
-        df.replace(to_replace=0, method='ffill', inplace=True )
-        df.set_index(df.columns[0], inplace=True)
-        df['dt'] = pd.to_datetime(df.index, unit='ms')
-        
-        df['of_day'] = df['dt'].dt.dayofweek
-
-        # of week
-        df['of_week'] = df['dt'].dt.week
-
-        # of month
-        df['of_month'] = df['dt'].dt.month
-
-        df.drop('dt', inplace=True, axis=1)
-
-        # Normalize features 
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        series = scaler.fit_transform(df.values) 
-
-        return series   
+            "model_uri": self.uri
+            } 
