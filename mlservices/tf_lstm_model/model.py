@@ -55,12 +55,14 @@ class Model(object):
         X['dt'] = pd.to_datetime(X.index)
 
         # create additional features from date
-        # Day of week
-        X['of_day'] = X['dt'].dt.dayofweek
-        # of week
-        X['of_week'] = X['dt'].dt.week
         # of month
         X['of_month'] = X['dt'].dt.month
+        # of week
+        X['of_week'] = X['dt'].dt.week
+        # Day of week
+        X['of_day'] = X['dt'].dt.dayofweek
+
+
         
         # drop columns
         X.drop('dt', inplace=True, axis=1)
@@ -81,9 +83,9 @@ class Model(object):
         in_data = X_data[0]
         in_data = np.reshape(in_data, (1, window, X_data.shape[2]))
         print(f'input data {in_data}')
-        logger.debug(f'in_daa shape: {in_data.shape}')
+
         predict = model.predict(in_data)[0] * _max + _min
-        predict_values = list(predict)
+        predict_values = list(map(lambda x: float(x), predict))
 
         return {
             "prediction": predict_values,
