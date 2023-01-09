@@ -40,9 +40,9 @@ class Model(object):
         assert run_id != None
 
         uri = f'file://{path_abs}/mlruns/{experiment_id}/{run_id}/mlmodel'
-
-        model = mlflow.tensorflow.load_model(uri)
         
+        model = mlflow.tensorflow.load_model(uri)
+        print('model loaded')
         # Convert dataset to pandas DataFrame
         X = pd.DataFrame(dataset)
 
@@ -61,10 +61,10 @@ class Model(object):
         X['of_week'] = X['dt'].dt.week
         # of month
         X['of_month'] = X['dt'].dt.month
-
+        
         # drop columns
         X.drop('dt', inplace=True, axis=1)
-
+        print('create additional input data fields')
         # Normalize features back
         _max = X[X.columns[0]].max()
         _min = X[X.columns[0]].min()
@@ -77,10 +77,10 @@ class Model(object):
         k = N - window
         X_slice = np.array([range(i, i + window) for i in range(k)])
         X_data = X_series[X_slice,:]
-
+        print(f'create slice: {X_slice}')
         in_data = X_data[0]
         in_data = np.reshape(in_data, (1, window, X_data.shape[2]))
-
+        print(f'input data {in_data}')
         logger.debug(f'in_daa shape: {in_data.shape}')
         predict = model.predict(in_data)[0] * _max + _min
         predict_values = list(predict)
