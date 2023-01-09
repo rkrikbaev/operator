@@ -36,7 +36,6 @@ class Model(object):
         run_id = kwargs.get('run_id')
         experiment_id = kwargs.get('experiment_id')
         
-        
         assert window != None
         assert run_id != None
 
@@ -82,6 +81,7 @@ class Model(object):
         in_data = X_data[0]
         in_data = np.reshape(in_data, (1, window, X_data.shape[2]))
 
+        logger.debug(f'in_daa shape: {in_data.shape}')
         predict = model.predict(in_data)[0] * _max + _min
         predict_values = list(predict)
 
