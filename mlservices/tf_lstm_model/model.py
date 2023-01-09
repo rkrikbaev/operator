@@ -30,19 +30,28 @@ class Model(object):
             logger.error(
             """Couldn't connect to remote MLFLOW tracking server""")
 
-    def run( self, dataset, **kwargs ):
-
+    def run(self, dataset, **kwargs):
+    
         window = kwargs.get('window')
-        run_id = kwargs.get('run_id')
-        experiment_id = kwargs.get('experiment_id')
-        
-        assert window != None
-        assert run_id != None
+        model_uri = kwargs.get('uri')
 
-        uri = f'file://{path_abs}/mlruns/{experiment_id}/{run_id}/mlmodel'
+        print("\n**** mlflow.keras.load_model\n")
+        model = mlflow.keras.load_model(model_uri)
+        print("model:", type(model))
         
-        model = mlflow.tensorflow.load_model(uri)
-        print('model loaded')
+        X = self.prepare_dataset(dataset)
+        X_series, _min, _max = self.normalize_data(X, column_index=0)
+
+        assert X_series.shape[0] == window +1
+
+        in_data = self.slice_data(X_series, window)
+
+        predict = model.predict(in_data)[0] * _max + _min
+        predict_values = list(map(lambda x: float(x), predict))
+
+        return predict_values
+
+    def prepare_dataset( self, dataset ):
         # Convert dataset to pandas DataFrame
         X = pd.DataFrame(dataset)
 
@@ -55,41 +64,35 @@ class Model(object):
         X['dt'] = pd.to_datetime(X.index)
 
         # create additional features from date
-        # of month
-        X['of_month'] = X['dt'].dt.month
-        # of week
-        X['of_week'] = X['dt'].dt.week
         # Day of week
         X['of_day'] = X['dt'].dt.dayofweek
+        # of week
+        X['of_week'] = X['dt'].dt.week
+        # of month
+        X['of_month'] = X['dt'].dt.month
 
-
-        
         # drop columns
-        X.drop('dt', inplace=True, axis=1)
-        print('create additional input data fields')
-        # Normalize features back
-        _max = X[X.columns[0]].max()
-        _min = X[X.columns[0]].min()
+        X.drop('dt', inplace=True, axis=1)  
 
-        X_series = np.array(X.values)
-        assert X_series.shape[0] == window +1
+        return X
 
+    def normalize_data(self, X, column_index):
+        # Normalize features 
+        _max = X[X.columns[column_index]].max()
+        _min = X[X.columns[column_index]].min()
+
+        X_series = ( (np.array(X.values) - _min ) / _max )
+
+        return X_series, _min, _max
+
+    def slice_data(self, X_series, window):
         # create sclice
         N = X_series.shape[0]
         k = N - window
         X_slice = np.array([range(i, i + window) for i in range(k)])
         X_data = X_series[X_slice,:]
-        print(f'create slice: {X_slice}')
+
         in_data = X_data[0]
         in_data = np.reshape(in_data, (1, window, X_data.shape[2]))
-        print(f'input data {in_data}')
 
-        predict = model.predict(in_data)[0] * _max + _min
-        predict_values = list(map(lambda x: float(x), predict))
-
-        return {
-            "prediction": predict_values,
-            "anomalies": None, 
-            "error": False,
-            "model_uri": uri
-            } 
+        return in_data
