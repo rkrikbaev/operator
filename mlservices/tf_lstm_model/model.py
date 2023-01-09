@@ -34,13 +34,13 @@ class Model(object):
 
         window = kwargs.get('window')
         run_id = kwargs.get('run_id')
+        experiment_id = kwargs.get('experiment_id')
         
         
         assert window != None
         assert run_id != None
 
-        # uri = '/Users/rustamkrikbayev/operator/mlservices/tf_lstm_model/mlruns/571625146127493926/6776c0c6dda044bd8f120d2875463883/mlmodel'
-        uri = f'file://{path_abs}/mlruns/{run_id}/mlmodel'
+        uri = f'file://{path_abs}/mlruns/{experiment_id}/{run_id}/mlmodel'
 
         model = mlflow.tensorflow.load_model(uri)
         

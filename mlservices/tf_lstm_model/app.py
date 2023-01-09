@@ -42,6 +42,7 @@ class Predict:
             data = request.get('dataset')
 
             window = config.get('window')
+            experiment_id = config.get('experiment_id')
             run_id = metadata.get('run_id')
 
             # add experiment as the point
@@ -49,7 +50,7 @@ class Predict:
             experiment = mlflow.get_experiment_by_name(experiment)
 
             with mlflow.start_run(experiment_id=experiment.experiment_id):
-                resp.media = self.model_instance.run(data, window=window, run_id=run_id)
+                resp.media = self.model_instance.run(data, window=window, experiment_id=experiment_id, run_id=run_id)
         else:
             resp.state = falcon.HTTP_400
             logger.info(resp.state)
