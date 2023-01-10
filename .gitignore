@@ -5,7 +5,6 @@ __pycache__
 *.tar
 /model
 .venv
-logs
 .env
 pipe*
 .pytest_cache
