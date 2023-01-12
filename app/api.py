@@ -47,7 +47,7 @@ class Predict():
                 try:
                     task = AsyncResult(self.task_id)
                     self.result = task.result
-                    self.model_uri = task.result.get('model_uri')
+                    self.model_uri = self.result.get('model_uri')
                     self.task_state = task.status
                     
                 except Exception as err:
