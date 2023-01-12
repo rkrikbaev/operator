@@ -10,9 +10,9 @@ docker:
     features: 'yhat,yhat_lower,yhat_upper,trend'
     port: 8005
     startup: 5
-  tf_lstm_model:
-    type: 'tf_lstm_model'
-    image: 'rkrikbaev/tf-env:latest'
+  tf_model:
+    type: 'tf_model'
+    image: 'rkrikbaev/tf-model:latest'
     network: 'operator_default'
     limits:
       con_mem_limit: '1024m'
