@@ -11,11 +11,6 @@ from requests import ConnectionError, Timeout
 from utils import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
-path_abs = Path(__file__).parent.absolute()
-path_to, _ = os.path.split(path_abs)
-
-logger.debug(f'Path to workdirectory: {path_to}')
-
 class Service():
 
     def __init__(self, service_config):
@@ -45,6 +40,11 @@ class Service():
             except NotFound:
                 pass
 
+            path_abs = Path(__file__).parent.absolute()
+            path_to, _ = os.path.split(path_abs)
+
+            logger.debug(f'Path to workdirectory: {path_to}')
+            
             volume_mlruns = f'{path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
             volume_model_app = f'{path_to}/mlservices/{self.model_type}:/application'
 
