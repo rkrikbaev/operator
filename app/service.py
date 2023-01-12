@@ -2,18 +2,20 @@ import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time
-import os
-from pathlib import Path
-
 import requests, json
 from requests import ConnectionError, Timeout
     
-from utils import get_logger, LOG_LEVEL, BASE_PATH
+from utils import get_logger, LOG_LEVEL, PATH_TO_CONFG
+import configparser
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
-class Service():
+config = configparser.ConfigParser()
+config.read_file(open(PATH_TO_CONFG))
 
+BASE_PATH = config.get('APP', 'BASE_PATH')
+
+class Service():
     def __init__(self, service_config):
 
         logger.debug(service_config)
@@ -31,7 +33,6 @@ class Service():
 
     def deploy(self, name):
             self.service_name = name
-            
             try:
                 container = self.client.containers.get(self.service_name)
                 container.remove(force=True)
@@ -40,9 +41,6 @@ class Service():
             
             except NotFound:
                 pass
-
-            # path_abs = Path(__file__).parent.absolute()
-            # path_to, _ = os.path.split(path_abs)
 
             logger.debug(f'Path to workdirectory: {BASE_PATH}')
             volume_mlruns = f'{BASE_PATH}/mlservices/{self.model_type}/mlruns:/application/mlruns'         

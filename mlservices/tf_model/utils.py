@@ -5,21 +5,23 @@ from pathlib import Path
 import configparser
 
 config = configparser.ConfigParser()
-path_abs = Path(__file__).parent.absolute()
-path, _ = os.path.split(path_abs)
+path = Path(__file__).parent.absolute()
+cwd_path = os.getcwd()
+# path, _ = os.path.split(path_abs)
 
-log_dir = os.path.join(path, 'logs')
-if not os.path.exists(log_dir):
-  os.makedirs(log_dir)
+PATH_TO_LOG = os.path.join(path, 'logs')
+if not os.path.exists(PATH_TO_LOG):
+  os.makedirs(PATH_TO_LOG)
 
-try:
-  PATH_TO_CONFG = os.path.join(path, 'main.config')
-except FileNotFoundError:
-  with open("../main.config", "a") as f:
-    f.write("Now the file has more content!")
+# parse config
+PATH_TO_CONFG = os.path.join(cwd_path, 'main.config')
+config.read_file(open(PATH_TO_CONFG))
+
+LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
+if LOG_LEVEL==None: LOG_LEVEL='INFO'
+
 
 def get_logger(name='root', loglevel='INFO'):
-  
   logger = logging.getLogger(name)
 
   # if logger 'name' already exists, return it to avoid logging duplicate
@@ -41,7 +43,7 @@ def get_logger(name='root', loglevel='INFO'):
     terminal_handler.setFormatter(formatter)
     logger.addHandler(terminal_handler)
 
-    file_handler = RotatingFileHandler(filename=f'{log_dir}/log.log', mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
+    file_handler = RotatingFileHandler(filename=f'{PATH_TO_LOG}/log.log', mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
     file_handler.setLevel(logging.ERROR)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

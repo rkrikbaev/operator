@@ -6,10 +6,8 @@
 
 import pandas as pd
 import numpy as np
-
 import mlflow
 import mlflow.keras
-
 from pathlib import Path
 
 from utils import get_logger, LOG_LEVEL
@@ -19,11 +17,9 @@ logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
 
 path_abs = Path(__file__).parent.absolute()
 
-class Model(object):
-
+class Model():
     def __init__(self, tracking_server):
         self.model = None
-
         try:
             mlflow.set_tracking_uri(tracking_server)
         except:

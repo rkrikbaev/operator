@@ -1,4 +1,4 @@
-from app import api
+from api import api
 import os
 
 from utils import get_logger
@@ -9,10 +9,9 @@ from wsgiref.simple_server import make_server
 
 if __name__ == "__main__":
 
-    app_port = os.getenv('MODEL_PORT', default=8005)
-
-    with make_server("", int(app_port), api) as httpd:
-        logger.debug(f"Listening Port {app_port}...")
+    port = 8005
+    with make_server("", int(port), api) as httpd:
+        logger.debug(f"Listening Port {port}...")
         # Serve until process is killed
         httpd.serve_forever()
 # --------- For local debugging/test only ----------
