@@ -3,28 +3,28 @@ import logging.config
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-
-
 path_abs = Path(__file__).parent.absolute()
-
 path = os.getcwd()
 
 file_path_log = os.path.join(path, 'logs/log.log')
-PATH_TO_CONFG = os.path.join(path, 'main.config')
-
-# file_path_log = '../log.log'
-# file_path_config = '../main.config'
 
 import configparser
 config = configparser.ConfigParser()
+
+try:
+  PATH_TO_CONFG = os.path.join(path, 'main.config')
+except FileNotFoundError:
+  with open("../main.config", "a") as f:
+    f.write("Now the file has more content!")
+
 config.read_file(open(PATH_TO_CONFG))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
-if LOG_LEVEL==None:
-    LOG_LEVEL='INFO'
+if LOG_LEVEL==None: LOG_LEVEL='INFO'
+
+BASE_PATH = config.get('APP', 'BASE_PATH')
 
 def get_logger(name='root', loglevel='INFO'):
-  
   logger = logging.getLogger(name)
 
   # if logger 'name' already exists, return it to avoid logging duplicate

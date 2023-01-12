@@ -8,7 +8,8 @@ from pathlib import Path
 import requests, json
 from requests import ConnectionError, Timeout
     
-from utils import get_logger, LOG_LEVEL
+from utils import get_logger, LOG_LEVEL, BASE_PATH
+
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 class Service():
@@ -44,9 +45,9 @@ class Service():
             path_to, _ = os.path.split(path_abs)
 
             logger.debug(f'Path to workdirectory: {path_to}')
-            
-            volume_mlruns = f'{path_to}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
-            volume_model_app = f'{path_to}/mlservices/{self.model_type}:/application'
+
+            volume_mlruns = f'{BASE_PATH}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
+            volume_model_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
 
             container = self.client.containers.run(
                                     image=self.image,
