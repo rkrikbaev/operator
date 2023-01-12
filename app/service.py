@@ -7,7 +7,7 @@ from pathlib import Path
 import requests, json
 from requests import ConnectionError, Timeout
     
-from helper import get_logger, LOG_LEVEL
+from utils import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 path_abs = Path(__file__).parent.absolute()

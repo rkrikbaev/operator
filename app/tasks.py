@@ -1,14 +1,9 @@
-from dotenv import load_dotenv
-from pathlib import Path
 import yaml
 import celery
-import os
-
 from service import Service
-
 import configparser
 
-from helper import get_logger, LOG_LEVEL, PATH_TO_CONFG
+from utils import get_logger, LOG_LEVEL, PATH_TO_CONFG
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 config = configparser.ConfigParser()
@@ -16,12 +11,11 @@ config.read_file(open(PATH_TO_CONFG))
 
 CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
 CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
-# PATH_TO_MODEL_ENV = config.get('APP', 'PATH_TO_MODEL_ENV')
 CONFIG_FILEPATH = config.get('APP', 'SERVICES_CONF')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
-# @app.task
+@app.task
 def run(request):
 
     model_type = request.get('model_type').lower()

@@ -3,7 +3,7 @@ from celery.result import AsyncResult
 import time
 
 import tasks
-from helper import get_logger, LOG_LEVEL
+from utils import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
@@ -56,8 +56,7 @@ class Predict():
         
             elif self.task_id is None:
                 try:
-                    # task = tasks.run.delay(request)
-                    task = tasks.run(request)
+                    task = tasks.run.delay(request)
                     self.task_state = "DEPLOYED"
                     self.task_id = task.id
                 except Exception as err:

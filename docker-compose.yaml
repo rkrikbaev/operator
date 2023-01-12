@@ -15,8 +15,10 @@ services:
 
   operator:
     restart: always
-    build: ./app
-    image: operator
+    build: 
+      context: ./app
+      dockerfile: Dockerfile.app
+    image: operator:latest
     container_name: operator
     stdin_open: true # docker run -i
     tty: true        # docker run -t
@@ -36,7 +38,7 @@ services:
       - redis
 
   celery:
-    image: operator
+    image: operator:latest
     container_name: operator_celery
     restart: always
     volumes:
@@ -64,7 +66,7 @@ services:
     #   - backend
   
   monitor:
-    image: operator
+    image: operator:latest
     container_name: operator_monitor
     restart: always
     volumes:

@@ -1,7 +1,7 @@
 from wsgiref.simple_server import make_server
 
 from api import api
-from helper import get_logger, LOG_LEVEL
+from utils import get_logger, LOG_LEVEL
 
 logger = get_logger(name=__name__, loglevel=LOG_LEVEL)
 
