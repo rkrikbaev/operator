@@ -2,14 +2,15 @@ import logging, os, sys
 import logging.config
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-
-path_abs = Path(__file__).parent.absolute()
-path = os.getcwd()
-
-file_path_log = os.path.join(path, 'logs/log.log')
-
 import configparser
+
 config = configparser.ConfigParser()
+path_abs = Path(__file__).parent.absolute()
+path, _ = os.path.split(path_abs)
+
+log_dir = os.path.join(path, 'logs')
+if not os.path.exists(log_dir):
+  os.makedirs(log_dir)
 
 try:
   PATH_TO_CONFG = os.path.join(path, 'main.config')
@@ -46,7 +47,7 @@ def get_logger(name='root', loglevel='INFO'):
     terminal_handler.setFormatter(formatter)
     logger.addHandler(terminal_handler)
 
-    file_handler = RotatingFileHandler(file_path_log, mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
+    file_handler = RotatingFileHandler(filename=f'{log_dir}/log.log', mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
     file_handler.setLevel(logging.ERROR)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
