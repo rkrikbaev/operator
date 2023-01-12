@@ -8,8 +8,6 @@ services:
     container_name: nginx
     ports:
         - "80:80"
-    # networks:
-    #     - frontend
     depends_on:
         - mlflow
 
@@ -20,8 +18,8 @@ services:
       dockerfile: Dockerfile.app
     image: operator:latest
     container_name: operator
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
+    stdin_open: true
+    tty: true
     ports:
       - 8015:8015
     volumes:
@@ -47,8 +45,6 @@ services:
       - ./service_config.yaml:/app/service_config.yaml
       - ./logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
-    # networks: 
-    #   - backend
     command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
     environment:
       - CELERY_BROKER=redis://redis:6379/0
@@ -62,8 +58,6 @@ services:
     image: redis:6-alpine
     container_name: operator_redis
     restart: always
-    # networks: 
-    #   - backend
   
   monitor:
     image: operator:latest
@@ -77,9 +71,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5555:5555
-    # networks: 
-    #   - backend
-    #   - frontend
     command:  flower -A tasks --port=5555 --broker=redis://redis:6379/0
     depends_on:
       - operator
@@ -91,8 +82,6 @@ services:
       container_name: mlflow_db
       expose:
           - "3306"
-      # networks:
-      #     - backend
       environment:
           - MYSQL_DATABASE=${MYSQL_DATABASE}
           - MYSQL_USER=${MYSQL_USER}
@@ -126,17 +115,8 @@ services:
       volumes:
           - ./jupyter/project:/home/project
           - ./jupyter/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py
-      # environment:
-      #     - JUPYTER_ENABLE_LAB=yes
-      # networks:
-      #     - frontend
-      #     - backend
-      command: jupyterhub --port 8888 -f /etc/jupyterhub/jupyterhub_config.py #     jupyterhub --ip 10.0.1.2 --port 443 --ssl-key my_ssl.key --ssl-cert my_ssl.cert
+      command: jupyterhub --port 8888 -f /etc/jupyterhub/jupyterhub_config.py
 
 
 volumes:
   dbdata:
-   
-# networks:
-#   backend:
-#   fronend:

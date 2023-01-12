@@ -1,7 +1,8 @@
 import datetime
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
-import time, os
+import time
+import os
 from pathlib import Path
 
 import requests, json
@@ -12,6 +13,8 @@ logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 path_abs = Path(__file__).parent.absolute()
 path_to, _ = os.path.split(path_abs)
+
+logger.debug(f'Path to workdirectory: {path_to}')
 
 class Service():
 
@@ -55,8 +58,7 @@ class Service():
                                     network=self.network,
                                     environment=[
                                         'TRACKING_SERVER=http://mlflow:5000'
-                                        ],
-                                    command= 'gunicorn -b 0.0.0.0:8005 api:api'
+                                        ]
                                     )
 
             container_id = container.short_id
