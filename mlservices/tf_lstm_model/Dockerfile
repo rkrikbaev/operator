@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9
+FROM rkrikbaev/tf-env:latest
 
 LABEL Auth: Krikbayev Rustam 
 LABEL Email: "rkrikbaev@gmail.com"
