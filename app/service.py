@@ -41,11 +41,10 @@ class Service():
             except NotFound:
                 pass
 
-            path_abs = Path(__file__).parent.absolute()
-            path_to, _ = os.path.split(path_abs)
+            # path_abs = Path(__file__).parent.absolute()
+            # path_to, _ = os.path.split(path_abs)
 
-            logger.debug(f'Path to workdirectory: {path_to}')
-
+            logger.debug(f'Path to workdirectory: {BASE_PATH}')
             volume_mlruns = f'{BASE_PATH}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
             volume_model_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
 
