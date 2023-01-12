@@ -3,7 +3,7 @@ import falcon
 import mlflow
 
 try:
-    import model as prophet_model
+    import model as model
 except:
     raise RuntimeError('Cannot import service to run the model')
 
@@ -11,7 +11,7 @@ LOG_LEVEL = os.environ.get('LOG_LEVEL')
 if LOG_LEVEL==None:
     LOG_LEVEL='INFO'
 
-from helper import get_logger
+from utils import get_logger
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 TRACKING_SERVER = os.getenv('TRACKING_SERVER', default='http://138.68.70.41:5000')
@@ -24,7 +24,7 @@ class CheckHealth():
 class Predict:
     
     def __init__(self) -> None:
-        self.model_instance = prophet_model.Model(tracking_server=TRACKING_SERVER)
+        self.model_instance = model.Model(tracking_server=TRACKING_SERVER)
 
     def on_post(self, req, resp):
         

@@ -1,7 +1,7 @@
 from app import api
 import os
 
-from helper import get_logger
+from utils import get_logger
 logger = get_logger(__name__, loglevel='DEBUG')
 
 # --------- For local debugging/test only ----------

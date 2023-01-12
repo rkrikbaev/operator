@@ -2,7 +2,7 @@ import falcon
 from celery.result import AsyncResult
 import time
 
-from tasks import predict
+import tasks
 from helper import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
@@ -56,7 +56,8 @@ class Predict():
         
             elif self.task_id is None:
                 try:
-                    task = predict.delay(request)
+                    # task = tasks.run.delay(request)
+                    task = tasks.run(request)
                     self.task_state = "DEPLOYED"
                     self.task_id = task.id
                 except Exception as err:

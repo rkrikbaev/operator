@@ -4,7 +4,7 @@ import yaml
 import celery
 import os
 
-from service import ModelAPI, ModelEnv
+from service import Service
 
 import configparser
 
@@ -21,8 +21,8 @@ CONFIG_FILEPATH = config.get('APP', 'SERVICES_CONF')
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
-@app.task
-def predict(request):
+# @app.task
+def run(request):
 
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point')
@@ -35,28 +35,12 @@ def predict(request):
         service_config = f.get('docker')[model_type]
         logger.debug(f'Service config: {service_config}')
         
-        env = ModelEnv(service_config)
-        ip_address, state = env.deploy_container(model_point.lower())
+        srv = Service(service_config)
+        logger.debug(f'Create object: {type(srv)}')
+        ip_address, state = srv.deploy(name= model_point.lower())
 
         logger.debug(f'Container: {model_point} has state {state}')
-        if ip_address and (state == 'running'):
-            
-            metadata = request.get('metadata')
-            model_uri = request.get('model_uri')
-            model_config = request.get('model_config')
-            dataset = request.get('dataset')
-            period = request.get('period')
-            
-            payload = {
-                        "model_point": model_point, 
-                        "model_type": model_type,
-                        "model_config": model_config,
-                        "metadata": metadata,
-                        "dataset": dataset, 
-                        "period": period,
-                        "model_uri": model_uri
-                    }
+        
+        if ip_address and (state == 'running'): service_response = srv.call(request)
 
-            # logger.debug(f'Make prediction with: {payload}, {model_point}')
-            model_service = ModelAPI(model_point, ip_address)
-            return model_service.call(payload)
+        return service_response
