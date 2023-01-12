@@ -28,7 +28,7 @@ services:
       - ./service_config.yaml:/app/service_config.yaml
       - ./logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
-    command: gunicorn -b 0.0.0.0:8015 app:api --timeout 600 --worker-class sync --log-level debug
+    command: gunicorn -b 0.0.0.0:8015 api:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
