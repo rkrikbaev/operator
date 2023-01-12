@@ -3,7 +3,7 @@ FROM python:3.9
 
 LABEL Auth: Krikbayev Rustam 
 LABEL Email: "rkrikbaev@gmail.com"
-ENV REFRESHED_AT 2020-10-20
+ENV REFRESHED_AT 2023-01-12
 
 # Install any needed packages specified in requirements.txt
 COPY ./requirements.txt .
