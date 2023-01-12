@@ -5,15 +5,16 @@ from pathlib import Path
 import configparser
 
 config = configparser.ConfigParser()
-path_abs = Path(__file__).parent.absolute()
-path_root, _ = os.path.split(path_abs)
+# path_abs = Path(__file__).parent.absolute()
+# path_root, _ = os.path.split(path_abs)
+path_root = os.getcwd()
 
 log_dir = os.path.join(path_root, 'logs')
+
 if not os.path.exists(log_dir):
   os.makedirs(log_dir)
 
 PATH_TO_CONFG = os.path.join(path_root, 'main.config')
-
 config.read_file(open(PATH_TO_CONFG))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')

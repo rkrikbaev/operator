@@ -5,21 +5,20 @@ from pathlib import Path
 import configparser
 
 config = configparser.ConfigParser()
-path = Path(__file__).parent.absolute()
-cwd_path = os.getcwd()
-# path, _ = os.path.split(path_abs)
+# _path = Path(__file__).parent.absolute()
+# _path, _ = os.path.split(path_abs)
+path_root = os.getcwd()
 
-PATH_TO_LOG = os.path.join(path, 'logs')
+PATH_TO_LOG = os.path.join(path_root, 'logs')
 if not os.path.exists(PATH_TO_LOG):
   os.makedirs(PATH_TO_LOG)
 
 # parse config
-PATH_TO_CONFG = os.path.join(cwd_path, 'main.config')
+PATH_TO_CONFG = os.path.join(path_root, 'main.config')
 config.read_file(open(PATH_TO_CONFG))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
 if LOG_LEVEL==None: LOG_LEVEL='INFO'
-
 
 def get_logger(name='root', loglevel='INFO'):
   logger = logging.getLogger(name)
