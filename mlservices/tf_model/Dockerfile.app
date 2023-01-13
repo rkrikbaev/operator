@@ -21,4 +21,4 @@ COPY ./api.py .
 COPY ./model.py .
 COPY ./utils.py .
 
-ENTRYPOINT ["gunicorn", "-b", "0.0.0.0:8005", "api:api"]
+# ENTRYPOINT ["gunicorn", "-b", "0.0.0.0:8005", "api:api"]

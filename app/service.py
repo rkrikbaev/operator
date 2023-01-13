@@ -49,7 +49,8 @@ class Service():
                                     network=self.network,
                                     environment=[
                                         f'LOG_LEVEL={LOG_LEVEL}', 
-                                        f'TRACKING_SERVER={TRACKING_SERVER}']
+                                        f'TRACKING_SERVER={TRACKING_SERVER}'],
+                                    command='gunicorn -b 0.0.0.0:8005 api:api'
                                     )
 
             container_id = container.short_id
