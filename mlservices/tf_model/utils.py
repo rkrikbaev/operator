@@ -5,8 +5,6 @@ from pathlib import Path
 import configparser
 
 config = configparser.ConfigParser()
-# _path = Path(__file__).parent.absolute()
-# _path, _ = os.path.split(path_abs)
 path_root = os.getcwd()
 
 PATH_TO_LOG = os.path.join(path_root, 'logs')
@@ -19,6 +17,16 @@ config.read_file(open(PATH_TO_CONFG))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
 if LOG_LEVEL==None: LOG_LEVEL='INFO'
+
+LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
+
+TRACKING_SERVER = config.get('APP', 'TRACKING_SERVER')
+
+
+
+
+
+
 
 def get_logger(name='root', loglevel='INFO'):
   logger = logging.getLogger(name)

@@ -25,14 +25,10 @@ class Model():
         except:
             logger.error("""Couldn't connect to remote MLFLOW tracking server""")
 
-    def run(self, dataset, **kwargs):
-    
-        window = kwargs.get('window')
-        experiment_id = kwargs.get('experiment_id')
-        run_id = kwargs.get('run_id')
+    def run(self, dataset, config, model_uri, **kwargs):
 
-        model_uri = f'{path_abs}/mlruns/{experiment_id}/{run_id}/mlmodel'
-
+        window = config.get('window')
+        
         print("\n**** mlflow.keras.load_model\n")
         model = mlflow.keras.load_model(model_uri)
         print("model:", type(model))
