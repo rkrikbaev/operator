@@ -23,7 +23,7 @@ services:
     ports:
       - 8015:8015
     volumes:
-      - ./application:/application
+      - ./operator:/application
       - ./main.config:/application/main.config
       - ./service_config.yaml:/app/service_config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
@@ -40,7 +40,7 @@ services:
     container_name: operator_celery
     restart: always
     volumes:
-      - ./application:/application
+      - ./operator:/application
       - ./main.config:/application/main.config
       - ./service_config.yaml:/application/service_config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
@@ -62,7 +62,7 @@ services:
     container_name: operator_monitor
     restart: always
     volumes:
-      - ./application:/application
+      - ./operator:/application
       - ./main.config:/application/main.config
       - ./service_config.yaml:/application/service_config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
