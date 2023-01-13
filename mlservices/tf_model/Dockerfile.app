@@ -13,9 +13,6 @@ RUN pip install -r requirements.txt
 # Copy the current directory contents into the container at /app
 RUN mkdir application
 WORKDIR /application
-RUN mkdir logs
-
-ENV LOG_PATH=/application/logs
 
 COPY ./api.py .
 COPY ./model.py .
