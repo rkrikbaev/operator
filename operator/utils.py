@@ -3,35 +3,33 @@ import logging.config
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+BASE_PATH = Path(__file__).parent.absolute()
 # read application configuration
 import configparser
 config = configparser.ConfigParser()
 
-BASE_PATH = os.getcwd()
 
-CONFIG_FILE = os.path.join(BASE_PATH, 'main.config')
-if not CONFIG_FILE:
-  CONFIG_FILE = os.environ.get('CONFIG_FILE')
 
-config.read_file(open(CONFIG_FILE))
+APP_CONFIG_FILE = os.path.join(BASE_PATH, 'conf/application.config')
+if not APP_CONFIG_FILE:
+  APP_CONFIG_FILE = os.environ.get('CONFIG_FILE')
+config.read_file(open(APP_CONFIG_FILE))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
 if LOG_LEVEL==None: LOG_LEVEL='INFO'
 
 
-LOG_PATH = BASE_PATH + config.get('APP', 'LOG_PATH')
+LOG_PATH = os.path.join(BASE_PATH, 'logs')
 TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
 CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
 CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
-CONFIG_FILEPATH = config.get('APP', 'SERVICES_CONF')
-
-
+MLSERV_CONFIG_FILE = os.path.join(BASE_PATH, 'conf/services.yaml')
 
 # logger configuretion
 def get_logger(name='root', loglevel='INFO'):
 
-  LOG_PATH  = os.path.join(os.getcwd(), 'logs')
+  
   if not os.path.exists(LOG_PATH):
     os.makedirs(LOG_PATH)
   logger = logging.getLogger(name)

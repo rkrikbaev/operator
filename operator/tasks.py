@@ -2,7 +2,7 @@ import yaml
 import celery
 from service import Service
 
-from utils import get_logger, LOG_LEVEL, CELERY_BROKER, CELERY_BACKEND, CONFIG_FILEPATH
+from utils import get_logger, LOG_LEVEL, CELERY_BROKER, CELERY_BACKEND, MLSERV_CONFIG_FILE
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
@@ -14,7 +14,7 @@ def run(request):
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point')
     
-    with open(CONFIG_FILEPATH, 'r') as fl:
+    with open(MLSERV_CONFIG_FILE, 'r') as fl:
 
         f =  yaml.safe_load(fl)
         service_config = f.get('docker')[model_type]
