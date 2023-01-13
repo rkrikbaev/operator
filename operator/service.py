@@ -9,6 +9,7 @@ from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
+
 class Service():
     def __init__(self, config):
 
@@ -29,12 +30,13 @@ class Service():
         self.ip_address = None
         self.service_name = None
 
-        logger.debug(f'Create service object {self}')
+        logger.debug(f'Init object complited {self}')
 
     def deploy(self, name):
-        logger.debug(f'Create & deploy service object {self}')
-        self.service_name = name
+
+        logger.debug(f'Deploy object {self}')
         
+        self.service_name = name
         try:
             container = self.client.containers.get(self.service_name)
             container.remove(force=True)
