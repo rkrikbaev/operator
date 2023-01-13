@@ -3,6 +3,7 @@ import logging.config
 from logging.handlers import RotatingFileHandler
 
 LOG_LEVEL = os.environ.get('LOG_LEVEL')
+TRACKING_SERVER = os.environ.get('TRACKING_SERVER')
 
 def get_logger(name='root', loglevel='INFO'):
 
