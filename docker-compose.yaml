@@ -14,8 +14,8 @@ services:
   operator:
     restart: always
     build: 
-      context: ./app
-      dockerfile: ./operator/Dockerfile.app
+      context: operator
+      dockerfile: Dockerfile.app
     image: rkrikbaev/ml-operator:latest
     container_name: operator
     stdin_open: true
