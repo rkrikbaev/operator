@@ -16,5 +16,5 @@ WORKDIR /application
 
 COPY ./api.py .
 COPY ./service.py .
-COPY ./task.py .
+COPY ./tasks.py .
 COPY ./utils.py .
