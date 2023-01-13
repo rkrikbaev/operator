@@ -28,7 +28,7 @@ class Predict():
 
         self.result = None,
 
-        required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point'}
+        required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
         self.ts = int(time.time())
         resp.status = falcon.HTTP_200
 

@@ -6,9 +6,10 @@ from utils import get_logger, LOG_LEVEL, CELERY_BROKER, CELERY_BACKEND, MLSERV_C
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
-app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
+cel = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
+logger.debug(f'Create Celery object: {type(cel)}')
 
-@app.task
+@cel.task
 def run(request):
 
     model_type = request.get('model_type').lower()
@@ -21,11 +22,10 @@ def run(request):
         logger.debug(f'Service config: {service_config}')
         
         srv = Service(service_config)
-        logger.debug(f'Create object: {type(srv)}')
+        logger.debug(f'Create object Service: {type(srv)}')
         ip_address, state = srv.deploy(name= model_point.lower())
 
         logger.debug(f'Container: {model_point} has state {state}')
-        
         if ip_address and (state == 'running'): service_response = srv.call(request)
 
         return service_response

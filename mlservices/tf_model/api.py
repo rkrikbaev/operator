@@ -26,9 +26,10 @@ class Action:
             config = request.get('model_config')
             metadata = request.get('metadata')
             data = request.get('dataset')
+            model_uri = request.get('model_uri')
 
-            experiment_id = metadata.get('experiment_id')
-            run_id = metadata.get('run_id')
+            experiment_id = model_uri.get('experiment_id')
+            run_id = model_uri.get('run_id')
 
             path_abs = Path(__file__).parent.absolute()
             model_uri = f'{path_abs}/mlruns/{experiment_id}/{run_id}/mlmodel'
