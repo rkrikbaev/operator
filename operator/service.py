@@ -58,8 +58,7 @@ class Service():
                                 network=self.network,
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}', 
-                                    f'TRACKING_SERVER={TRACKING_SERVER}'],
-                                command='gunicorn -b 0.0.0.0:8005 api:api'
+                                    f'TRACKING_SERVER={TRACKING_SERVER}']
                                 ).short_id
         except Exception as exc:
             logger.debug(exc)
