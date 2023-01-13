@@ -22,6 +22,12 @@ if LOG_LEVEL==None: LOG_LEVEL='INFO'
 LOG_PATH = BASE_PATH + config.get('APP', 'LOG_PATH')
 TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
+CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
+CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
+CONFIG_FILEPATH = config.get('APP', 'SERVICES_CONF')
+
+
+
 # logger configuretion
 def get_logger(name='root', loglevel='INFO'):
 

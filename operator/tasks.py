@@ -1,16 +1,8 @@
 import yaml
 import celery
 from service import Service
-import configparser
 
-from utils import get_logger, LOG_LEVEL, PATH_TO_CONFG
-
-config = configparser.ConfigParser()
-config.read_file(open(PATH_TO_CONFG))
-
-CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
-CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
-CONFIG_FILEPATH = config.get('APP', 'SERVICES_CONF')
+from utils import get_logger, LOG_LEVEL, CELERY_BROKER, CELERY_BACKEND, CONFIG_FILEPATH
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
