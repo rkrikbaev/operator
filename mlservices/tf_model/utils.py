@@ -2,6 +2,7 @@ import logging, os, sys
 import logging.config
 from logging.handlers import RotatingFileHandler
 
+LOG_LEVEL = os.environ.get('LOG_LEVEL')
 
 def get_logger(name='root', loglevel='INFO'):
 
