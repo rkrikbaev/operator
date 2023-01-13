@@ -10,17 +10,21 @@ from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 class Service():
-    def __init__(self, service_config):
+    def __init__(self, config):
 
-        logger.debug(service_config)
-        self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
+        logger.debug(f'Read service config file {config}')
+        
+        try:
+            self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
+        except Exception as exc:
+            logger.error(exc)
 
-        self.image = service_config.get('image')
-        self.cpuset_cpus = service_config['limits'].get('cpuset_cpus')
-        self.con_mem_limit = service_config['limits'].get('con_mem_limit')       
-        self.startup = service_config.get('startup')
+        self.image = config.get('image')
+        self.cpuset_cpus = config.get('limits').get('cpuset_cpus')
+        self.con_mem_limit = config.get('limits').get('con_mem_limit')       
+        self.startup = config.get('startup')
         self.network = 'operator_default'
-        self.model_type = service_config.get('type')
+        self.model_type = config.get('type')
 
         self.ip_address = None
         self.service_name = None
