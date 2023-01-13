@@ -2,33 +2,32 @@ import logging, os, sys
 import logging.config
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+
+# read application configuration
 import configparser
-
 config = configparser.ConfigParser()
-# path_abs = Path(__file__).parent.absolute()
-# path_root, _ = os.path.split(path_abs)
-path_root = os.getcwd()
 
-log_dir = os.path.join(path_root, 'logs')
+BASE_PATH = os.getcwd()
 
-if not os.path.exists(log_dir):
-  os.makedirs(log_dir)
+CONFIG_FILE = os.path.join(BASE_PATH, 'main.config')
+if not CONFIG_FILE:
+  CONFIG_FILE = os.environ.get('CONFIG_FILE')
 
-PATH_TO_CONFG = os.path.join(path_root, 'main.config')
-config.read_file(open(PATH_TO_CONFG))
+config.read_file(open(CONFIG_FILE))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
 if LOG_LEVEL==None: LOG_LEVEL='INFO'
 
-BASE_PATH = config.get('APP', 'BASE_PATH')
 
+LOG_PATH = BASE_PATH + config.get('APP', 'LOG_PATH')
+TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
-
-
-
-
-
+# logger configuretion
 def get_logger(name='root', loglevel='INFO'):
+
+  LOG_PATH  = os.path.join(os.getcwd(), 'logs')
+  if not os.path.exists(LOG_PATH):
+    os.makedirs(LOG_PATH)
   logger = logging.getLogger(name)
 
   # if logger 'name' already exists, return it to avoid logging duplicate
@@ -50,7 +49,7 @@ def get_logger(name='root', loglevel='INFO'):
     terminal_handler.setFormatter(formatter)
     logger.addHandler(terminal_handler)
 
-    file_handler = RotatingFileHandler(filename=f'{log_dir}/log.log', mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
+    file_handler = RotatingFileHandler(filename=f'{LOG_PATH}/log.log', mode='a', encoding=None, delay=False, maxBytes=5*1024*1024, backupCount=2)
     file_handler.setLevel(logging.ERROR)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

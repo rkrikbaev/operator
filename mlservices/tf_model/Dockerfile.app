@@ -15,6 +15,8 @@ RUN mkdir application
 WORKDIR /application
 RUN mkdir logs
 
+ENV LOG_PATH=/application/logs
+
 COPY ./api.py .
 COPY ./model.py .
 COPY ./utils.py .

@@ -11,8 +11,8 @@ RUN python -m pip install --upgrade pip
 RUN pip install -r requirements.txt 
 
 # Copy the current directory contents into the container at /app
-RUN mkdir app
-WORKDIR /app
+RUN mkdir application
+WORKDIR /application
 
 COPY ./api.py .
 COPY ./service.py .

@@ -23,15 +23,15 @@ services:
     ports:
       - 8015:8015
     volumes:
-      - ./app:/app
-      - ./main.config:/app/main.config
+      - ./application:/application
+      - ./main.config:/application/main.config
       - ./service_config.yaml:/app/service_config.yaml
-      - ./logs:/app/logs
       - /var/run/docker.sock:/var/run/docker.sock
     command: gunicorn -b 0.0.0.0:8015 api:api --timeout 600 --worker-class sync --log-level debug
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - CONFIG_PATH=${CONFIG_PATH}
     depends_on:
       - redis
 
@@ -40,10 +40,9 @@ services:
     container_name: operator_celery
     restart: always
     volumes:
-      - ./app:/app
-      - ./main.config:/app/main.config
-      - ./service_config.yaml:/app/service_config.yaml
-      - ./logs:/app/logs
+      - ./application:/application
+      - ./main.config:/application/main.config
+      - ./service_config.yaml:/application/service_config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
     command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
     environment:
@@ -63,10 +62,9 @@ services:
     container_name: operator_monitor
     restart: always
     volumes:
-      - ./app:/app
-      - ./main.config:/app/main.config
-      - ./service_config.yaml:/app/service_config.yaml
-      - ./logs:/app/logs
+      - ./application:/application
+      - ./main.config:/application/main.config
+      - ./service_config.yaml:/application/service_config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5555:5555

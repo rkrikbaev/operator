@@ -5,7 +5,7 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout
     
-from utils import get_logger, LOG_LEVEL, BASE_PATH
+from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
@@ -47,7 +47,9 @@ class Service():
                                     mem_limit=self.con_mem_limit,
                                     cpuset_cpus=self.cpuset_cpus,
                                     network=self.network,
-                                    environment=[]
+                                    environment=[
+                                        f'LOG_LEVEL={LOG_LEVEL}', 
+                                        f'TRACKING_SERVER={TRACKING_SERVER}']
                                     )
 
             container_id = container.short_id
