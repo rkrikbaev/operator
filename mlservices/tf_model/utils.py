@@ -20,7 +20,7 @@ if LOG_LEVEL==None: LOG_LEVEL='INFO'
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
 
-TRACKING_SERVER = config.get('APP', 'TRACKING_SERVER')
+TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
 
 
