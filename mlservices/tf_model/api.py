@@ -17,7 +17,7 @@ class Action:
 
     def on_post(self, req, resp):
         request = req.media
-        logger.debbug(f'Request from the operator: {request}')
+        logger.debug(f'Request from the operator: {request}')
 
         list_of_keys = ['model_config', 'dataset']
         if all(k in request for k in list_of_keys):
