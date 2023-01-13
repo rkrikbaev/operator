@@ -17,6 +17,7 @@ class Service():
         
         try:
             self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
+            logger.debug(f'Create docker client object {self.client}')
         except Exception as exc:
             logger.error(exc)
 
