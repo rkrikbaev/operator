@@ -33,7 +33,7 @@ services:
       - redis
 
   celery:
-    image: operator:latest
+    image: rkrikbaev/ml-operator:latest
     container_name: operator_celery
     restart: always
     volumes:
@@ -53,7 +53,7 @@ services:
     restart: always
   
   monitor:
-    image: operator:latest
+    image: rkrikbaev/ml-operator:latest
     container_name: operator_monitor
     restart: always
     volumes:
