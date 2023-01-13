@@ -47,8 +47,8 @@ class Service():
             pass
 
         volume_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
-
-        container = self.client.containers.run(
+        try:
+            container_id = self.client.containers.run(
                                 image=self.image,
                                 name=self.service_name,
                                 volumes=[volume_app], 
@@ -60,9 +60,10 @@ class Service():
                                     f'LOG_LEVEL={LOG_LEVEL}', 
                                     f'TRACKING_SERVER={TRACKING_SERVER}'],
                                 command='gunicorn -b 0.0.0.0:8005 app:api'
-                                )
-
-        container_id = container.short_id
+                                ).short_id
+        except Exception as exc:
+            logger.debug(exc)
+            
         wait_counter = 0
 
         while wait_counter < self.startup:
