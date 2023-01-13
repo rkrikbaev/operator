@@ -29,52 +29,54 @@ class Service():
         self.ip_address = None
         self.service_name = None
 
+        logger.debug(f'Create service object {self}')
+
     def deploy(self, name):
-            self.service_name = name
-            try:
-                container = self.client.containers.get(self.service_name)
-                container.remove(force=True)
-                logger.debug(f'Delete exist container: {self.service_name}')
-                time.sleep(2)
-            
-            except NotFound:
-                pass
+        logger.debug(f'Create & deploy service object {self}')
+        self.service_name = name
+        
+        try:
+            container = self.client.containers.get(self.service_name)
+            container.remove(force=True)
+            logger.debug(f'Delete exist container: {self.service_name}')
+            time.sleep(2)
+        except NotFound:
+            pass
 
-            volume_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
-            volume_config = f'{BASE_PATH}/main.config:/application/main.config'
+        volume_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
 
-            container = self.client.containers.run(
-                                    image=self.image,
-                                    name=self.service_name,
-                                    volumes=[volume_config, volume_app], 
-                                    detach=True,
-                                    mem_limit=self.con_mem_limit,
-                                    cpuset_cpus=self.cpuset_cpus,
-                                    network=self.network,
-                                    environment=[
-                                        f'LOG_LEVEL={LOG_LEVEL}', 
-                                        f'TRACKING_SERVER={TRACKING_SERVER}'],
-                                    command='gunicorn -b 0.0.0.0:8005 api:api'
-                                    )
+        container = self.client.containers.run(
+                                image=self.image,
+                                name=self.service_name,
+                                volumes=[volume_app], 
+                                detach=True,
+                                mem_limit=self.con_mem_limit,
+                                cpuset_cpus=self.cpuset_cpus,
+                                network=self.network,
+                                environment=[
+                                    f'LOG_LEVEL={LOG_LEVEL}', 
+                                    f'TRACKING_SERVER={TRACKING_SERVER}'],
+                                command='gunicorn -b 0.0.0.0:8005 app:api'
+                                )
 
-            container_id = container.short_id
-            wait_counter = 0
+        container_id = container.short_id
+        wait_counter = 0
 
-            while wait_counter < self.startup:
-                container = self.client.containers.get(container_id)
-                self.container_state = container.status.lower()
-                            
-                if self.container_state  == ['created']:
-                    time.sleep(1)
-                    wait_counter += 1
+        while wait_counter < self.startup:
+            container = self.client.containers.get(container_id)
+            self.container_state = container.status.lower()
+                        
+            if self.container_state  == ['created']:
+                time.sleep(1)
+                wait_counter += 1
 
-                if self.container_state  in ['running']:
-                    self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
-                    logger.debug(f'container #{self.service_name}, started with IP: {self.ip_address}')
-                    
-                    return self.ip_address, self.container_state                 
-            else:
-                raise RuntimeError(f'Fail to deploy container for point: {self.service_name}')
+            if self.container_state  in ['running']:
+                self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+                logger.debug(f'container #{self.service_name}, started with IP: {self.ip_address}')
+                
+                return self.ip_address, self.container_state                 
+        else:
+            raise RuntimeError(f'Fail to deploy container for point: {self.service_name}')
 
     def call(self, *args):
 
