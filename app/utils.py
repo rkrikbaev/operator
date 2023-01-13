@@ -20,6 +20,14 @@ config.read_file(open(PATH_TO_CONFG))
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
 if LOG_LEVEL==None: LOG_LEVEL='INFO'
 
+BASE_PATH = config.get('APP', 'BASE_PATH')
+
+
+
+
+
+
+
 def get_logger(name='root', loglevel='INFO'):
   logger = logging.getLogger(name)
 

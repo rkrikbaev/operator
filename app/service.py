@@ -5,15 +5,9 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout
     
-from utils import get_logger, LOG_LEVEL, PATH_TO_CONFG
-import configparser
+from utils import get_logger, LOG_LEVEL, BASE_PATH
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
-
-config = configparser.ConfigParser()
-config.read_file(open(PATH_TO_CONFG))
-
-BASE_PATH = config.get('APP', 'BASE_PATH')
 
 class Service():
     def __init__(self, service_config):
@@ -42,21 +36,18 @@ class Service():
             except NotFound:
                 pass
 
-            logger.debug(f'Path to workdirectory: {BASE_PATH}')
-            volume_mlruns = f'{BASE_PATH}/mlservices/{self.model_type}/mlruns:/application/mlruns'         
-            volume_model_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
+            volume_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
+            volume_config = f'{BASE_PATH}/main.config:/application/main.config'
 
             container = self.client.containers.run(
                                     image=self.image,
                                     name=self.service_name,
-                                    volumes=[volume_mlruns, volume_model_app], 
+                                    volumes=[volume_config, volume_app], 
                                     detach=True,
                                     mem_limit=self.con_mem_limit,
                                     cpuset_cpus=self.cpuset_cpus,
                                     network=self.network,
-                                    environment=[
-                                        'TRACKING_SERVER=http://mlflow:5000'
-                                        ]
+                                    environment=[]
                                     )
 
             container_id = container.short_id
@@ -102,7 +93,7 @@ class Service():
                 url = f'http://{self.ip_address}:8005/action'
 
                 logger.debug(f'query url: {url}')
-                logger.debug(f'query payload: {self.payload}')
+                logger.debug(f'query payload: {self.payload.keys}')
 
                 start_time = str(datetime.datetime.now())
                 
