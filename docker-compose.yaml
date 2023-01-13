@@ -16,7 +16,7 @@ services:
     build: 
       context: ./app
       dockerfile: Dockerfile.app
-    image: operator:latest
+    image: rkrikbaev/ml-operator:latest
     container_name: operator
     stdin_open: true
     tty: true
