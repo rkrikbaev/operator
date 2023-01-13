@@ -59,7 +59,7 @@ class Service():
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}', 
                                     f'TRACKING_SERVER={TRACKING_SERVER}'],
-                                command='gunicorn -b 0.0.0.0:8005 app:api'
+                                command='gunicorn -b 0.0.0.0:8005 api:api'
                                 ).short_id
         except Exception as exc:
             logger.debug(exc)
