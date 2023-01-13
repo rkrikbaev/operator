@@ -63,7 +63,6 @@ class Service():
                                 ).short_id
         except Exception as exc:
             logger.debug(exc)
-            
         wait_counter = 0
 
         while wait_counter < self.startup:
