@@ -14,7 +14,6 @@ def run(request):
 
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point').lower()
-    response = []
 
     logger.debug(f'Deploy container with model for: {model_point}')
     with open(MLSERV_CONFIG_FILE, 'r') as fl:
@@ -22,10 +21,6 @@ def run(request):
 
     srv = Service(config)
 
-    ip_address, state = srv.deploy(model_point)
-    logger.debug(f'Container: {model_point}, state: {state}')
-
-    if ip_address and (state == 'running'): 
-        response = srv.call(request)
+    response = srv.run(model_point)
 
     return response
