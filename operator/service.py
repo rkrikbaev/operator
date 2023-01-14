@@ -11,6 +11,7 @@ logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 
 class Service():
+
     def __init__(self, config):
 
         logger.debug(f'Read service config file {config}')
@@ -33,11 +34,12 @@ class Service():
 
         logger.debug(f'Init object complited {self}')
 
-    def deploy(self, name):
+    def run(self, name, request):
 
         logger.debug(f'Deploy object {self}')
-        
         self.service_name = name
+        self.request = request
+
         try:
             container = self.client.containers.get(self.service_name)
             container.remove(force=True)
@@ -70,6 +72,7 @@ class Service():
         wait_counter = 0
 
         while wait_counter < self.startup:
+
             container = self.client.containers.get(container_id)
             self.container_state = container.status.lower()
                         
@@ -78,10 +81,13 @@ class Service():
                 wait_counter += 1
 
             if self.container_state  in ['running']:
+
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 logger.debug(f'container #{self.service_name}, started with IP: {self.ip_address}')
+
+                self.response = self.call(self.request)
                 
-                return self.ip_address, self.container_state                 
+                return self.response                 
         else:
             raise RuntimeError(f'Fail to deploy container for point: {self.service_name}')
 
@@ -109,7 +115,7 @@ class Service():
                 url = f'http://{self.ip_address}:8005/action'
 
                 logger.debug(f'query url: {url}')
-                logger.debug(f'query payload: {self.payload.keys}')
+                logger.debug(f'query payload: {list(self.payload.keys())}')
 
                 start_time = str(datetime.datetime.now())
                 
@@ -117,24 +123,26 @@ class Service():
                 logger.debug(result)
 
                 return {
-                        "point": self.service_name,
-                        "start_time": start_time,
-                        "finish_time": str(datetime.datetime.now()),
-                        "prediction": result.json().get('prediction'),
-                        "anomalies": result.json().get('anomalies'),
-                        "model_uri": result.json().get('model_uri'),
-                        }
-
+                    "state": '200',
+                    "point": self.service_name,
+                    "start_time": start_time,
+                    "finish_time": str(datetime.datetime.now()),
+                    "prediction": result.json().get('prediction'),
+                    "anomalies": result.json().get('anomalies'),
+                    "model_uri": result.json().get('model_uri'),
+                    }
             except (ConnectionError, Timeout):
                 tries += 1
                 logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
                 time.sleep(tries)
-
         else:
             logger.debug(f' Tried to call a model for point {self.service_name} {tries} times')
             return {
-                    "state": 'model side caused error',
-                    "point": self.service_name,
-                    "start_time": start_time,
-                    "error_text": "ConnectionError"
-                    }
+                "state": '500',
+                "point": self.service_name,
+                "start_time": start_time,
+                "finish_time": str(datetime.datetime.now()),
+                "prediction": result.json().get('prediction'),
+                "anomalies": result.json().get('anomalies'),
+                "model_uri": result.json().get('model_uri')                 
+                }
