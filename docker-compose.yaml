@@ -29,6 +29,7 @@ services:
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - MODELS_REG=/opt/modelregistry/mlruns
     depends_on:
       - redis
 

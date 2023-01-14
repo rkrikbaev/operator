@@ -23,8 +23,8 @@ LOG_PATH = os.path.join(BASE_PATH, 'logs')
 TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
 MODELS_REG = os.environ.get('MODELS', 'MODELS_REG')
-if not MODELS_REG: MODELS_REG = '/opt/mlruns'
-else: assert ('/mlruns' in MODELS_REG) == True
+if not MODELS_REG: MODELS_REG = '/opt/modelregistry/mlruns'
+assert ('/mlruns' in MODELS_REG) == True
 
 CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
 CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
