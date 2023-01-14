@@ -22,7 +22,7 @@ if not LOG_LEVEL: LOG_LEVEL='INFO'
 LOG_PATH = os.path.join(BASE_PATH, 'logs')
 TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
-MODELS_REG = os.environ.get('MODELS', 'MODELS_REG')
+MODELS_REG = os.environ.get('MODELS_REG')
 if not MODELS_REG: MODELS_REG = '/opt/modelregistry/mlruns'
 assert ('/mlruns' in MODELS_REG) == True
 
