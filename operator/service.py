@@ -104,7 +104,7 @@ class Service():
 
         session.mount('http://', adapter)
         url = f'http://{self.ip_address}:8005/health'
-
+        result = None
         tries = 0
         while tries < 5:
           
