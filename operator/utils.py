@@ -16,15 +16,19 @@ if not APP_CONFIG_FILE:
 config.read_file(open(APP_CONFIG_FILE))
 
 LOG_LEVEL = config.get('APP', 'LOG_LEVEL')
-if LOG_LEVEL==None: LOG_LEVEL='INFO'
+if not LOG_LEVEL: LOG_LEVEL='INFO'
 
 
 LOG_PATH = os.path.join(BASE_PATH, 'logs')
 TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
+MODELS_REG = os.environ.get('MODELS', 'MODELS_REG')
+if not MODELS_REG: MODELS_REG = '/opt/mlruns'
+
 CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
 CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
 MLSERV_CONFIG_FILE = os.path.join(BASE_PATH, 'conf/services.yaml')
+
 
 # logger configuretion
 def get_logger(name='root', loglevel='INFO'):

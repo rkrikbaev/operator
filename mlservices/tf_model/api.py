@@ -31,15 +31,16 @@ class Action:
             experiment_id = model_uri.get('experiment_id')
             run_id = model_uri.get('run_id')
 
-            path_abs = Path(__file__).parent.absolute()
-            model_uri = f'{path_abs}/mlruns/{experiment_id}/{run_id}/mlmodel'
+            model_uri = f'/opt/mlruns/{experiment_id}/{run_id}/mlmodel'
 
             # add experiment as the point
             # mlflow.set_experiment(experiment)
             # experiment = mlflow.get_experiment_by_name(experiment)
 
             # with mlflow.start_run(experiment_id=experiment.experiment_id):
-            resp.media = self.model.run(data, config=config, model_uri=model_uri)
+            response = self.model.run(data, config, model_uri)
+            logger.debug(f'Model response: {response}')
+            resp.media = response
         else:
             resp.state = falcon.HTTP_400
             logger.info(resp.state)

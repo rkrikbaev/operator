@@ -5,7 +5,7 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout
     
-from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER
+from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER, MODELS_REG
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
@@ -46,12 +46,12 @@ class Service():
         except NotFound:
             pass
 
-        volume_app = f'{BASE_PATH}/mlservices/{self.model_type}:/application'
+        saved_models = f'{MODELS_REG}:/opt/mlruns'
         try:
             container_id = self.client.containers.run(
                                 image=self.image,
                                 name=self.service_name,
-                                volumes=[volume_app], 
+                                volumes=[saved_models],
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
