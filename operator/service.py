@@ -143,6 +143,6 @@ class Service():
                 "start_time": start_time,
                 "finish_time": str(datetime.datetime.now()),
                 "prediction": result.json().get('prediction'),
-                "anomalies": result.json().get('anomalies'),
+                # "anomalies": result.json().get('anomalies'),
                 "model_uri": result.json().get('model_uri')                 
                 }

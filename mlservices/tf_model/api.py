@@ -40,7 +40,10 @@ class Action:
             # with mlflow.start_run(experiment_id=experiment.experiment_id):
             response = self.model.run(data, config, model_uri)
             logger.debug(f'Model response: {response}')
-            resp.media = response
+            resp.media = {
+                "prediction":response,
+                "model_uri":model_uri
+                }
         else:
             resp.state = falcon.HTTP_400
             logger.info(resp.state)
