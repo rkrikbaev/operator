@@ -5,7 +5,7 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout
     
-from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER, MODELS_REG
+from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER, MODELS_REG, APP_CODE
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
@@ -47,11 +47,16 @@ class Service():
             pass
 
         saved_models = f'{MODELS_REG}:/opt/mlruns'
+        app_code = f'{APP_CODE}/{self.model_type}:/application'
+
+        logger.debug(f'{saved_models}')
+        logger.debug(f'{app_code}')
+
         try:
             container_id = self.client.containers.run(
                                 image=self.image,
                                 name=self.service_name,
-                                volumes=[saved_models],
+                                volumes=[saved_models, app_code],
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,

@@ -24,11 +24,15 @@ TRACKING_SERVER = config.get('MLFLOW', 'TRACKING_SERVER')
 
 MODELS_REG = os.environ.get('MODELS', 'MODELS_REG')
 if not MODELS_REG: MODELS_REG = '/opt/mlruns'
+else: assert ('/mlruns' in MODELS_REG) == True
 
 CELERY_BROKER = config.get('CELERY', 'CELERY_BROKER')
 CELERY_BACKEND = config.get('CELERY', 'CELERY_BACKEND')
 MLSERV_CONFIG_FILE = os.path.join(BASE_PATH, 'conf/services.yaml')
 
+# The path to application code of a model delpoyed in docker container
+APP_CODE = os.environ.get('APP_CODE')
+if not APP_CODE: APP_CODE = '/opt/operator/mlservices'
 
 # logger configuretion
 def get_logger(name='root', loglevel='INFO'):
