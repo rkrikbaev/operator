@@ -90,10 +90,13 @@ class Service():
                 logger.debug(f'Container running: {container_id}')
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 
-                self.response = self.call(self.request)
-                logger.debug(f'Got response from model {self.response}')
-                
-                break
+                try:
+                    self.response = self.call(self.request)
+                    logger.debug(f'Got response from model {self.response}')
+                except Exception as exc:
+                    logger.error(exc)
+                finally:
+                    break
 
             time.sleep(1)
 
