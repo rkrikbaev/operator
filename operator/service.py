@@ -99,7 +99,7 @@ class Service():
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 
                 try:
-                    self.response.update(self._call(self.request))
+                    self.response.update(self._call())
                     self.response["finish_time"] = str(datetime.datetime.now())                  
                 except Exception as exc:
                     logger.error(exc)

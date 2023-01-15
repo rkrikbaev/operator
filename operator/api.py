@@ -33,7 +33,8 @@ class Predict():
             "start_time": None,
             "finish_time": None,
             "model_point": None,
-            "error_state": None
+            "service_state": None,
+            "model_state": None
             }
 
         resp.status = falcon.HTTP_200
@@ -70,7 +71,7 @@ class Predict():
                     logger.error(f'Task call with error: {err}')
                     resp.status = falcon.HTTP_500
         else:
-            self.task_state = "FIELDS MISMATCH"
+            self.response["service_state"] = "error: 404"
             logger.info(self.task_state)
             resp.status = falcon.HTTP_400
         

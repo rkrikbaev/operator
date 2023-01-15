@@ -22,6 +22,5 @@ def run(request):
     service = Service(config)
 
     response = service.run(model_point, request)
-    logger.debug(f'Response from service in @tasks.py {response.get("error_state")}')
     
     return response
