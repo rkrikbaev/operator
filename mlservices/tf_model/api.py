@@ -16,9 +16,11 @@ class Action:
         self.model = Model(tracking_server=TRACKING_SERVER)
 
     def on_post(self, req, resp):
+        
         request = req.media
         logger.debug(f'Request from the operator: {request}')
         resp.state = falcon.HTTP_400
+        
         response = {
             "state": resp.state,
             "prediction": None,
@@ -31,8 +33,9 @@ class Action:
         keys = set(request.keys())
 
         if required_fields == keys:
+
             resp.state = falcon.HTTP_500
-            response['state'] = resp.state 
+
             # experiment = request.get('model_point')
             config = request.get('model_config')
             metadata = request.get('metadata')
@@ -49,16 +52,19 @@ class Action:
             # experiment = mlflow.get_experiment_by_name(experiment)
 
             # with mlflow.start_run(experiment_id=experiment.experiment_id):
-            
+
             result = self.model.run(data, config, model_uri),
 
             response["prediction"]: result
             response["model_uri"]: model_uri
             response["anomalies"]: None
-            
-            logger.debug(f'Model response: {response}')
+
             resp.state = falcon.HTTP_200
         
+        response['state'] = resp.state
+
+        logger.debug(f'Model response: {response}')
+
         resp.media = response
 
 api = falcon.App()
