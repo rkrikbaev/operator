@@ -26,7 +26,7 @@ class Predict():
 
     def on_post(self, req, resp):
 
-        self.response = {},
+        self.response = { "task_created": self.ts }
 
         required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
         self.ts = int(time.time())
@@ -46,7 +46,7 @@ class Predict():
 
                 try:
                     task = AsyncResult(self.task_id)
-                    self.response = task.result
+                    self.response.update(task.result)
                     logger.debug(f'Got response from celery task: {self.response}')
                     self.task_state = task.status
                 except Exception as err:
@@ -65,8 +65,8 @@ class Predict():
         else:
             self.task_state = "FIELDS MISMATCH"
             logger.info(self.task_state)
-
-        self.response['task_created'] = self.ts
+            resp.status = falcon.HTTP_400
+        
         self.response['task_state'] = self.task_state
         self.response['task_id'] = self.task_id
 
