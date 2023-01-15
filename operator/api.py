@@ -25,7 +25,16 @@ class Predict():
 
     def on_post(self, req, resp):
 
-        self.response = { "task_created": int(time.time()) }
+        self.response = { 
+            "task_created": int(time.time()), 
+            "model_uri": None, 
+            "anomalies": None, 
+            "prediction": None,
+            "start_time": None,
+            "finish_time": None,
+            "model_point": None,
+            "error_state": None
+            }
 
         resp.status = falcon.HTTP_200
 
@@ -37,7 +46,7 @@ class Predict():
 
             self.task_id = request.get('task_id')
             self.model_point = request.get('model_point')
-            self.model_uri = request.get('model_uri')
+            # self.model_uri = request.get('model_uri')
 
             if self.task_id and len(self.task_id)>10:
                 logger.debug(f'Request result from celery: {self.task_id}')

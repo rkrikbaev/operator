@@ -22,7 +22,7 @@ class Action:
         resp.state = falcon.HTTP_400
         
         response = {
-            "state": resp.state,
+            "model_state": resp.state,
             "prediction": None,
             "model_uri": None,
             "anomalies": None,
@@ -61,7 +61,7 @@ class Action:
 
             resp.state = falcon.HTTP_200
         
-        response['state'] = resp.state
+        response['model_state'] = resp.state
 
         logger.debug(f'Model response: {response}')
 
