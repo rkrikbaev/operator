@@ -140,7 +140,7 @@ class Service():
             r = requests.post(
                 url, 
                 headers={'Content-Type': 'application/json'}, 
-                data=json.dumps(self.payload), 
+                data=json.dumps(self.request), 
                 timeout=120)
             response.update(r.json())
             response["service_state"] = str(r.status_code)
