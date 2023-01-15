@@ -26,7 +26,7 @@ class Predict():
 
     def on_post(self, req, resp):
 
-        self.result = None,
+        self.response = None,
 
         required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
         self.ts = int(time.time())
@@ -37,8 +37,6 @@ class Predict():
 
         if required_fields == keys:
 
-            
-
             self.task_id = request.get('task_id')
             self.model_point = request.get('model_point')
             self.model_uri = request.get('model_uri')
@@ -48,10 +46,8 @@ class Predict():
 
                 try:
                     task = AsyncResult(self.task_id)
-                    self.result = task.result
-                    logger.debug(f'Got response from celery task: {self.result}')
-
-                    # self.model_uri = self.result.get('model_uri')
+                    self.response = task.result
+                    logger.debug(f'Got response from celery task: {self.response}')
                     self.task_state = task.status
                 except Exception as err:
                     logger.error(f'Broker call has error: {err}')
@@ -69,18 +65,13 @@ class Predict():
         else:
             self.task_state = "FIELDS MISMATCH"
             logger.info(self.task_state)
-        
-        response = {
-            'ts': self.ts,
-            'task_state': self.task_state, 
-            'task_id': self.task_id,
-            'model_point': self.model_point
-            }
-            
-        response.update(self.result)
 
-        logger.debug(response.get('task_id'))
-        resp.media = response
+        self.response['task_created'] = self.ts
+        self.response['task_state'] = self.task_state
+        self.response['task_id'] = self.task_id
+
+        logger.debug(self.response)
+        resp.media = self.response
 
 api = falcon.App()
 
