@@ -124,7 +124,7 @@ class Service():
         session.mount('http://', adapter)
         url = f'http://{self.ip_address}:8005/health'
         result = None
-
+        health = False
         while True:
           
             try:
