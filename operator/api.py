@@ -26,7 +26,7 @@ class Predict():
 
     def on_post(self, req, resp):
 
-        self.response = None,
+        self.response = {},
 
         required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
         self.ts = int(time.time())
