@@ -80,7 +80,7 @@ class Service():
                 time.sleep(1)
                 wait_counter += 1
 
-            if self.container_state  in ['running']:
+            if self.container_state  == ['running']:
 
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 logger.debug(f'container #{self.service_name}, started with IP: {self.ip_address}')
@@ -94,8 +94,17 @@ class Service():
     def call(self, *args):
 
         self.payload = args[0]
-        start_time = None
         health_ok = False
+
+        response =  {
+            "state": '200',
+            "point": self.service_name,
+            "start_time": str(datetime.datetime.now()),
+            "finish_time": None,
+            "prediction": None,
+            "anomalies": None,
+            "model_uri": None                 
+            }
 
         session = requests.Session()
         adapter = requests.adapters.HTTPAdapter(
@@ -106,43 +115,34 @@ class Service():
         url = f'http://{self.ip_address}:8005/health'
         result = None
         tries = 0
+
         while tries < 5:
           
             try:
                 health = session.get(url, timeout=600)
                 health_ok = health.ok
+                return
 
-                url = f'http://{self.ip_address}:8005/action'
-
-                logger.debug(f'query url: {url}')
-                logger.debug(f'query payload: {list(self.payload.keys())}')
-
-                start_time = str(datetime.datetime.now())
-                
-                result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=10)
-                logger.debug(result)
-
-                return {
-                    "state": '200',
-                    "point": self.service_name,
-                    "start_time": start_time,
-                    "finish_time": str(datetime.datetime.now()),
-                    "prediction": result.json().get('prediction'),
-                    "anomalies": result.json().get('anomalies'),
-                    "model_uri": result.json().get('model_uri'),
-                    }
-            except (ConnectionError, Timeout):
+            except Exception as exc:
                 tries += 1
+                logger.error(exc)
                 logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
                 time.sleep(tries)
-        else:
-            logger.debug(f' Tried to call a model for point {self.service_name} {tries} times')
-            return {
-                "state": '500',
-                "point": self.service_name,
-                "start_time": start_time,
-                "finish_time": str(datetime.datetime.now()),
-                "prediction": result.json().get('prediction'),
-                # "anomalies": result.json().get('anomalies'),
-                "model_uri": result.json().get('model_uri')                 
-                }
+        else:        
+            response["state"] = '500'
+            response["finish_time"] = str(datetime.datetime.now())
+
+        url = f'http://{self.ip_address}:8005/action'
+
+        logger.debug(f'query url: {url}')
+        logger.debug(f'query payload: {list(self.payload.keys())}')
+        
+        try:
+            result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=10).json()
+            response["finish_time"] = str(datetime.datetime.now())
+            response.update(result)
+            logger.debug(f'operarator@service: response from model: {response}')  
+        except Exception as exc:
+            response["state"] = '500'
+            logger.error(f'Try call the model: {exc}')
+        return response

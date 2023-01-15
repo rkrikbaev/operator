@@ -41,8 +41,9 @@ class Action:
             response = self.model.run(data, config, model_uri)
             logger.debug(f'Model response: {response}')
             resp.media = {
-                "prediction":response,
-                "model_uri":model_uri
+                "prediction": response,
+                "model_uri": model_uri,
+                "anomalies": None
                 }
         else:
             resp.state = falcon.HTTP_400
