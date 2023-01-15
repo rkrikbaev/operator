@@ -109,16 +109,11 @@ class Service():
     def call(self, *args):
 
         self.payload = args[0]
-        health_ok = False
 
         response =  {
             "error_state": 'ok',
-            "point": self.service_name,
             "start_time": str(datetime.datetime.now()),
-            "finish_time": None,
-            "prediction": None,
-            "anomalies": None,
-            "model_uri": None                 
+            "finish_time": None             
             }
 
         session = requests.Session()
