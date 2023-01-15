@@ -86,7 +86,7 @@ class Service():
                 wait_counter += 1
 
             if container_state == 'running':
-
+                time.sleep(2)
                 logger.debug(f'Container running: {container_id}')
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 
@@ -108,7 +108,7 @@ class Service():
         health_ok = False
 
         response =  {
-            "state": '200',
+            "error_state": 'ok',
             "point": self.service_name,
             "start_time": str(datetime.datetime.now()),
             "finish_time": None,
@@ -125,23 +125,18 @@ class Service():
         session.mount('http://', adapter)
         url = f'http://{self.ip_address}:8005/health'
         result = None
-        tries = 0
 
-        while tries < 5:
+        while True:
           
             try:
                 health = session.get(url, timeout=600)
-                health_ok = health.ok
-                return
+                logger.debug(f'Model API health status: {health}')
+                break
 
             except Exception as exc:
-                tries += 1
+                response["error_state"] = f'Model API health is {health}'
+                response["finish_time"] = str(datetime.datetime.now())
                 logger.error(exc)
-                logger.debug(f'query /health success: {health_ok}: tries: {tries}: sleep: {tries*tries} sec')
-                time.sleep(tries)
-        else:        
-            response["state"] = '500'
-            response["finish_time"] = str(datetime.datetime.now())
 
         url = f'http://{self.ip_address}:8005/action'
 
@@ -154,6 +149,6 @@ class Service():
             response.update(result)
             logger.debug(f'operarator@service: response from model: {response}')  
         except Exception as exc:
-            response["state"] = '500'
+            response["error_state"] = f'Error when call predict'
             logger.error(f'Try call the model: {exc}')
         return response
