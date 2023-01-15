@@ -32,6 +32,8 @@ class Service():
         self.ip_address = None
         self.service_name = None
 
+        self.response = None
+
         logger.debug(f'Init object complited {self}')
 
     def run(self, name, request):
@@ -76,23 +78,26 @@ class Service():
 
             container = self.client.containers.get(container_id)
             self.container_state = container.status.lower()
+            logger.debug(f'Upload state of container object by ID: {container_id}')
             logger.debug(f'Upload state of container object by ID: {self.container_state}')
                         
-            if self.container_state  == ['created']:
-                logger.debug(f'Container created and waiting for start-up: {self.container_state}')
-                time.sleep(1)
+            if self.container_state in ['created']:
+                logger.debug(f'Container created and waiting for start-up: {self.container_id}')
                 wait_counter += 1
 
-            if self.container_state  == ['running']:
-                self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
-                logger.debug(f'Container running: {self.container_state}')
+            if self.container_state in ['running']:
 
-                self.result = self.call(self.request)
-                logger.debug(f'Got resule from model {self.result}')
+                logger.debug(f'Container running: {self.container_id}')
+                self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+                
+                self.response = self.call(self.request)
+                logger.debug(f'Got response from model {self.response}')
                 
                 return
 
-        return self.result
+            time.sleep(1)
+
+        return self.response
 
     def call(self, *args):
 
