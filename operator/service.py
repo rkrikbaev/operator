@@ -3,7 +3,7 @@ from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time
 import requests, json
-from requests import ConnectionError, Timeout
+from requests import ConnectionError, Timeout, HTTPError
     
 from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER, MODELS_REG, APP_CODE
 
@@ -125,11 +125,12 @@ class Service():
         while True:
             try:
                 url = f'http://{self.ip_address}:8005/health'
-                health = requests.get(url,timeout=10) 
+                health = requests.get(url,timeout=1) 
                 logger.debug(f'Model API health status: {health.status_code}')
                 if health.ok:
                     url = f'http://{self.ip_address}:8005/action'
                     try:
+                        logger(f'request predict the model')
                         r = requests.post(
                             url, 
                             headers={'Content-Type': 'application/json'}, 
@@ -145,7 +146,7 @@ class Service():
                     if t > 3:
                         break
                     time.sleep(1)
-            except Exception as exc:
+            except (ConnectionError, Timeout) as exc:
                 logger.error(exc)
         
         return response
