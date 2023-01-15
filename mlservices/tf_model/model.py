@@ -46,6 +46,7 @@ class Model():
         return predict_values
 
     def prepare_dataset( self, dataset ):
+        logger.debug(f'Prepare dataset with length: {len(dataset)}')
         # Convert dataset to pandas DataFrame
         X = pd.DataFrame(dataset)
 
@@ -71,6 +72,7 @@ class Model():
         return X
 
     def normalize_data(self, X, column_index):
+        logger.debug(f'Normalize data {X.shape}')
         # Normalize features 
         _max = X[X.columns[column_index]].max()
         _min = X[X.columns[column_index]].min()
@@ -80,6 +82,7 @@ class Model():
         return X_series, _min, _max
 
     def slice_data(self, X_series, window):
+        logger.debug(f'Prepare matrix to slice data')
         # create sclice
         N = X_series.shape[0]
         k = N - window
