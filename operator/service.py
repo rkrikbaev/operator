@@ -149,7 +149,7 @@ class Service():
         logger.debug(f'query payload: {list(self.payload.keys())}')
         
         try:
-            result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=10).json()
+            result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=120).json()
             response["finish_time"] = str(datetime.datetime.now())
             response.update(result)
             logger.debug(f'Response from model: {response}')  
