@@ -34,7 +34,7 @@ class Service():
         self.ip_address = None
         self.service_name = None
 
-        self.response = None
+        self.response = {}
         self.request = None
 
         logger.debug(f'Init object complited {self}')
@@ -43,6 +43,9 @@ class Service():
 
         logger.debug(f'Deploy object {self}')
         self.service_name = name
+
+        self.response["service_state"] = 'error'
+        self.response["start_time"] = str(datetime.datetime.now())           
 
         self.request = {key: request[key] for key in self.model_keys}
         logger.debug(f'Filter request fields: {list(self.request.keys())}')
@@ -96,7 +99,8 @@ class Service():
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 
                 try:
-                    self.response = self.call(self.request)
+                    self.response.update(self._call(self.request))
+                    self.response["finish_time"] = str(datetime.datetime.now())                  
                 except Exception as exc:
                     logger.error(exc)
                 finally:
@@ -106,15 +110,9 @@ class Service():
 
         return self.response
 
-    def call(self, *args):
+    def _call(self):
 
-        self.payload = args[0]
-
-        response =  {
-            "error_state": 'ok',
-            "start_time": str(datetime.datetime.now()),
-            "finish_time": None             
-            }
+        response =  {"service_state": "error"}
 
         session = requests.Session()
         adapter = requests.adapters.HTTPAdapter(
@@ -123,30 +121,30 @@ class Service():
 
         session.mount('http://', adapter)
         url = f'http://{self.ip_address}:8005/health'
-        result = None
-        health = False
+
         while True:
           
             try:
                 health = session.get(url, timeout=600)
                 logger.debug(f'Model API health status: {health}')
-                break
-
+                if health.ok:
+                    break
+                else:
+                    time.sleep(1)
             except Exception as exc:
-                response["error_state"] = f'Model API health is {health}'
-                response["finish_time"] = str(datetime.datetime.now())
                 logger.error(exc)
 
         url = f'http://{self.ip_address}:8005/action'
-
-        logger.debug(f'query url: {url}')
-        logger.debug(f'query payload: {list(self.payload.keys())}')
         
         try:
-            result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=120).json()
-            response["finish_time"] = str(datetime.datetime.now())
-            response.update(result) 
+            r = requests.post(
+                url, 
+                headers={'Content-Type': 'application/json'}, 
+                data=json.dumps(self.payload), 
+                timeout=120)
+            response.update(r.json())
+            response["service_state"] = str(r.status_code)
         except Exception as exc:
-            response["error_state"] = f'Error when call predict'
             logger.error(f'Try call the model: {exc}')
+        
         return response

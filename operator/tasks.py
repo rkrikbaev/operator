@@ -19,9 +19,9 @@ def run(request):
     with open(MLSERV_CONFIG_FILE, 'r') as fl:
         config =  yaml.safe_load(fl).get('docker')[model_type] 
 
-    srv = Service(config)
+    service = Service(config)
 
-    response = srv.run(model_point, request)
+    response = service.run(model_point, request)
     logger.debug(f'Response from service in @tasks.py {response.get("error_state")}')
     
     return response
