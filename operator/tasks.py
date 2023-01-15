@@ -22,6 +22,6 @@ def run(request):
     srv = Service(config)
 
     response = srv.run(model_point, request)
-    logger.debug(f'Got response from the model\'s service {response}')
+    logger.debug(f'Response from service in @tasks.py {response.get("error_state")}')
     
     return response

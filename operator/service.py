@@ -97,7 +97,6 @@ class Service():
                 
                 try:
                     self.response = self.call(self.request)
-                    logger.debug(f'Got response from model {self.response}')
                 except Exception as exc:
                     logger.error(exc)
                 finally:
@@ -151,8 +150,7 @@ class Service():
         try:
             result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=120).json()
             response["finish_time"] = str(datetime.datetime.now())
-            response.update(result)
-            logger.debug(f'Response from model: {response}')  
+            response.update(result) 
         except Exception as exc:
             response["error_state"] = f'Error when call predict'
             logger.error(f'Try call the model: {exc}')
