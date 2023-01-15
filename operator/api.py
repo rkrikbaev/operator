@@ -37,6 +37,8 @@ class Predict():
 
         if required_fields == keys:
 
+            
+
             self.task_id = request.get('task_id')
             self.model_point = request.get('model_point')
             self.model_uri = request.get('model_uri')
@@ -47,13 +49,14 @@ class Predict():
                 try:
                     task = AsyncResult(self.task_id)
                     self.result = task.result
-                    self.model_uri = self.result.get('model_uri')
+                    logger.debug(f'Got response from celery task: {self.result}')
+
+                    # self.model_uri = self.result.get('model_uri')
                     self.task_state = task.status
-                    
                 except Exception as err:
                     logger.error(f'Broker call has error: {err}')
                     resp.status = falcon.HTTP_500
-        
+            
             elif self.task_id is None:
                 try:
                     task = run.delay(request)

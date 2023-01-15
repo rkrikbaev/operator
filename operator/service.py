@@ -67,29 +67,32 @@ class Service():
                                     f'LOG_LEVEL={LOG_LEVEL}', 
                                     f'TRACKING_SERVER={TRACKING_SERVER}']
                                 ).short_id
+            logger.debug(f'Created container ID {container_id}')
         except Exception as exc:
-            logger.debug(exc)
+            logger.error(exc)
+        
         wait_counter = 0
-
-        while wait_counter < self.startup:
+        while wait_counter < 3:
 
             container = self.client.containers.get(container_id)
             self.container_state = container.status.lower()
+            logger.debug(f'Upload state of container object by ID: {self.container_state}')
                         
             if self.container_state  == ['created']:
+                logger.debug(f'Container created and waiting for start-up: {self.container_state}')
                 time.sleep(1)
                 wait_counter += 1
 
             if self.container_state  == ['running']:
-
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
-                logger.debug(f'container #{self.service_name}, started with IP: {self.ip_address}')
+                logger.debug(f'Container running: {self.container_state}')
 
-                self.response = self.call(self.request)
+                self.result = self.call(self.request)
+                logger.debug(f'Got resule from model {self.result}')
                 
-                return self.response                 
-        else:
-            raise RuntimeError(f'Fail to deploy container for point: {self.service_name}')
+                return
+
+        return self.result
 
     def call(self, *args):
 

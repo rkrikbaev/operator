@@ -21,6 +21,7 @@ def run(request):
 
     srv = Service(config)
 
-    response = srv.run(model_point, request)
-
-    return response
+    result = srv.run(model_point, request)
+    logger.debug(f'Got result from model\'s service {result}')
+    
+    return result
