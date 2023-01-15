@@ -74,10 +74,10 @@ class Predict():
             'ts': self.ts,
             'task_state': self.task_state, 
             'task_id': self.task_id,
-            'model_point': self.model_point,
-            'result':self.result,
-            'model_uri': self.model_uri
+            'model_point': self.model_point
             }
+            
+        response.update(self.result)
 
         logger.debug(response.get('task_id'))
         resp.media = response
