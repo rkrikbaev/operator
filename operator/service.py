@@ -114,24 +114,24 @@ class Service():
 
         response =  {"service_state": "error"}
 
-        session = requests.Session()
-        adapter = requests.adapters.HTTPAdapter(
-            pool_connections=100,
-            pool_maxsize=100)
+        # session = requests.Session()
+        # adapter = requests.adapters.HTTPAdapter(
+        #     pool_connections=100,
+        #     pool_maxsize=100)
 
-        session.mount('http://', adapter)
-        url = f'http://{self.ip_address}:8005/health'
+        # session.mount('http://', adapter)   
 
         t=0
         health_ok = False
         while not health_ok:
             try:
-                health = session.get(url, timeout=10)
+                url = f'http://{self.ip_address}:8005/health'
+                health = requests.get(url) 
                 logger.debug(f'Model API health status: {health}')
                 if health.ok:
                     health_ok = True
                 else:
-                    t += 1
+                    t = t + 1
                     if t > 3:
                         break
                     time.sleep(1)
@@ -139,7 +139,7 @@ class Service():
                 logger.error(exc)
 
         if health_ok:
-            
+
             url = f'http://{self.ip_address}:8005/action'
             
             try:
