@@ -39,11 +39,14 @@ class Model():
         assert X_series.shape[0] == window +1
 
         in_data = self.slice_data(X_series, window)
+        
+        logger.debug(f'Run model to predict')
+        result = model.predict(in_data)[0] * _max + _min
 
-        predict = model.predict(in_data)[0] * _max + _min
-        predict_values = list(map(lambda x: float(x), predict))
+        values = list(map(lambda x: float(x), result))
+        logger.debug(f'Predict result values: {values}')
 
-        return predict_values
+        return values
 
     def prepare_dataset( self, dataset ):
         logger.debug(f'Prepare dataset with length: {len(dataset)}')
@@ -82,7 +85,7 @@ class Model():
         return X_series, _min, _max
 
     def slice_data(self, X_series, window):
-        logger.debug(f'Prepare matrix to slice data')
+        logger.debug(f'Prepare matrix to slice data: {X_series.shape}')
         # create sclice
         N = X_series.shape[0]
         k = N - window
