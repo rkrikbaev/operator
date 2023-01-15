@@ -77,23 +77,23 @@ class Service():
         while wait_counter < 3:
 
             container = self.client.containers.get(container_id)
-            self.container_state = container.status.lower()
+            container_state = container.status.lower()
             logger.debug(f'Upload state of container object by ID: {container_id}')
-            logger.debug(f'Upload state of container object by ID: {self.container_state}')
+            logger.debug(f'State of container: {container_state}')
                         
-            if self.container_state in ['created']:
-                logger.debug(f'Container created and waiting for start-up: {self.container_id}')
+            if container_state == 'created':
+                logger.debug(f'Container created and waiting for start-up: {container_id}')
                 wait_counter += 1
 
-            if self.container_state in ['running']:
+            if container_state == 'running':
 
-                logger.debug(f'Container running: {self.container_id}')
+                logger.debug(f'Container running: {container_id}')
                 self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 
                 self.response = self.call(self.request)
                 logger.debug(f'Got response from model {self.response}')
                 
-                return
+                break
 
             time.sleep(1)
 
