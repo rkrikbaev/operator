@@ -127,9 +127,10 @@ class Service():
             try:
                 url = f'http://{self.ip_address}:8005/health'
                 health = requests.get(url,timeout=10) 
-                logger.debug(f'Model API health status: {health}')
+                logger.debug(f'Model API health status: {health.status_code}')
                 if health.status_code == 200:
                     health_ok = True
+                    break
                 else:
                     t = t + 1
                     if t > 3:
