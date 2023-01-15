@@ -31,7 +31,6 @@ class Service():
 
         self.model_keys = ['model_config', 'dataset', 'model_uri', 'metadata', 'period']
 
-        self.ip_address = None
         self.service_name = None
 
         self.response = {}
@@ -40,7 +39,7 @@ class Service():
         logger.debug(f'Init object complited {self}')
     
     def run(self, name, request):
-
+        self.ip_address = None
         logger.debug(f'Deploy object {self}')
         self.service_name = name
 
