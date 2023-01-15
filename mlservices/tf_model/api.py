@@ -26,10 +26,13 @@ class Action:
             "anomalies": None,
             "model_uri": None
             }
-        resp.state = falcon.HTTP_400
-        list_of_keys = ['model_config', 'dataset']
 
-        if all(k in request for k in list_of_keys):
+        resp.state = falcon.HTTP_400
+
+        required_fields = {'model_config', 'dataset', 'model_uri', 'metadata', 'period', }
+        keys = set(request.keys())
+
+        if required_fields == keys:
             resp.state = falcon.HTTP_500
             # experiment = request.get('model_point')
             config = request.get('model_config')
