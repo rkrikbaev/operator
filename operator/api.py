@@ -18,7 +18,6 @@ class Health():
 
 class Predict():
     def __init__(self):
-        self.ts = None,
         self.task_state = None, 
         self.task_id = None,
         self.model_uri = None
@@ -26,12 +25,11 @@ class Predict():
 
     def on_post(self, req, resp):
 
-        self.response = { "task_created": self.ts }
+        self.response = { "task_created": int(time.time()) }
 
-        required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
-        self.ts = int(time.time())
         resp.status = falcon.HTTP_200
 
+        required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
         request = req.media
         keys = set(request.keys())
 
