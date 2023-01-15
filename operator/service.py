@@ -130,7 +130,7 @@ class Service():
                 if health.ok:
                     url = f'http://{self.ip_address}:8005/action'
                     try:
-                        logger(f'request predict the model')
+                        logger.debug(f'request predict the model')
                         r = requests.post(
                             url, 
                             headers={'Content-Type': 'application/json'}, 
