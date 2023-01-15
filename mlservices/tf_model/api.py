@@ -18,10 +18,19 @@ class Action:
     def on_post(self, req, resp):
         request = req.media
         logger.debug(f'Request from the operator: {request}')
-
+        
+        response = {
+            "state": '400',
+            "prediction": None,
+            "model_uri": None,
+            "anomalies": None,
+            "model_uri": None
+            }
+        resp.state = falcon.HTTP_400
         list_of_keys = ['model_config', 'dataset']
-        if all(k in request for k in list_of_keys):
 
+        if all(k in request for k in list_of_keys):
+            resp.state = falcon.HTTP_500
             # experiment = request.get('model_point')
             config = request.get('model_config')
             metadata = request.get('metadata')
@@ -38,16 +47,16 @@ class Action:
             # experiment = mlflow.get_experiment_by_name(experiment)
 
             # with mlflow.start_run(experiment_id=experiment.experiment_id):
-            response = self.model.run(data, config, model_uri)
+            result = self.model.run(data, config, model_uri),
+
+            response["prediction"]: result
+            response["model_uri"]: model_uri
+            response["anomalies"]: None
+            
             logger.debug(f'Model response: {response}')
-            resp.media = {
-                "prediction": response,
-                "model_uri": model_uri,
-                "anomalies": None
-                }
-        else:
-            resp.state = falcon.HTTP_400
-            logger.info(resp.state)
+            resp.state = falcon.HTTP_200
+        
+        resp.media = response
 
 api = falcon.App()
 
