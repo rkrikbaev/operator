@@ -76,6 +76,7 @@ class Predict():
         
         self.response['task_state'] = self.task_state
         self.response['task_id'] = self.task_id
+        self.response['model_point'] = self.model_point
 
         logger.debug(self.response)
         resp.media = self.response
