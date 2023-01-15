@@ -29,18 +29,23 @@ class Service():
         self.network = 'operator_default'
         self.model_type = config.get('type')
 
+        self.model_keys = {'model_config', 'dataset', 'model_uri', 'metadata', 'period'}
+
         self.ip_address = None
         self.service_name = None
 
         self.response = None
+        self.request = None
 
         logger.debug(f'Init object complited {self}')
-
+    
     def run(self, name, request):
 
         logger.debug(f'Deploy object {self}')
         self.service_name = name
-        self.request = request
+
+        self.request = {key: request[key] for key in self.model_keys}
+        logger.debug(f'Filter request fields: {self.request.keys}')
 
         try:
             container = self.client.containers.get(self.service_name)
@@ -147,7 +152,7 @@ class Service():
             result = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(self.payload), timeout=10).json()
             response["finish_time"] = str(datetime.datetime.now())
             response.update(result)
-            logger.debug(f'operarator@service: response from model: {response}')  
+            logger.debug(f'Response from model: {response}')  
         except Exception as exc:
             response["error_state"] = f'Error when call predict'
             logger.error(f'Try call the model: {exc}')

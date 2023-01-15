@@ -14,7 +14,7 @@ def run(request):
 
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point').lower()
-
+    
     logger.debug(f'Deploy container with model for: {model_point}')
     with open(MLSERV_CONFIG_FILE, 'r') as fl:
         config =  yaml.safe_load(fl).get('docker')[model_type] 

@@ -29,7 +29,7 @@ class Action:
             "model_uri": None
             }
 
-        required_fields = {'model_config', 'dataset', 'model_uri', 'metadata', 'period', }
+        required_fields = {'model_config', 'dataset', 'model_uri', 'metadata', 'period'}
         keys = set(request.keys())
 
         if required_fields == keys:
