@@ -29,7 +29,7 @@ class Service():
         self.network = 'operator_default'
         self.model_type = config.get('type')
 
-        self.model_keys = {'model_config', 'dataset', 'model_uri', 'metadata', 'period'}
+        self.model_keys = ['model_config', 'dataset', 'model_uri', 'metadata', 'period']
 
         self.ip_address = None
         self.service_name = None
@@ -45,7 +45,7 @@ class Service():
         self.service_name = name
 
         self.request = {key: request[key] for key in self.model_keys}
-        logger.debug(f'Filter request fields: {self.request.keys}')
+        logger.debug(f'Filter request fields: {list(self.request.keys())}')
 
         try:
             container = self.client.containers.get(self.service_name)
