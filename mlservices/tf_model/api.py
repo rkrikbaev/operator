@@ -16,7 +16,7 @@ class Action:
         self.model = Model(tracking_server=TRACKING_SERVER)
 
     def on_post(self, req, resp):
-        
+
         request = req.media
         logger.debug(f'Request from the operator: {request}')
         resp.state = falcon.HTTP_400
@@ -55,9 +55,9 @@ class Action:
 
             result = self.model.run(data, config, model_uri),
 
-            response["prediction"]: result
-            response["model_uri"]: model_uri
-            response["anomalies"]: None
+            response["prediction"] = result
+            response["model_uri"] = model_uri
+            response["anomalies"] = None
 
             resp.state = falcon.HTTP_200
         
