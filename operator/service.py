@@ -122,14 +122,23 @@ class Service():
         # session.mount('http://', adapter)   
 
         t=0
-        health_ok = False
-        while not health_ok:
+        while True:
             try:
                 url = f'http://{self.ip_address}:8005/health'
                 health = requests.get(url,timeout=10) 
                 logger.debug(f'Model API health status: {health.status_code}')
-                if health.status_code == 200:
-                    health_ok = True
+                if health.ok:
+                    url = f'http://{self.ip_address}:8005/action'
+                    try:
+                        r = requests.post(
+                            url, 
+                            headers={'Content-Type': 'application/json'}, 
+                            data=json.dumps(self.request), 
+                            timeout=120)
+                        response.update(r.json())
+                        response["service_state"] = str(r.status_code)
+                    except Exception as exc:
+                        logger.error(f'Try call the model: {exc}')
                     break
                 else:
                     t = t + 1
@@ -138,20 +147,5 @@ class Service():
                     time.sleep(1)
             except Exception as exc:
                 logger.error(exc)
-
-        if health_ok:
-
-            url = f'http://{self.ip_address}:8005/action'
-            
-            try:
-                r = requests.post(
-                    url, 
-                    headers={'Content-Type': 'application/json'}, 
-                    data=json.dumps(self.request), 
-                    timeout=120)
-                response.update(r.json())
-                response["service_state"] = str(r.status_code)
-            except Exception as exc:
-                logger.error(f'Try call the model: {exc}')
         
         return response
