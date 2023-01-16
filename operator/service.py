@@ -86,7 +86,7 @@ class Service():
                 raise RuntimeError('Service IP cannot be None')
             _response = self._model_call(ip_address, _counter=0)
             logger.debug(f'Response {_response}')
-            # self.response.update()
+            self.response.update(_response)
         
         except Exception as exc:
             logger.error(exc)
@@ -120,8 +120,10 @@ class Service():
                             data=json.dumps(self.request), 
                             timeout=600)
             logger.debug(f'Post request by URL {url} is {r.ok}')
-            logger.debug(f'Post request result service.run() {r.json()}')
-            return r.json()
+            _response = r.json()
+            logger.debug(f'Post request result service._model_call() {_response}')
+            return _response
+
         except Exception as exc:
             logger.error(exc)
             _counter +=1
