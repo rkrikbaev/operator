@@ -39,7 +39,7 @@ class Service():
         logger.debug(f'Init object complited {self}')
     
     def run(self, name, request):
-        self.ip_address = None
+        
         logger.debug(f'Deploy object {self}')
         self.service_name = name
 
@@ -95,10 +95,10 @@ class Service():
             if container_state == 'running':
                 time.sleep(2)
                 logger.debug(f'Container running: {container_id}')
-                self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+                ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
                 
                 try:
-                    self.response.update(self._call())
+                    self.response.update(self._call(ip_address))
                     self.response["finish_time"] = str(datetime.datetime.now())                  
                 except Exception as exc:
                     logger.error(exc)
@@ -109,22 +109,15 @@ class Service():
 
         return self.response
 
-    def _call(self):
+    def _call(self, ip_address):
 
         response =  {"service_state": "error"}
-
-        # session = requests.Session()
-        # adapter = requests.adapters.HTTPAdapter(
-        #     pool_connections=100,
-        #     pool_maxsize=100)
-
-        # session.mount('http://', adapter)   
 
         t=0
         while True:
             try:
-                url = f'http://{self.ip_address}:8005/health'
-                health = requests.get(url,timeout=1) 
+                url = f'http://{ip_address}:8005/health'
+                health = requests.get(url, timeout=1) 
                 logger.debug(f'Model API health status: {health.status_code}')
                 if health.ok:
                     url = f'http://{self.ip_address}:8005/action'
