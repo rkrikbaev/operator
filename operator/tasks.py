@@ -20,7 +20,6 @@ def run(request):
         config =  yaml.safe_load(fl).get('docker')[model_type] 
 
     service = Service(config)
-
     response = service.run(model_point, request)
-    
+    logger.debug(f'Servise response in tasks.run: {response}')
     return response

@@ -128,6 +128,7 @@ class Service():
                             data=json.dumps(self.request), 
                             timeout=600)
             logger.debug(f'Post request by URL {url} is {r.ok}')
+            logger.debug(f'Post request result service.run() {r.json()}')
             return r.json()
         except Exception as exc:
             logger.error(exc)
