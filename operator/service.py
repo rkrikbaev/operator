@@ -118,7 +118,7 @@ class Service():
                                 data=json.dumps(self.request), 
                                 timeout=600)
                 return r.json()
-        except (ConnectionError, TimeoutError) as exc:
+        except Exception as exc:
             logger.error(exc)
             _counter +=1
             time.sleep(1)
