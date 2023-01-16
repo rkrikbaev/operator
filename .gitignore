@@ -5,9 +5,9 @@ __pycache__
 *.tar
 /model
 .venv
-logs
 .env
 pipe*
-mlruns
 .pytest_cache
 log.log
+*.h5
+main.config

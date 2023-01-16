@@ -1,3 +1,5 @@
 README.md
-Dockerfile
+Dockerfile*
 .dockerignore
+logs
+*.log

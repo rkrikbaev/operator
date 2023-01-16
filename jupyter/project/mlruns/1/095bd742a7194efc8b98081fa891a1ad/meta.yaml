@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/rustamkrikbayev/operator/jupyter/project/mlruns/1/095bd742a7194efc8b98081fa891a1ad/artifacts
+end_time: 1663126439658
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: 095bd742a7194efc8b98081fa891a1ad
+run_uuid: 095bd742a7194efc8b98081fa891a1ad
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1663126428982
+status: 3
+tags: []
+user_id: rustamkrikbayev

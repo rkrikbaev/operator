@@ -15,15 +15,22 @@ from dotenv import load_dotenv
 from pathlib import Path
 import pandas as pd
 import json
+import os
 
 import mlflow
 from prophet import Prophet, serialize
 
-from helper import get_logger
-logger = get_logger(__name__, loglevel='DEBUG')
-
 dotenv_path = Path('.env')
 load_dotenv(dotenv_path=dotenv_path)
+
+LOG_LEVEL = os.environ.get('LOG_LEVEL')
+if LOG_LEVEL==None:
+    LOG_LEVEL='INFO'
+
+from helper import get_logger
+logger = get_logger(__name__, loglevel=LOG_LEVEL)
+
+logger.info(LOG_LEVEL)
 
 ARTIFACT_PATH = 'model'
 
@@ -42,7 +49,6 @@ class Model(object):
         try:
             metadata = data.get('metadata')
             self.model_uri = data.get('model_uri')
-            # self.model_point = data.get('model_point') 
             dataset = data.get('dataset')
             period = data.get('period')
         except (KeyError, AttributeError) as err:
@@ -77,11 +83,11 @@ class Model(object):
                 self.model = mlflow.prophet.load_model(self.model_uri)
             except Exception as exc:
                 logger.error(exc)
-        
         else:
+            settings = data.get('model_config')          
             self.model_uri, self.model = self._fit_model(
                 data=df_dataset,
-                settings=json.loads(data.get('model_config'))
+                settings=settings
                 )
         
         if self.model:
@@ -97,10 +103,13 @@ class Model(object):
             filter = ['ts', 'yhat'] + metadata.get('model_features')
             logger.debug('Filter value')
             logger.debug(filter)
-            forecast['ts'] = forecast[['ds']].apply(lambda x: x[0].timestamp(), axis=1).astype(int)
+            forecast['ts'] = forecast[['ds']].apply(lambda x: x[0].timestamp()*1000, axis=1)
+            forecast['ts'] = forecast['ts'].astype(int)
             forecast['ds'] = forecast['ds'].astype('string')
 
             filtred_result = forecast[filter].values.tolist()
+            filtred_result = list(map(lambda x: [int(x[0]), x[1]], filtred_result))
+
             logger.debug('Filter response')
             logger.debug(filtred_result)
             
@@ -115,41 +124,34 @@ class Model(object):
 
         def extract_params(pr_model):
             return {attr: getattr(pr_model, attr) for attr in serialize.SIMPLE_ATTRIBUTES}
-
-        model = Prophet(
-            growth=settings.get('growth'),
-            seasonality_mode=settings.get('seasonality_mode'),
-            changepoint_prior_scale=settings.get(
-                'changepoint_prior_scale'),
-            seasonality_prior_scale=settings.get(
-                'seasonality_prior_scale'),
-            interval_width=settings.get('interval_width'),
-            daily_seasonality=settings.get('daily_seasonality'),
-            weekly_seasonality=settings.get('weekly_seasonality'),
-            yearly_seasonality=settings.get('yearly_seasonality')
-        )
-        seasonality = settings.get('seasonality')
         
-        for item in seasonality:
-            model.add_seasonality(
-                name=item.get('name'), 
-                period=item.get('period'), 
-                fourier_order=item.get('fourier_order'))
+        init_settings = None
+        seasonality = None       
         
-        logger.debug('fit data')
-        logger.debug(data)
-        model.fit(data)
+        if type(settings) == 'string':
+            _settings = json.loads(settings)
+            init_settings = _settings.get('init')
+            seasonality = _settings.get('seasonality') 
 
-        params = extract_params(model)
+        if init_settings:
+            self.model = Prophet(init_settings)
+        else:
+            self.model = Prophet()
+        
+        if seasonality:
+            [self.model.add_seasonality(**items) for items in seasonality]
+        
+        self.model.fit(data)
+        params = extract_params(self.model)
 
-        mlflow.prophet.log_model(model, artifact_path=ARTIFACT_PATH)
+        mlflow.prophet.log_model(self.model, artifact_path=ARTIFACT_PATH)
         mlflow.log_params(params)
 
         # mlflow.log_metrics(metrics)
         model_uri = mlflow.get_artifact_uri(ARTIFACT_PATH)
         print(f"Model artifact logged to: {model_uri}") 
 
-        return model_uri, model
+        return model_uri, self.model
 
     def _create_df(self, data, columns) -> pd.DataFrame:
 
