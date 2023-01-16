@@ -97,6 +97,7 @@ class Service():
         _state = container.status.lower()
         if _state == 'running':
              ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+             logger.debug(f'container started with IP: {ip_address}')
              return ip_address
         else:
             _counter +=1
@@ -107,21 +108,27 @@ class Service():
             raise RuntimeError('error max tries to get info anbout container')
 
     def _model_call(self, ip_address, _counter):
-        url = f'http://{ip_address}:8005/health'
         try:
-            health = requests.get(url, timeout=1)
-            if health.ok:
-                url = f'http://{ip_address}:8005/action'
-                r = requests.post(
-                                url, 
-                                headers={'Content-Type': 'application/json'}, 
-                                data=json.dumps(self.request), 
-                                timeout=600)
-                return r.json()
+            url = f'http://{ip_address}:8005/health'
+            logger.debug(f'service API health check is: {ip_address}')
+            requests.get(url, timeout=1)
         except Exception as exc:
             logger.error(exc)
             _counter +=1
-            time.sleep(1)
-            self._model_call(ip_address, _counter) 
-        if _counter > 3:
-            raise RuntimeError('error max tries to get response from model api')
+            if _counter > 3:
+                raise RuntimeError('error max tries to get response from model api')
+            else:
+                self._model_call(ip_address, _counter)
+                time.sleep(1)
+        try:
+            url = f'http://{ip_address}:8005/action'
+            r = requests.post(
+                            url, 
+                            headers={'Content-Type': 'application/json'}, 
+                            data=json.dumps(self.request), 
+                            timeout=600)
+            return r.json()
+        except Exception as exc:
+            logger.error(exc)
+
+
