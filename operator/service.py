@@ -77,68 +77,51 @@ class Service():
                                     f'TRACKING_SERVER={TRACKING_SERVER}']
                                 ).short_id
             logger.debug(f'Created container ID {container_id}')
+            
+            if not container_id:
+                raise RuntimeError('Created container id cannot be empty')
+            
+            # try to call deployed service
+            wait_counter = 0
+            while True:
+                    container = self.client.containers.get(container_id)
+                    container_state = container.status.lower()
+
+                    logger.debug(f'Upload state of container object by ID: {container_id}')
+                    logger.debug(f'State of container: {container_state}')
+                                
+                    if container_state == 'created':
+                        logger.debug(f'Container created and waiting for start-up: {container_id}')
+                        wait_counter += 1
+                        
+                        if wait_counter >= 3:
+                            raise RuntimeError('Cannot start service with model')
+                        else:
+                            time.sleep(1)
+
+                    if container_state == 'running':
+                        time.sleep(2)
+                        logger.debug(f'Container running: {container_id}')
+                        ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+                        
+                        # try to get health response from the service
+                        url = f'http://{ip_address}:8005/health'
+                        health = requests.get(url, timeout=1)
+                        if health.ok:
+                            logger.debug(f'Model API health is ok: {health.status_code}')
+                            url = f'http://{ip_address}:8005/action'
+                            r = requests.post(
+                                url, 
+                                headers={'Content-Type': 'application/json'}, 
+                                data=json.dumps(self.request), 
+                                timeout=120)
+                            self.response.update(r.json())
+                            self.response["service_state"] = str(r.status_code)
+                            self.response.update(self._call(ip_address, payload=self.request))
+                            self.response["finish_time"] = str(datetime.datetime.now())                  
+                            break
+        
         except Exception as exc:
             logger.error(exc)
-        
-        wait_counter = 0
-        while wait_counter < 3:
-
-            container = self.client.containers.get(container_id)
-            container_state = container.status.lower()
-            logger.debug(f'Upload state of container object by ID: {container_id}')
-            logger.debug(f'State of container: {container_state}')
-                        
-            if container_state == 'created':
-                logger.debug(f'Container created and waiting for start-up: {container_id}')
-                wait_counter += 1
-
-            if container_state == 'running':
-                time.sleep(2)
-                logger.debug(f'Container running: {container_id}')
-                ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
-                
-                try:
-                    self.response.update(self._call(ip_address))
-                    self.response["finish_time"] = str(datetime.datetime.now())                  
-                except Exception as exc:
-                    logger.error(exc)
-                finally:
-                    break
-
-            time.sleep(1)
 
         return self.response
-
-    def _call(self, ip_address):
-
-        response =  {"service_state": "error"}
-
-        t=0
-        while True:
-            try:
-                url = f'http://{ip_address}:8005/health'
-                health = requests.get(url, timeout=1) 
-                logger.debug(f'Model API health status: {health.status_code}')
-                if health.ok:
-                    url = f'http://{self.ip_address}:8005/action'
-                    try:
-                        logger.debug(f'request predict the model')
-                        r = requests.post(
-                            url, 
-                            headers={'Content-Type': 'application/json'}, 
-                            data=json.dumps(self.request), 
-                            timeout=120)
-                        response.update(r.json())
-                        response["service_state"] = str(r.status_code)
-                    except Exception as exc:
-                        logger.error(f'Try call the model: {exc}')
-                    break
-                else:
-                    t = t + 1
-                    if t > 3:
-                        break
-                    time.sleep(1)
-            except (ConnectionError, Timeout) as exc:
-                logger.error(exc)
-        
-        return response
