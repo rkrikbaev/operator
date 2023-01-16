@@ -85,7 +85,7 @@ class Service():
             if not ip_address:
                 raise RuntimeError('Service IP cannot be None')
             
-            self._model_call(ip_address, _counter=0)
+            self.response.update(self._model_call(ip_address, _counter=0))
         
         except Exception as exc:
             logger.error(exc)
@@ -112,15 +112,6 @@ class Service():
             url = f'http://{ip_address}:8005/health'
             health = requests.get(url, timeout=10)
             logger.debug(f'Service API {url} is {health.ok}')
-        except Exception as exc:
-            logger.error(exc)
-            _counter +=1
-            time.sleep(5)
-            if _counter > 3:
-                raise RuntimeError('error max tries to get response from model api')
-            else:
-                self._model_call(ip_address, _counter)
-        try:
             url = f'http://{ip_address}:8005/action'
             r = requests.post(
                             url, 
@@ -132,5 +123,11 @@ class Service():
             return r.json()
         except Exception as exc:
             logger.error(exc)
+            _counter +=1
+            time.sleep(5)
+            if _counter > 3:
+                raise RuntimeError('error max tries to get response from model api')
+            else:
+                self._model_call(ip_address, _counter)
 
 
