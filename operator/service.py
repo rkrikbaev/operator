@@ -115,11 +115,11 @@ class Service():
         except Exception as exc:
             logger.error(exc)
             _counter +=1
+            time.sleep(5)
             if _counter > 3:
                 raise RuntimeError('error max tries to get response from model api')
             else:
                 self._model_call(ip_address, _counter)
-                time.sleep(5)
         try:
             url = f'http://{ip_address}:8005/action'
             r = requests.post(
