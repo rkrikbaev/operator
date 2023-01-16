@@ -119,7 +119,7 @@ class Service():
                 raise RuntimeError('error max tries to get response from model api')
             else:
                 self._model_call(ip_address, _counter)
-                time.sleep(1)
+                time.sleep(5)
         try:
             url = f'http://{ip_address}:8005/action'
             r = requests.post(
