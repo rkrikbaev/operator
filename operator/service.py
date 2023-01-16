@@ -109,6 +109,7 @@ class Service():
             raise RuntimeError('error max tries to get info anbout container')
 
     def _model_call(self, ip_address, _counter):
+        _response = {}
         try:
             url = f'http://{ip_address}:8005/health'
             health = requests.get(url, timeout=10)
@@ -119,10 +120,8 @@ class Service():
                             headers={'Content-Type': 'application/json'}, 
                             data=json.dumps(self.request), 
                             timeout=600)
-            logger.debug(f'Post request by URL {url} is {r.ok}')
             _response = r.json()
             logger.debug(f'Post request result service._model_call() {_response}')
-            return _response
 
         except Exception as exc:
             logger.error(exc)
@@ -132,5 +131,8 @@ class Service():
                 raise RuntimeError('error max tries to get response from model api')
             else:
                 self._model_call(ip_address, _counter)
+
+        return _response
+        
 
 
