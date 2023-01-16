@@ -10,3 +10,4 @@ pipe*
 .pytest_cache
 log.log
 *.h5
+main.config

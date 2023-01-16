@@ -2,8 +2,8 @@ import falcon
 from celery.result import AsyncResult
 import time
 
-from tasks import predict
-from helper import get_logger, LOG_LEVEL
+from tasks import run
+from utils import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
 logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
@@ -18,7 +18,6 @@ class Health():
 
 class Predict():
     def __init__(self):
-        self.ts = None,
         self.task_state = None, 
         self.task_id = None,
         self.model_uri = None
@@ -26,12 +25,21 @@ class Predict():
 
     def on_post(self, req, resp):
 
-        self.result = None,
+        self.response = { 
+            "task_created": int(time.time()), 
+            "model_uri": None, 
+            "anomalies": None, 
+            "prediction": None,
+            "start_time": None,
+            "finish_time": None,
+            "model_point": None,
+            "service_state": None,
+            "model_state": None
+            }
 
-        required_fields = {'dataset', 'metadata', 'model_config','model_type','model_uri','period', 'task_id', 'model_point'}
-        self.ts = int(time.time())
         resp.status = falcon.HTTP_200
 
+        required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
         request = req.media
         keys = set(request.keys())
 
@@ -39,24 +47,23 @@ class Predict():
 
             self.task_id = request.get('task_id')
             self.model_point = request.get('model_point')
-            self.model_uri = request.get('model_uri')
+            # self.model_uri = request.get('model_uri')
 
             if self.task_id and len(self.task_id)>10:
                 logger.debug(f'Request result from celery: {self.task_id}')
 
                 try:
                     task = AsyncResult(self.task_id)
-                    self.result = task.result
-                    self.model_uri = task.result.get('model_uri')
+                    self.response.update(task.result)
+                    logger.debug(f'Got response from celery task: {self.response}')
                     self.task_state = task.status
-                    
                 except Exception as err:
                     logger.error(f'Broker call has error: {err}')
                     resp.status = falcon.HTTP_500
-        
+            
             elif self.task_id is None:
                 try:
-                    task = predict.delay(request)
+                    task = run.delay(request)
                     self.task_state = "DEPLOYED"
                     self.task_id = task.id
                 except Exception as err:
@@ -64,20 +71,16 @@ class Predict():
                     logger.error(f'Task call with error: {err}')
                     resp.status = falcon.HTTP_500
         else:
-            self.task_state = "FIELDS MISMATCH"
+            self.response["service_state"] = "error: 404"
             logger.info(self.task_state)
+            resp.status = falcon.HTTP_400
         
-        response = {
-            'ts': self.ts,
-            'task_state': self.task_state, 
-            'task_id': self.task_id,
-            'model_point': self.model_point,
-            'result':self.result,
-            'model_uri': self.model_uri
-            }
+        self.response['task_state'] = self.task_state
+        self.response['task_id'] = self.task_id
+        self.response['model_point'] = self.model_point
 
-        logger.debug(response.get('task_id'))
-        resp.media = response
+        logger.debug(self.response)
+        resp.media = self.response
 
 api = falcon.App()
 
