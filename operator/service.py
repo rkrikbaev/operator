@@ -79,9 +79,12 @@ class Service():
             logger.debug(f'Created container ID {container_id}')
             
             if not container_id:
-                raise RuntimeError('Created container id cannot be empty')
+                raise RuntimeError('Created container id cannot be None')
             
             ip_address = self._container_call(container_id, _counter=0)
+            if not ip_address:
+                raise RuntimeError('Service IP cannot be None')
+            
             self._model_call(ip_address, _counter=0)
         
         except Exception as exc:
@@ -105,19 +108,20 @@ class Service():
 
     def _model_call(self, ip_address, _counter):
         url = f'http://{ip_address}:8005/health'
-        health = requests.get(url, timeout=1)
-        if health.ok:
-            url = f'http://{ip_address}:8005/action'
-            r = requests.post(
-                            url, 
-                            headers={'Content-Type': 'application/json'}, 
-                            data=json.dumps(self.request), 
-                            timeout=600)
-            return r.json()
-        else:
+        try:
+            health = requests.get(url, timeout=1)
+            if health.ok:
+                url = f'http://{ip_address}:8005/action'
+                r = requests.post(
+                                url, 
+                                headers={'Content-Type': 'application/json'}, 
+                                data=json.dumps(self.request), 
+                                timeout=600)
+                return r.json()
+        except (ConnectionError, TimeoutError) as exc:
+            logger.error(exc)
             _counter +=1
             time.sleep(1)
-            self._model_call(ip_address, _counter)
-        
+            self._model_call(ip_address, _counter) 
         if _counter > 3:
             raise RuntimeError('error max tries to get response from model api')
