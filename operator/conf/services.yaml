@@ -1,0 +1,22 @@
+docker:
+  prophet_model:
+    type: 'prophet_model'
+    image: 'rkrikbaev/fp-prophet:latest'
+    mlruns: 
+    network: 'operator_default'
+    limits:
+      con_mem_limit: '512m'
+      cpuset_cpus: '1'
+    features: 'yhat,yhat_lower,yhat_upper,trend'
+    port: 8005
+    startup: 5
+  tf_model:
+    type: 'tf_model'
+    image: 'rkrikbaev/tf-model:latest'
+    network: 'operator_default'
+    limits:
+      con_mem_limit: '1024m'
+      cpuset_cpus: '1'
+    features: ''
+    port: 8005
+    startup: 5

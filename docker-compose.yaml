@@ -1,26 +1,113 @@
 version: "3"
 services:
-  operator:
-    container_name: operator
-    image: rkrikbaev/operator-service:v1.0
-    build:
-      context: .
-      dockerfile: Dockerfile
+  
+  nginx:
+    restart: always
+    build: ./nginx
+    image: proxy_nginx
+    container_name: nginx
     ports:
-      - 8001:8001
+        - "80:80"
+    depends_on:
+        - mlflow
+
+  operator:
+    restart: always
+    build: 
+      context: operator
+      dockerfile: Dockerfile.app
+    image: rkrikbaev/ml-operator:latest
+    container_name: operator
+    stdin_open: true
+    tty: true
+    ports:
+      - 8015:8015
     volumes:
-      - ./.env:/app/.env
+      - ./operator:/application
       - /var/run/docker.sock:/var/run/docker.sock
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-networks:
-  internal:
-    name: service_network
-    driver: bridge
-  host:
-    name: host_network
-    driver: bridge
+    command: gunicorn -b 0.0.0.0:8015 api:api --timeout 600 --worker-class sync --log-level debug
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+      - MODELS_REG=/opt/modelregistry/mlruns
+    depends_on:
+      - redis
+
+  celery:
+    image: rkrikbaev/ml-operator:latest
+    container_name: operator_celery
+    restart: always
+    volumes:
+      - ./operator:/application
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - operator
+      - redis
+
+  redis:
+    image: redis:6-alpine
+    container_name: operator_redis
+    restart: always
+  
+  monitor:
+    image: rkrikbaev/ml-operator:latest
+    container_name: operator_monitor
+    restart: always
+    volumes:
+      - ./operator:/application
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 5555:5555
+    command:  flower -A tasks --port=5555 --broker=redis://redis:6379/0
+    depends_on:
+      - operator
+      - redis
+
+  db:
+      restart: always
+      image: mysql/mysql-server:5.7.28
+      container_name: mlflow_db
+      expose:
+          - "3306"
+      environment:
+          - MYSQL_DATABASE=${MYSQL_DATABASE}
+          - MYSQL_USER=${MYSQL_USER}
+          - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      volumes:
+          - dbdata:/var/lib/mysql
+          - /usr/local/etc/db_mlflow/conf.d:/etc/mysql/conf.d
+
+  mlflow:
+      restart: always
+      build: ./mlflow
+      image: mlflow_server
+      container_name: mlflow_server
+      ports:
+          - 5000:5000
+      command: 'mlflow server 
+              --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} 
+              --default-artifact-root file:${PATH_TO_MLRUNS} 
+              --host 0.0.0.0 -p 5000'
+      depends_on:
+        - db
+
+  jupyter:
+      image: rkrikbaev/jupyterhub:latest
+      build: ./jupyter
+      container_name: jupyter_hub
+      restart: always
+      ports:
+          - 8888:8888
+      volumes:
+          - ./jupyter/project:/home/project
+          - ./jupyter/jupyterhub_config.py:/etc/jupyterhub/jupyterhub_config.py
+      command: jupyterhub --port 8888 -f /etc/jupyterhub/jupyterhub_config.py
+
+
+volumes:
+  dbdata:

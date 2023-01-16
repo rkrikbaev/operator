@@ -1,8 +1,13 @@
 python.idea/
-.vscode/
-__pycache__/
+.vscode
+__pycache__
 *.tar.gz
 *.tar
 /model
 .venv
-logs
+.env
+pipe*
+.pytest_cache
+log.log
+*.h5
+main.config
