@@ -110,8 +110,8 @@ class Service():
     def _model_call(self, ip_address, _counter):
         try:
             url = f'http://{ip_address}:8005/health'
-            logger.debug(f'service API URL is: {url}')
-            requests.get(url, timeout=10)
+            health = requests.get(url, timeout=10)
+            logger.debug(f'Service API {url} is {health.ok}')
         except Exception as exc:
             logger.error(exc)
             _counter +=1
@@ -127,6 +127,7 @@ class Service():
                             headers={'Content-Type': 'application/json'}, 
                             data=json.dumps(self.request), 
                             timeout=600)
+            logger.debug(f'Post request by URL {url} is {r.ok}')
             return r.json()
         except Exception as exc:
             logger.error(exc)
