@@ -110,8 +110,8 @@ class Service():
     def _model_call(self, ip_address, _counter):
         try:
             url = f'http://{ip_address}:8005/health'
-            logger.debug(f'service API health check is: {ip_address}')
-            requests.get(url, timeout=1)
+            logger.debug(f'service API URL is: {url}')
+            requests.get(url, timeout=10)
         except Exception as exc:
             logger.error(exc)
             _counter +=1
