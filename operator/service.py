@@ -26,7 +26,7 @@ class Service():
         self.cpuset_cpus = config.get('limits').get('cpuset_cpus')
         self.con_mem_limit = config.get('limits').get('con_mem_limit')       
         self.startup = config.get('startup')
-        # self.network = 'operator_default'
+        self.network = 'operator_default'
         self.model_type = config.get('type')
 
         self.model_keys = ['model_config', 'dataset', 'model_uri', 'metadata', 'period']
@@ -71,7 +71,7 @@ class Service():
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
-                                network='operator_default',
+                                network=self.network,
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}', 
                                     f'TRACKING_SERVER={TRACKING_SERVER}']
