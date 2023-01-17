@@ -26,7 +26,7 @@ class Service():
         self.cpuset_cpus = config.get('limits').get('cpuset_cpus')
         self.con_mem_limit = config.get('limits').get('con_mem_limit')       
         self.startup = config.get('startup')
-        self.network = 'operator_default'
+        # self.network = 'operator_default'
         self.model_type = config.get('type')
 
         self.model_keys = ['model_config', 'dataset', 'model_uri', 'metadata', 'period']
@@ -71,7 +71,7 @@ class Service():
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
-                                network=self.network,
+                                network='operator_default',
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}', 
                                     f'TRACKING_SERVER={TRACKING_SERVER}']
@@ -86,6 +86,8 @@ class Service():
                 raise RuntimeError('Service IP cannot be None')
 
             self.response.update(self._model_call(ip_address, _counter=0))
+
+            self.response["service_state"] = 'OK'
         
         except Exception as exc:
             logger.error(exc)
@@ -108,7 +110,7 @@ class Service():
             raise RuntimeError('error max tries to get info anbout container')
 
     def _model_call(self, ip_address, _counter):
-        _response = {}
+        _response = {"service_state": "error"}
         try:
             url = f'http://{ip_address}:8005/health'
             health = requests.get(url, timeout=10)
@@ -128,7 +130,8 @@ class Service():
                         headers={'Content-Type': 'application/json'}, 
                         data=json.dumps(self.request), 
                         timeout=600)
-        _response = r.json()
-        _response["service_state"] = 'OK'
+        _response["service_state"] = "ok"
+        _response.update(r.json())
+        
         logger.debug(f'Post request result service._model_call() {_response}')
         return _response
