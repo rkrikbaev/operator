@@ -54,8 +54,9 @@ class Predict():
 
                 try:
                     task = AsyncResult(self.task_id)
+                    logger.debug(f'Result from celery task {self.task_id} : {task.result}')
+                    logger.debug(f'State of the task: {self.task_id} : {task.status}')
                     self.response.update(task.result)
-                    logger.debug(f'Got response from celery task: {self.response}')
                     self.task_state = task.status
                 except Exception as err:
                     logger.error(f'Broker call has error: {err}')
@@ -71,7 +72,7 @@ class Predict():
                     logger.error(f'Task call with error: {err}')
                     resp.status = falcon.HTTP_500
         else:
-            self.response["service_state"] = "error: 404"
+            self.response["service_state"] = "error at operator.api"
             logger.info(self.task_state)
             resp.status = falcon.HTTP_400
         
