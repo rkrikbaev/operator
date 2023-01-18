@@ -20,7 +20,7 @@
 %% at the next call.
 %%-----------------------------------------------------------------
 
--module(models_schedule).
+-module(ml_start_models_on_schedule).
 
 -include("fp_struct.hrl").
 % -define(COMMON_MODEL_CONTROL_TAG, <<"TAGS/Nodes/model_control">>).
@@ -42,16 +42,15 @@ on_event(_Event, _State0)->
                 { ok, Hour }
         end,
     
-    {_, TagControlList} = find_tags(),
+    TagControlList = find_tags(),
     
     ?LOGINFO("DEBUG: curr_hour ~p, Start_hour ~p",[Hour, StartHour]),
-    ?LOGINFO("DEBUG: tag_list ~p",[TagControlList]),
+    % ?LOGINFO("DEBUG: tag_list ~p",[TagControlList]),
     
     if 
         Hour >= StartHour->
             [begin
-                [TagID0 | _] = TagID,
-                ModelControlTag = fp_db:to_path(fp_db:open(TagID0,none)),
+                ModelControlTag = fp_db:to_path(fp_db:open(TagID,none)),
                 [ModelPath,_,_] = string:replace(ModelControlTag, "/model_control", "", all),
                 ?LOGINFO("DEBUG: ModelPath ~p",[ModelPath]),
                 trigger_tag(GlobalControlTag, ModelControlTag),
@@ -71,6 +70,7 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
         <<"model_uri">> := ModelUri,
         <<"model_path">> := ModelPath,
         <<"task_state">> := TaskState,
+        <<"reset">> := Reset,
         <<"periods_archive_name">>:=PeriodArchiveNames,
         <<"data_archive_name">>:=DataArchiveName,
         <<"result_archive_name">>:=ResultArchiveName
@@ -79,6 +79,7 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
                                                             <<"model_uri">>,
                                                             <<"model_path">>,
                                                             <<"task_state">>,
+                                                            <<"reset">>,
                                                             <<"periods_archive_name">>,
                                                             <<"data_archive_name">>,
                                                             <<"result_archive_name">>
@@ -89,16 +90,14 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
     } = fp_db:read_fields( fp_db:open( GlobalModelControlTag ),[
         <<"trigger">>
     ]),
-    
-    ?LOGINFO("DEBUG: Trigger Value: ~p ",[ TriggerValue0 ]),
-    ?LOGINFO("DEBUG: TaskState: ~p ",[ TaskState ]),
         
     % ?LOGINFO("DEBUG: PeriodArchiveNames: ~p ",[ PeriodArchiveNames ]),
-    
-    { ok, Triggered, TriggerValue } = 
+        
+    {Triggered, TriggerValue} = 
         case TaskState of
             <<"SUCCESS">> ->
-                {ok, true, TriggerValue0};
+                ?LOGINFO("DEBUG: Task state: ~p Location ~p",[ TaskState, LocalModelControlTag]),
+                {true, TriggerValue0};
             _->
                 %% Put information about folder in tag. Then we trigger source, and script extracts values
                 TriggerValue1 = 
@@ -107,11 +106,15 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
                         _-> 
                             1
                     end,
-                {ok, false, TriggerValue1}
+                {false, TriggerValue1}
         end,
+        
+    ?LOGINFO("DEBUG: Task: ~p trigger: ~p",[ LocalModelControlTag, TriggerValue0 ]),
+    ?LOGINFO("DEBUG: Task: ~p state ~p",[ LocalModelControlTag, TaskState]),
     
     % edit global tag
-    ?LOGINFO("DEBUG: Edit global tag"),
+    % ?LOGINFO("DEBUG: Update global tag"),
+    
     fp_db:edit_object(fp_db:open(GlobalModelControlTag),#{
                                                             <<"task_id">>=>TaskId,
                                                             <<"model_uri">>=>ModelUri,
@@ -122,32 +125,43 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
                                                             <<"data_archive_name">>=>DataArchiveName,
                                                             <<"result_archive_name">>=>ResultArchiveName                                                            
                                                         }),
-
-
-    fp_db:edit_object(fp_db:open(LocalModelControlTag),#{
-                                                            <<"triggered">>=>Triggered
-                                                    }),
+    % fp_db:edit_object(fp_db:open(LocalModelControlTag),#{
+    %                                                             <<"triggered">>=>Triggered
+    %                                                     }),
+    if Reset ->
+            fp_db:edit_object(fp_db:open(LocalModelControlTag),#{
+                                                                <<"triggered">>=>false,
+                                                                <<"task_id">> =>none,
+                                                                <<"task_state">> =><<"WAITING">>,
+                                                                <<"reset">> =>false
+                                                        });
+        true
+            ->  fp_db:edit_object(fp_db:open(LocalModelControlTag),#{
+                                                                <<"triggered">>=>Triggered
+                                                        })
+    end,
     ok.
     
 % , disabled=false, triggered=false
 find_tags()->
-    ResQuery=fp_db:query(<<"get .oid, .name from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false)">>),
+    ResQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false)">>),
+    ?LOGINFO("DEBUG: Find available tags ~p ",[ResQuery ]),
     %for only tag - where disable is false and not triggered yet.
     ResQuery.
     
 reset_trigger_state() ->
     
-    ResQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false, triggered=true )">>),
-    ?LOGINFO("DEBUG: wacs_trigger_MODELLING: Reset state trigger ~p ",[ResQuery ]),
+    ResQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false, reset=true )">>),
+    ?LOGINFO("DEBUG: Reset state trigger ~p ",[ResQuery ]),
     
     [ begin 
         ModelControlTag = fp_db:open(ModelControlTagId,none),
         ?LOGINFO("DEBUG: wacs_trigger_MODELLING: Reset state trigger  ~ts ",[ ?PATH(ModelControlTagId) ]),
         
         fp_db:edit_object( ModelControlTag, #{ <<"task_id">> => none } ),
-        fp_db:edit_object( ModelControlTag, #{ <<"task_state">> => none } ),
-        fp_db:edit_object( ModelControlTag, #{ <<"triggered">> => false } )
+        fp_db:edit_object( ModelControlTag, #{ <<"task_state">> => <<"STDBY">> } ),
+        fp_db:edit_object( ModelControlTag, #{ <<"triggered">> => false } ),
+        fp_db:edit_object( ModelControlTag, #{ <<"reset">> => false } )
       end || ModelControlTagId <- ResQuery
     ],
-    fp:log_info(<<"DEBUG: wacs_trigger_MODELLING: RESET DONE">>),
     ok.

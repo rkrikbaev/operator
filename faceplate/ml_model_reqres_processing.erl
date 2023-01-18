@@ -20,7 +20,7 @@
 % %% at the next call.
 % %%-----------------------------------------------------------------
 
--module(models_query).
+-module(ml_model_reqres_processing).
 
 -include("fp_struct.hrl").
 
@@ -85,7 +85,7 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
         _-> null
     end,
     
-    ResReq =
+    Req =
         case TaskId of
             undefined->
                 % Check settings
@@ -108,26 +108,23 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                     <<"end">> => To
                 }, HistoryArchive),
                 
-                ?LOGINFO("REQ: History dataset ~p",[HistoryDataset]),
-                
+                % ?LOGINFO("REQ: History dataset ~p",[HistoryDataset]),
                 FutureDataset = 
                     if is_list(FutureArchive1)->
                             FutureArchive = [ [<<FuturePath/binary,(unicode:characters_to_binary(R))/binary>>,<<"avg">>] || R <- FutureArchive1 ],
-                            ?LOGINFO("REQ: Future period dataset archive ~p",[FutureArchive]),
-                            
+                            % ?LOGINFO("REQ: Future period dataset archive ~p",[FutureArchive]),
                             FutureDataset0 = fp:archives_get_periods(#{
                                 <<"step_unit">> => <<"second">>,
                                 <<"step_size">> => Granularity,
                                 <<"step_count">> => Future div Granularity,
                                 <<"start">> => To
                             }, FutureArchive),
-                            ?LOGINFO("REQ: Future period dataset values ~p",[FutureDataset0]),
                             
                             fp_db:to_json(term, FutureDataset0);
                         true->
                             null
                     end,
-                ?LOGINFO("REQ: Future period dataset ~p",[FutureDataset]),
+                % ?LOGINFO("REQ: Future period dataset ~p",[FutureDataset]),
                 
                 #{
                     "model_type"=> ModelType,
@@ -145,7 +142,7 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                 
             TaskId ->
                 
-                fp:log(info,"DEBUG case TaskId of else: ~p", [TaskId]),
+                fp:log(info,"DEBUG In case of TaskId is not empty: ~p", [TaskId]),
                 #{
                     "model_type"=> null,
                     "model_point"=> ModelPoint,     
@@ -157,8 +154,8 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                     "dataset"=> null
                 }
         end,
-    
-    ResReq.
+    fp:log(info,"DEBUG Request"),
+    Req.
 
 
 response(#{
@@ -169,7 +166,6 @@ response(#{
     "model_point":= ModelPoint,
     "model_uri":= ModelUri
 })->
-    fp:log(info,"RESP TaskState: ~p", [TaskState]),
     ModelPath = <<"/root/PROJECT/TAGS/Nodes/", ModelPoint/binary>>,
     
     % read model settings tag
@@ -198,16 +194,13 @@ response(#{
     end,
     
     case Result of _Result when is_map(_Result) ->
-        
         Predict0 = maps:get(<<"prediction">>, _Result, none),
-        fp:log(info,"DEBUG ML: predict from response: ~p", [Predict0]),
-        
         case Predict0 of 
             _Values when is_list(_Values)->
                 Predict = [{floor(TS) *1000, V}||[TS, V]<-_Values],
                 try
                     ResIns = fp_archive:insert_values( ArchivePredict, Predict ),
-                    fp:log(info,"DEBUG ML: fp_archive:insert_values: ~p", [ResIns])
+                    fp:log(info,"DEBUG ML: fp_archive:insert_values: ~p ~p", [Predict, ResIns])
                 catch
                     Error1 -> ?LOGINFO("DEBUG ERROR write to archives: ~p ",[Error1])
                 end;
