@@ -39,7 +39,16 @@ class Predict():
 
         resp.status = falcon.HTTP_200
 
-        required_fields = {'dataset', 'metadata', 'model_config','model_type','period', 'task_id', 'model_point', 'model_uri'}
+        required_fields = {
+            'dataset',
+            'metadata',
+            'model_config',
+            'model_type',
+            'period',
+            'task_id',
+            'model_point', 
+            'model_uri'
+            }
         request = req.media
         keys = set(request.keys())
 
