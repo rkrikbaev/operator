@@ -13,12 +13,12 @@ class Health():
         pass
     def on_get(self, req, resp):
         logger.debug('Health check')
-        resp.status = falcon.HTTP_200
-        resp.media = {'state': 'ok'}
+        resp.state = falcon.HTTP_200
+        resp.media = {'status': 'ok'}
 
 class Predict():
     def __init__(self):
-        self.task_state = None, 
+        self.task_status = None, 
         self.task_id = None,
         self.model_uri = None
         self.model_point = None,
@@ -33,11 +33,11 @@ class Predict():
             "start_time": None,
             "finish_time": None,
             "model_point": None,
-            "service_state": None,
-            "model_state": None
+            "service_status": None,
+            "model_status": None
             }
 
-        resp.status = falcon.HTTP_200
+        resp.state = falcon.HTTP_200
 
         required_fields = {
             'dataset',
@@ -64,9 +64,9 @@ class Predict():
                 try:
                     task = AsyncResult(self.task_id)
                     logger.debug(f'Result from celery task {self.task_id} : {task.result}')
-                    logger.debug(f'State of the task: {self.task_id} : {task.status}')
+                    logger.debug(f'status of the task: {self.task_id} : {task.status}')
                     self.response.update(task.result)
-                    self.task_state = task.status
+                    self.task_status = task.status
                 except Exception as err:
                     logger.error(f'Broker call has error: {err}')
                     resp.status = falcon.HTTP_500
@@ -74,18 +74,18 @@ class Predict():
             elif self.task_id is None:
                 try:
                     task = run.delay(request)
-                    self.task_state = "DEPLOYED"
+                    self.task_status = "DEPLOYED"
                     self.task_id = task.id
                 except Exception as err:
-                    self.task_state = "FAILED"
+                    self.task_status = "FAILED"
                     logger.error(f'Task call with error: {err}')
                     resp.status = falcon.HTTP_500
         else:
-            self.response["service_state"] = "error at operator.api"
-            logger.info(self.task_state)
+            self.response["service_status"] = "error at operator.api"
+            logger.info(self.task_status)
             resp.status = falcon.HTTP_400
         
-        self.response['task_state'] = self.task_state
+        self.response['task_status'] = self.task_status
         self.response['task_id'] = self.task_id
         self.response['model_point'] = self.model_point
 

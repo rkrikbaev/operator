@@ -43,7 +43,7 @@ class Service():
         logger.debug(f'Deploy object {self}')
         self.service_name = name
 
-        self.response["service_state"] = 'error'
+        self.response["service_status"] = 'error'
         self.response["start_time"] = str(datetime.datetime.now())           
 
         self.request = {key: request[key] for key in self.model_keys}
@@ -87,7 +87,7 @@ class Service():
 
             self.response.update(self._model_call(ip_address, _counter=0))
 
-            self.response["service_state"] = 'OK'
+            self.response["service_status"] = 'OK'
         
         except Exception as exc:
             logger.error(exc)
@@ -96,8 +96,8 @@ class Service():
     
     def _container_call(self, container_id, _counter):
         container = self.client.containers.get(container_id)
-        _state = container.status.lower()
-        if _state == 'running':
+        _status = container.status.lower()
+        if _status == 'running':
              ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
              logger.debug(f'container started with IP: {ip_address}')
              return ip_address
@@ -110,7 +110,7 @@ class Service():
             raise RuntimeError('error max tries to get info anbout container')
 
     def _model_call(self, ip_address, _counter):
-        _response = {"service_state": "error"}
+        _response = {"service_status": "error"}
         try:
             url = f'http://{ip_address}:8005/health'
             health = requests.get(url, timeout=10)
@@ -130,7 +130,7 @@ class Service():
                         headers={'Content-Type': 'application/json'}, 
                         data=json.dumps(self.request), 
                         timeout=600)
-        _response["service_state"] = "ok"
+        _response["service_status"] = "ok"
         _response.update(r.json())
         
         logger.debug(f'Post request result service._model_call() {_response}')
