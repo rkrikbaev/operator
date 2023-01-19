@@ -110,7 +110,7 @@ class Model():
     def to_series(self, values, start_point, granularity, output_window):
 
         base = datetime.datetime.fromtimestamp(start_point/1000 + granularity)
-        date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
+        date_list = [int((base + datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
         series = [ list(x) for x in list(zip(date_list, values)) ]
         print(f'Series: {series}')
 
