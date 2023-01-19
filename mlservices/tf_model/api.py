@@ -19,10 +19,10 @@ class Action:
 
         request = req.media
         logger.debug(f'Request from the operator: {request}')
-        resp.state = falcon.HTTP_400
+        resp.status = falcon.HTTP_400
         
         response = {
-            "model_state": resp.state,
+            "model_status": resp.status,
             "prediction": None,
             "model_uri": None,
             "anomalies": None,
@@ -53,7 +53,7 @@ class Action:
 
             # with mlflow.start_run(experiment_id=experiment.experiment_id):
 
-            result = self.model.run(data, config, model_uri),
+            result = self.model.run(data, config, model_uri)
 
             response["prediction"] = result
             response["model_uri"] = model_uri
@@ -61,7 +61,7 @@ class Action:
 
             resp.state = falcon.HTTP_200
         
-        response['model_state'] = resp.state
+        response['model_status'] = resp.state
 
         logger.debug(f'Model response: {response}')
 

@@ -9,6 +9,7 @@ import numpy as np
 import mlflow
 import mlflow.keras
 from pathlib import Path
+import datetime
 
 from utils import get_logger, LOG_LEVEL
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
@@ -27,7 +28,7 @@ class Model():
 
     def run(self, dataset, config, model_uri, **kwargs):
 
-        window = config.get('window')
+        
         
         print("\n**** mlflow.keras.load_model\n")
         model = mlflow.keras.load_model(model_uri)
@@ -36,14 +37,23 @@ class Model():
         X = self.prepare_dataset(dataset)
         X_series, _min, _max = self.normalize_data(X, column_index=0)
 
-        assert X_series.shape[0] == window +1
+        input_window = config.get('input_window')
+        output_window = config.get('output_window')
+        granularity = config.get('granularity')
 
-        in_data = self.slice_data(X_series, window)
+        assert X_series.shape[0] == input_window +1
+
+        in_data = self.slice_data(X_series, input_window)
         
         logger.debug(f'Run model to predict')
         result = model.predict(in_data)[0] * _max + _min
 
-        values = list(map(lambda x: float(x), result))
+        values_list = list(map(lambda x: float(x), result))
+
+        base = datetime.datetime.fromtimestamp(dataset[-1][0] + granularity)
+        date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
+        values = [ list(x) for x in list(zip(date_list, values_list)) ]
+
         logger.debug(f'Predict result values: {values}')
 
         return values
