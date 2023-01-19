@@ -12,11 +12,10 @@ from pathlib import Path
 import datetime
 
 from utils import get_logger, LOG_LEVEL
-logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
+logger = get_logger(__name__, loglevel=LOG_LEVEL)
 logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
 
-path_abs = Path(__file__).parent.absolute()
 
 class Model():
     def __init__(self, tracking_server):
@@ -42,15 +41,9 @@ class Model():
         assert X_series.shape[0] == input_window +1
 
         in_data = self.slice_data(X_series, input_window)
-        
-        logger.debug(f'Run model to predict')
         result = model.predict(in_data)[0] * _max + _min
 
         values = list(map(lambda x: float(x), result))
-
-        # base = datetime.datetime.fromtimestamp(dataset[-1][0]/1000 + granularity)
-        # date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
-        # values = [ list(x) for x in list(zip(date_list, values_list)) ]
         start_point = dataset[-1][0]
         series = self.to_series(values, start_point, granularity, output_window)
 
@@ -112,6 +105,6 @@ class Model():
         base = datetime.datetime.fromtimestamp(start_point/1000 + granularity)
         date_list = [int((base + datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
         series = [ list(x) for x in list(zip(date_list, values)) ]
-        print(f'Series: {series}')
+        logger.debug(f'Series: {series}')
 
         return series
