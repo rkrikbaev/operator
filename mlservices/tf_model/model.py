@@ -46,15 +46,17 @@ class Model():
         logger.debug(f'Run model to predict')
         result = model.predict(in_data)[0] * _max + _min
 
-        values_list = list(map(lambda x: float(x), result))
+        values = list(map(lambda x: float(x), result))
 
-        base = datetime.datetime.fromtimestamp(dataset[0][0]/1000 + granularity)
-        date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
-        values = [ list(x) for x in list(zip(date_list, values_list)) ]
+        # base = datetime.datetime.fromtimestamp(dataset[-1][0]/1000 + granularity)
+        # date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
+        # values = [ list(x) for x in list(zip(date_list, values_list)) ]
+        start_point = dataset[-1][0]
+        series = self.to_series(values, start_point, granularity, output_window)
 
-        logger.debug(f'Predict result values: {values}')
+        logger.debug(f'Predict result series: {series}')
 
-        return values
+        return series
 
     def prepare_dataset( self, dataset ):
         logger.debug(f'Prepare dataset with length: {len(dataset)}')
@@ -104,3 +106,12 @@ class Model():
         in_data = np.reshape(in_data, (1, window, X_data.shape[2]))
 
         return in_data
+
+    def to_series(self, values, start_point, granularity, output_window):
+
+        base = datetime.datetime.fromtimestamp(start_point/1000 + granularity)
+        date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
+        series = [ list(x) for x in list(zip(date_list, values)) ]
+        print(f'Series: {series}')
+
+        return series
