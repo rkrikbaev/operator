@@ -28,8 +28,6 @@ class Model():
 
     def run(self, dataset, config, model_uri, **kwargs):
 
-        
-        
         print("\n**** mlflow.keras.load_model\n")
         model = mlflow.keras.load_model(model_uri)
         print("model:", type(model))
@@ -50,7 +48,7 @@ class Model():
 
         values_list = list(map(lambda x: float(x), result))
 
-        base = datetime.datetime.fromtimestamp(dataset[-1][0] + granularity)
+        base = datetime.datetime.fromtimestamp(dataset[-1][0]/1000 + granularity)
         date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
         values = [ list(x) for x in list(zip(date_list, values_list)) ]
 
