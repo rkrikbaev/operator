@@ -48,7 +48,7 @@ class Model():
 
         values_list = list(map(lambda x: float(x), result))
 
-        base = datetime.datetime.fromtimestamp(dataset[-1][0]/1000 + granularity)
+        base = datetime.datetime.fromtimestamp(dataset[0][0]/1000 + granularity)
         date_list = [int((base - datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
         values = [ list(x) for x in list(zip(date_list, values_list)) ]
 
