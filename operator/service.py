@@ -113,9 +113,11 @@ class Service():
     def _model_call(self, ip_address, _counter):
         _response = {"service_status": "error"}
         try:
-            url = f'http://{ip_address}:8005/health'
-            health = requests.get(url, timeout=10)
-            logger.debug(f'Service API {url} is {health.ok}')
+            
+            with requests.Session() as s:
+                url = f'http://{ip_address}:8005/health'
+                health = s.get(url, timeout=10)
+                logger.debug(f'Service API {url} is {health.ok}')
         except Exception as exc:
             logger.error(exc)
             _counter +=1
@@ -125,12 +127,14 @@ class Service():
             else:
                 self._model_call(ip_address, _counter)
 
-        url = f'http://{ip_address}:8005/action'
-        r = requests.post(
-                        url, 
-                        headers={'Content-Type': 'application/json'}, 
-                        data=json.dumps(self.request), 
-                        timeout=600)
+        with requests.Session() as s:
+            url = f'http://{ip_address}:8005/action'
+            r = s.post(
+                    url, 
+                    headers={'Content-Type': 'application/json'}, 
+                    data=json.dumps(self.request), 
+                    timeout=600)
+
         _response["service_status"] = "ok"
         _response.update(r.json())
         
