@@ -25,9 +25,10 @@ class Service():
         self.image = config.get('image')
         self.cpuset_cpus = config.get('limits').get('cpuset_cpus')
         self.con_mem_limit = config.get('limits').get('con_mem_limit')       
-        self.startup = config.get('startup')
+        # self.startup = config.get('startup')
         self.network = 'operator_default'
         self.model_type = config.get('type')
+        self.timeout = config.get('timeout')
 
         self.model_keys = ['model_config', 'dataset', 'model_uri', 'metadata', 'period']
 
@@ -74,7 +75,8 @@ class Service():
                                 network=self.network,
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}', 
-                                    f'TRACKING_SERVER={TRACKING_SERVER}']
+                                    f'TRACKING_SERVER={TRACKING_SERVER}',
+                                    f'GUN_TIMEOUT={self.timeout}']
                                 ).short_id
             logger.debug(f'Created container ID {container_id}')
             
@@ -135,7 +137,7 @@ class Service():
                     data=json.dumps(self.request), 
                     timeout=600)
             
-            logger.debug(f'Func {__class__} return {__file__} is {r.json()}')
+            logger.debug(f'{__class__}._model_call() in {__file__} return {r.json()}')
             
             _response.update(r.json())
             _response["service_status"] = "ok"

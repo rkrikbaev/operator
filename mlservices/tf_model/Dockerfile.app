@@ -14,8 +14,8 @@ RUN pip install -r requirements.txt
 RUN mkdir application
 WORKDIR /application
 
-# COPY ./api.py .
-# COPY ./model.py .
-# COPY ./utils.py .
+COPY ./api.py .
+COPY ./model.py .
+COPY ./utils.py .
 
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "gunicorn", "-b", "0.0.0.0:8005", "api:api", "--timeout", ${TIMEOUT}, "--log-level", ${LOG_LEVEL}]
