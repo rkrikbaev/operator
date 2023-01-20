@@ -76,18 +76,22 @@ class Service():
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}', 
                                     f'TRACKING_SERVER={TRACKING_SERVER}',
-                                    f'GUN_TIMEOUT={self.timeout}']
+                                    f'TIMEOUT={self.timeout}']
                                 ).short_id
+
             logger.debug(f'Created container ID {container_id}')
             
             if not container_id:
                 raise RuntimeError('Created container id cannot be None')
             
             ip_address = self._container_call(container_id, _counter=0)
+            
             if not ip_address:
                 raise RuntimeError('Service IP cannot be None')
+            
             _response = self._model_call(ip_address, _counter=0)
             logger.debug(f'Post request result service._model_call() {_response}')
+            
             self.response.update(_response)
             self.response["service_status"] = 'OK'
             
@@ -98,8 +102,10 @@ class Service():
         return self.response
     
     def _container_call(self, container_id, _counter):
+        
         container = self.client.containers.get(container_id)
         _status = container.status.lower()
+        
         if _status == 'running':
              ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
              logger.debug(f'container started with IP: {ip_address}')
@@ -113,9 +119,10 @@ class Service():
             raise RuntimeError('error max tries to get info anbout container')
 
     def _model_call(self, ip_address, _counter):
+        
         _response = {"service_status": "error"}
-        try:
-            
+        
+        try:  
             with requests.Session() as s:
                 url = f'http://{ip_address}:8005/health'
                 health = s.get(url, timeout=10)
@@ -124,22 +131,23 @@ class Service():
             logger.error(exc)
             _counter +=1
             time.sleep(5)
+            
             if _counter > 3:
                 raise RuntimeError('error max tries to get response from model api')
             else:
                 self._model_call(ip_address, _counter)
+        try:
+            with requests.Session() as s:
+                url = f'http://{ip_address}:8005/action'
+                r = s.post(
+                        url, 
+                        headers={'Content-Type': 'application/json'}, 
+                        data=json.dumps(self.request), 
+                        timeout=600)
+                logger.debug(f'{__class__}._model_call() in {__file__} return {r.json()}')
+                _response.update(r.json())
+                _response["service_status"] = "ok"    
+        except Exception as exc:
+            logger.error(exc)
 
-        with requests.Session() as s:
-            url = f'http://{ip_address}:8005/action'
-            r = s.post(
-                    url, 
-                    headers={'Content-Type': 'application/json'}, 
-                    data=json.dumps(self.request), 
-                    timeout=600)
-            
-            logger.debug(f'{__class__}._model_call() in {__file__} return {r.json()}')
-            
-            _response.update(r.json())
-            _response["service_status"] = "ok"
-        
         return _response
