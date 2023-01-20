@@ -35,8 +35,11 @@ class Model():
         X_series, _min, _max = self.normalize_data(X, column_index=0)
 
         input_window = config.get('input_window')
+        if not input_window: raise RuntimeError('input_window is empty')
         output_window = config.get('output_window')
+        if not input_window: raise RuntimeError('output_window is empty')
         granularity = config.get('granularity')
+        if not granularity: raise RuntimeError('granularity is empty')
 
         assert X_series.shape[0] == input_window +1
 
@@ -45,9 +48,8 @@ class Model():
 
         values = list(map(lambda x: float(x), result))
         start_point = dataset[-1][0]
-        series = self.to_series(values, start_point, granularity, output_window)
-
-        # logger.debug(f'Predict result series: {series}')
+        if not isinstance(start_point, (int, float)): RuntimeError('start_point is not integer or float')
+        series = self.to_series(values, int(start_point), granularity, output_window)
 
         return series
 
