@@ -84,12 +84,13 @@ class Service():
             ip_address = self._container_call(container_id, _counter=0)
             if not ip_address:
                 raise RuntimeError('Service IP cannot be None')
-
-            self.response.update(self._model_call(ip_address, _counter=0))
+            _response = self._model_call(ip_address, _counter=0)
+            logger.debug(f'Post request result service._model_call() {_response}')
+            self.response.update(_response)
             self.response["service_status"] = 'OK'
             
         except Exception as exc:
-            logger.error(exc)
+            logger.debug(exc)
         
         logger.debug(f'Post request result service._model_call() {self.response}')
         return self.response
