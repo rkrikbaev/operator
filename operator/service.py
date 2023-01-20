@@ -5,7 +5,7 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout, HTTPError
     
-from utils import get_logger, LOG_LEVEL, BASE_PATH, TRACKING_SERVER, MODELS_REG, APP_CODE
+from utils import get_logger, LOG_LEVEL, TRACKING_SERVER, MODELS_REG, APP_CODE
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 

@@ -34,9 +34,6 @@ MLSERV_CONFIG_FILE = os.path.join(BASE_PATH, 'conf/services.yaml')
 APP_CODE = os.environ.get('APP_CODE')
 if not APP_CODE: APP_CODE = '/opt/operator/mlservices'
 
-GUN_TIMEOUT = config.get('TF', 'GUN_TIMEOUT')
-GUN_TIMEOUT = 600
-
 
 
 
