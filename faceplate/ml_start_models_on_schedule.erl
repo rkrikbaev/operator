@@ -85,9 +85,6 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
     ?LOGINFO("DEBUG: Task: ~p trigger: ~p",[ LocalModelControlTag, TriggerValue0 ]),
     ?LOGINFO("DEBUG: Task: ~p state ~p",[ LocalModelControlTag, TaskState]),
     
-    % edit global tag
-    % ?LOGINFO("DEBUG: Update global tag"),
-    
     fp_db:edit_object(fp_db:open(GlobalModelControlTag),#{
                                                             <<"task_id">>=>TaskId,
                                                             <<"model_uri">>=>ModelUri,
@@ -120,9 +117,8 @@ find_tags()->
     ResQuery.
     
 reset_trigger_state() ->
-    
-    ResQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false, reset=true )">>),
-    ?LOGINFO("DEBUG: Reset state trigger ~p ",[ResQuery ]),
+    ResResetQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false, reset=true )">>),
+    ?LOGINFO("DEBUG: Reset state trigger ~p ",[ResResetQuery ]),
     
     [ begin 
         ModelControlTag = fp_db:open(ModelControlTagId,none),
@@ -132,6 +128,6 @@ reset_trigger_state() ->
         fp_db:edit_object( ModelControlTag, #{ <<"task_status">> => <<"STDBY">> } ),
         fp_db:edit_object( ModelControlTag, #{ <<"triggered">> => false } ),
         fp_db:edit_object( ModelControlTag, #{ <<"reset">> => false } )
-      end || ModelControlTagId <- ResQuery
+      end || ModelControlTagId <- ResResetQuery
     ],
     ok.

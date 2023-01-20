@@ -20,14 +20,12 @@ next_ts(TS, Cycle) ->
 
 request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri0, "input_archive":=InputArchive0 })->
     
-    ModelPoint = lists:last(binary:split(ModelPath, <<"/">>, [global])),
-    
     Req =
         case TaskId of
             undefined->
                 ?LOGINFO("REQ: TaskId: ~p", [TaskId]),
                 % Path settings
-                InputArchivesPath = <<ModelPath/binary,"/archivesP/">>,
+                InputArchivesPath = <<ModelPath/binary,"/archivesS/">>,
                 OutputArchivePath = <<ModelPath/binary,"/futureP/">>,
                 ?LOGINFO("REQ: ArchivesPath ~p, FuturePath ~p",[InputArchivesPath, OutputArchivePath]),
                 
@@ -39,13 +37,15 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                     <<"input_window">>:= InputWindow0,
                     <<"output_window">>:= OutputWindow0,
                     <<"granularity">>:=Granularity0,
-                    <<"model_type">>:=ModelType
+                    <<"model_type">>:=ModelType,
+                    <<"model_point">>:=ModelPoint
                 } = fp_db:read_fields( fp_db:open(ModelSettingsTagPath),[
                     % <<"model_config">>,
                     <<"input_window">>,
                     <<"output_window">>,
                     <<"granularity">>,
-                    <<"model_type">>
+                    <<"model_type">>,
+                    <<"model_point">>
                 ] ),
                 
                 {ok, InputArchive1} = 
@@ -98,7 +98,8 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                 ?LOGINFO("REQ: Config value ~p, ModelUri value ~p",[Config, ModelUri]),
                 #{
                     "model_type"=> ModelType,
-                    "model_point"=> ModelPoint,     
+                    "model_point"=> ModelPoint,
+                    "model_path"=> ModelPath, 
                     "task_id" => null,      
                     "model_uri"=> ModelUri,  
                     "model_config"=> Config,
@@ -110,7 +111,8 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                 ?LOGINFO("REQ: TaskId: ~p", [TaskId]),
                 #{
                     "model_type"=> null,
-                    "model_point"=> ModelPoint,     
+                    "model_point"=> null,
+                    "model_path"=> ModelPath, 
                     "task_id" => TaskId,      
                     "model_uri"=>  null,  
                     "model_config" => null,
@@ -123,13 +125,12 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
 
 response(#{
     "result":= Result,
-    "ts":= Ts,
+    "task_created":= TaskCreated,
     "task_status":= TaskStatus,
     "task_id":= TaskId,
-    "model_point":= ModelPoint,
-    "model_uri":= ModelUri
+    "model_path":= ModelPath
 })->
-    ModelPath = <<"/root/PROJECT/TAGS/Nodes/", ModelPoint/binary>>,
+    % ModelPath = <<"/root/PROJECT/TAGS/Nodes/", ModelPoint/binary>>,
     ModelControlTagPath = <<ModelPath/binary,"/model_control">>,
     ?LOGINFO("REQ: Model Control Tag Path: ~p", [ModelControlTagPath]),
     
@@ -146,18 +147,10 @@ response(#{
     try
         fp:set_value(ModelControlTagPath, "task_id", TaskId),
         fp:set_value(ModelControlTagPath, "task_status", TaskStatus),
-        fp:set_value(ModelControlTagPath, "task_exec",Ts),
-        fp:set_value(ModelControlTagPath, "model_url",ModelUri)
+        fp:set_value(ModelControlTagPath, "task_created",TaskCreated)
     catch
         Error0 -> ?LOGINFO("DEBUG wacs_ml Result :  ERROR ~p ",[Error0])
     end,
-    
-    % Result = 
-    %     case Result0 of Result0 when is_map(Result0) ->
-    %             maps:get(<<"result">>, Result0, none);
-    %         true ->
-    %             none
-    %     end,
 
     case Result of 
         Result when is_list(Result)->
