@@ -96,7 +96,7 @@ class Predict():
                 resp.status = falcon.HTTP_500
         else:
             self.response["service_status"] = "bad request, required fields are missing"
-            logger.info(self.task_status)
+            logger.info(self.response)
             resp.status = falcon.HTTP_400
 
 api = falcon.App()
