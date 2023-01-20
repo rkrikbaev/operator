@@ -134,8 +134,10 @@ class Service():
                     headers={'Content-Type': 'application/json'}, 
                     data=json.dumps(self.request), 
                     timeout=600)
-
-        _response["service_status"] = "ok"
-        _response.update(r.json())
+            
+            logger.debug(f'Func {__class__} return {__file__} is {r.json()}')
+            
+            _response.update(r.json())
+            _response["service_status"] = "ok"
         
         return _response
