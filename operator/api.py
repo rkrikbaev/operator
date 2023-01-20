@@ -47,50 +47,57 @@ class Predict():
             'period',
             'task_id',
             'model_point', 
-            'model_uri'
+            'model_uri',
+            'model_path'
             }
+
         request = req.media
         keys = set(request.keys())
 
         if required_fields == keys:
 
             self.task_id = request.get('task_id')
-            self.model_point = request.get('model_point')
-            # self.model_uri = request.get('model_uri')
+            self.model_path = request.get('model_path')
 
-            if self.task_id and len(self.task_id)>10:
-                logger.debug(f'Request result from celery: {self.task_id}')
+            try:
+                
+                if not self.model_path: raise RuntimeError('Model PATH not set')
 
-                try:
-                    task = AsyncResult(self.task_id)
-                    logger.debug(f'Result from celery task {self.task_id} : {task.result}')
-                    logger.debug(f'status of the task: {self.task_id} : {task.status}')
-                    self.response.update(task.result)
-                    self.task_status = task.status
-                except Exception as err:
-                    logger.error(f'Broker call has error: {err}')
-                    resp.status = falcon.HTTP_500
+                if self.task_id and len(self.task_id)>10:
+                    logger.debug(f'Request result from celery: {self.task_id}')
+
+                    try:
+                        task = AsyncResult(self.task_id)
+                        self.response.update(task.result)
+                        self.task_status = task.status
+                    except Exception as err:
+                        logger.error(f'Broker call has error: {err}')
+                        resp.status = falcon.HTTP_500
+                
+                elif self.task_id is None:
+
+                    try:
+                        task = run.delay(request)
+                        self.task_id = task.id
+                        self.task_status = task.status
+                    except Exception as err:
+                        logger.error(f'Task call with error: {err}')
+                        resp.status = falcon.HTTP_500
             
-            elif self.task_id is None:
-                try:
-                    task = run.delay(request)
-                    self.task_status = "DEPLOYED"
-                    self.task_id = task.id
-                except Exception as err:
-                    self.task_status = "FAILED"
-                    logger.error(f'Task call with error: {err}')
-                    resp.status = falcon.HTTP_500
+                self.response['task_status'] = self.task_status
+                self.response['task_id'] = self.task_id
+                self.response['model_path'] = self.model_path
+
+                logger.debug(self.response)
+                resp.media = self.response
+            
+            except RuntimeError as exc:
+                logger.error(exc)
+                resp.status = falcon.HTTP_500
         else:
-            self.response["service_status"] = "error at operator.api"
+            self.response["service_status"] = "bad request, required fields are missing"
             logger.info(self.task_status)
             resp.status = falcon.HTTP_400
-        
-        self.response['task_status'] = self.task_status
-        self.response['task_id'] = self.task_id
-        self.response['model_point'] = self.model_point
-
-        logger.debug(self.response)
-        resp.media = self.response
 
 api = falcon.App()
 
