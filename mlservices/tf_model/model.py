@@ -47,7 +47,7 @@ class Model():
         start_point = dataset[-1][0]
         series = self.to_series(values, start_point, granularity, output_window)
 
-        logger.debug(f'Predict result series: {series}')
+        # logger.debug(f'Predict result series: {series}')
 
         return series
 
@@ -105,6 +105,6 @@ class Model():
         base = datetime.datetime.fromtimestamp(start_point/1000 + granularity)
         date_list = [int((base + datetime.timedelta(hours=x)).timestamp()) for x in range(output_window)]
         series = [ list(x) for x in list(zip(date_list, values)) ]
-        logger.debug(f'Series: {series}')
+        # logger.debug(f'Series: {series}')
 
         return series

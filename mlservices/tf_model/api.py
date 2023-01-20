@@ -18,7 +18,7 @@ class Action:
     def on_post(self, req, resp):
 
         request = req.media
-        logger.debug(f'Request from the operator: {request}')
+        logger.debug(f'Request from the operator: {list(request.keys())}')
         resp.status = falcon.HTTP_400
         
         response = {
@@ -40,6 +40,7 @@ class Action:
             config = request.get('model_config')
             metadata = request.get('metadata')
             data = request.get('dataset')
+            logger.debug(f'Length of dataset: {len(data)}')
             model_uri = request.get('model_uri')
 
             experiment_id = model_uri.get('experiment_id')
