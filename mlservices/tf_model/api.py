@@ -1,6 +1,5 @@
 import falcon
-# import mlflow
-from pathlib import Path
+
 from model import Model
 from utils import get_logger, LOG_LEVEL, TRACKING_SERVER
 
