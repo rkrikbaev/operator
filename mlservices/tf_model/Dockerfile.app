@@ -17,3 +17,5 @@ WORKDIR /application
 COPY ./api.py .
 COPY ./model.py .
 COPY ./utils.py .
+
+ENTRYPOINT [ "/bin/bash" ]
