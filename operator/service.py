@@ -4,7 +4,7 @@ from docker.errors import DockerException, APIError, ContainerError, ImageNotFou
 import time
 import requests, json
 from requests import ConnectionError, Timeout, HTTPError
-    
+
 from utils import get_logger, LOG_LEVEL, TRACKING_SERVER, MODELS_REG, APP_CODE
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
@@ -15,7 +15,7 @@ class Service():
     def __init__(self, config):
 
         logger.debug(f'Read service config file {config}')
-        
+
         try:
             self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
             logger.debug(f'Create docker client object {self.client}')
@@ -24,7 +24,7 @@ class Service():
 
         self.image = config.get('image')
         self.cpuset_cpus = config.get('limits').get('cpuset_cpus')
-        self.con_mem_limit = config.get('limits').get('con_mem_limit')       
+        self.con_mem_limit = config.get('limits').get('con_mem_limit')
         # self.startup = config.get('startup')
         self.network = 'operator_default'
         self.model_type = config.get('type')
@@ -36,16 +36,17 @@ class Service():
 
         self.response = {}
         self.request = None
+        self.port=8007
 
         logger.debug(f'Init object complited {self}')
-    
+
     def run(self, name, request):
-        
+
         logger.debug(f'Deploy object {self}')
         self.service_name = name
 
         self.response["service_status"] = 'error'
-        self.response["start_time"] = str(datetime.datetime.now())           
+        self.response["start_time"] = str(datetime.datetime.now())
 
         self.request = {key: request[key] for key in self.model_keys}
         logger.debug(f'Filter request fields: {list(self.request.keys())}')
@@ -58,8 +59,8 @@ class Service():
         except NotFound:
             pass
 
-        saved_models = f'{MODELS_REG}:/opt/mlruns'
-        app_code = f'{APP_CODE}/{self.model_type}:/application'
+        saved_models = f'{MODELS_REG}:/mlruns'
+        app_code = f'{APP_CODE}/{self.model_type}/app:/app'
 
         logger.debug(f'{saved_models}')
         logger.debug(f'{app_code}')
@@ -76,7 +77,8 @@ class Service():
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}', 
                                     f'TRACKING_SERVER={TRACKING_SERVER}',
-                                    f'TIMEOUT={self.timeout}']
+                                    f'TIMEOUT={self.timeout}'],
+                                command=f'gunicorn -b 0.0.0.0:{self.port} api:api --timeout 1000 --log-level debug'
                                 ).short_id
 
             logger.debug(f'Created container ID {container_id}')
@@ -124,7 +126,7 @@ class Service():
         
         try:  
             with requests.Session() as s:
-                url = f'http://{ip_address}:8005/health'
+                url = f'http://{ip_address}:{self.port}/health'
                 health = s.get(url, timeout=10)
                 logger.debug(f'Service API {url} is {health.ok}')
         except Exception as exc:
@@ -138,7 +140,7 @@ class Service():
                 self._model_call(ip_address, _counter)
         try:
             with requests.Session() as s:
-                url = f'http://{ip_address}:8005/action'
+                url = f'http://{ip_address}:{self.port}/action'
                 r = s.post(
                         url, 
                         headers={'Content-Type': 'application/json'}, 

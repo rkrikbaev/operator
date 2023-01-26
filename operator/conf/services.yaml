@@ -12,7 +12,7 @@ docker:
     startup: 5
   tf_model:
     type: 'tf_model'
-    image: 'rkrikbaev/tf-model:latest'
+    image: 'tf-model:latest'
     network: 'operator_default'
     limits:
       con_mem_limit: '1024m'
