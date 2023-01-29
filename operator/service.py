@@ -25,7 +25,7 @@ class Service():
         self.image = config.get('image')
         self.cpuset_cpus = config.get('limits').get('cpuset_cpus')
         self.con_mem_limit = config.get('limits').get('con_mem_limit')
-        # self.startup = config.get('startup')
+
         self.network = 'operator_default'
         self.model_type = config.get('type')
         self.timeout = config.get('timeout')
@@ -35,21 +35,15 @@ class Service():
         self.service_name = None
 
         self.response = {}
-        self.request = None
-        self.port=8007
+        self.container_port=8007
+
+        self.container_id = None
 
         logger.debug(f'Init object complited {self}')
 
-    def run(self, name, request):
+    def run(self, service_name, request):
 
-        logger.debug(f'Deploy object {self}')
-        self.service_name = name
-
-        self.response["service_status"] = 'error'
-        self.response["start_time"] = str(datetime.datetime.now())
-
-        self.request = {key: request[key] for key in self.model_keys}
-        logger.debug(f'Filter request fields: {list(self.request.keys())}')
+        self.service_name = service_name
 
         try:
             container = self.client.containers.get(self.service_name)
@@ -59,97 +53,106 @@ class Service():
         except NotFound:
             pass
 
-        saved_models = f'{MODELS_REG}:/mlruns'
-        app_code = f'{APP_CODE}/{self.model_type}/app:/app'
+        self.response["service_status"] = 'error'
+        self.response["start_time"] = str(datetime.datetime.now())
 
-        logger.debug(f'{saved_models}')
-        logger.debug(f'{app_code}')
+        data = {key: request[key] for key in self.model_keys}
+        logger.debug(f'Filter request fields: {list(data.keys())}')
 
-        try:
-            container_id = self.client.containers.run(
-                                image=self.image,
-                                name=self.service_name,
-                                volumes=[saved_models, app_code],
-                                detach=True,
-                                mem_limit=self.con_mem_limit,
-                                cpuset_cpus=self.cpuset_cpus,
-                                network=self.network,
-                                environment=[
-                                    f'LOG_LEVEL={LOG_LEVEL}', 
-                                    f'TRACKING_SERVER={TRACKING_SERVER}',
-                                    f'TIMEOUT={self.timeout}'],
-                                command=f'gunicorn -b 0.0.0.0:{self.port} api:api --timeout 1000 --log-level debug'
-                                ).short_id
-
-            logger.debug(f'Created container ID {container_id}')
+        response = self.model_call(self.container_deploy(), data)
+        logger.debug(f'Post request result service._model_call() {response}')
             
-            if not container_id:
-                raise RuntimeError('Created container id cannot be None')
+        self.response.update(response)
+        self.response["service_status"] = 'OK'
             
-            ip_address = self._container_call(container_id, _counter=0)
-            
-            if not ip_address:
-                raise RuntimeError('Service IP cannot be None')
-            
-            _response = self._model_call(ip_address, _counter=0)
-            logger.debug(f'Post request result service._model_call() {_response}')
-            
-            self.response.update(_response)
-            self.response["service_status"] = 'OK'
-            
-        except Exception as exc:
-            logger.debug(exc)
-        
         logger.debug(f'Post request result service._model_call() {self.response}')
         return self.response
     
-    def _container_call(self, container_id, _counter):
-        
-        container = self.client.containers.get(container_id)
-        _status = container.status.lower()
-        
-        if _status == 'running':
-             ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
-             logger.debug(f'container started with IP: {ip_address}')
-             return ip_address
-        else:
-            _counter +=1
-            time.sleep(1)
-            self._container_call(container_id, _counter)
-        
-        if _counter > 3:
-            raise RuntimeError('error max tries to get info anbout container')
+    def container_deploy(self, container_id=None, counter=0):
 
-    def _model_call(self, ip_address, _counter):
+        self.container_id = container_id
+
+        saved_models = f'{MODELS_REG}:/mlruns'
+        app_code = f'{APP_CODE}/{self.model_type}/app:/app'
         
-        _response = {"service_status": "error"}
+        if self.container_id is None:
+            try:
+                self.container = self.client.containers.run(
+                                    image=self.image,
+                                    name=self.service_name,
+                                    volumes=[saved_models, app_code],
+                                    ports={f'{self.container_port}/tcp': None},
+                                    detach=True,
+                                    mem_limit=self.con_mem_limit,
+                                    cpuset_cpus=self.cpuset_cpus,
+                                    network=self.network,
+                                    environment=[
+                                        f'LOG_LEVEL={LOG_LEVEL}', 
+                                        f'TRACKING_SERVER={TRACKING_SERVER}',
+                                        f'TIMEOUT={self.timeout}'],
+                                    command=f'gunicorn -b 0.0.0.0:{self.port} api:api --timeout 1000 --log-level debug'
+                                    )
+                
+                self.container_id = self.container.short_id
+                self.container_deploy(self, self.container_id)
+
+            except Exception as exc:
+                logger.debug(exc)
+        else:
+
+            self.container.reload()
+            self.status = self.container.status.lower()
+
+            if self.status == 'running':
+             
+                container_ip_address = self.container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+                host_port = self.container.attrs['NetworkSettings']['Ports'][f'{self.container_port}/tcp'][0]['HostPort']
+                
+                logger.debug(f'container started with IP:PORT: {container_ip_address}:{host_port}')
+                
+                return container_ip_address, host_port
+            
+            else:
+
+                counter +=1
+                time.sleep(1)
+                self.container_deploy(self.container_id, counter)
+        
+                if counter > 3:
+                    raise RuntimeError('error max tries to get info anbout container')
+
+    def model_call(self, ip_address, host_port, data):
+        
+        response = {"service_status": "error"}
         
         try:  
             with requests.Session() as s:
-                url = f'http://{ip_address}:{self.port}/health'
+                url = f'http://{ip_address}:{host_port}/health'
                 health = s.get(url, timeout=10)
                 logger.debug(f'Service API {url} is {health.ok}')
         except Exception as exc:
             logger.error(exc)
-            _counter +=1
+            counter +=1
             time.sleep(5)
             
-            if _counter > 3:
+            if counter > 3:
                 raise RuntimeError('error max tries to get response from model api')
             else:
-                self._model_call(ip_address, _counter)
+                self.model_call(ip_address, counter)
         try:
             with requests.Session() as s:
-                url = f'http://{ip_address}:{self.port}/action'
+                url = f'http://{ip_address}:{host_port}/action'
                 r = s.post(
                         url, 
                         headers={'Content-Type': 'application/json'}, 
-                        data=json.dumps(self.request), 
+                        data=json.dumps(data), 
                         timeout=600)
                 logger.debug(f'{__class__}._model_call() in {__file__} return {r.json()}')
-                _response.update(r.json())
-                _response["service_status"] = "ok"    
+                response.update(r.json())
+                response["service_status"] = "ok" 
+                self.container.stop()
+                self.container.remove()   
         except Exception as exc:
             logger.error(exc)
 
-        return _response
+        return response
