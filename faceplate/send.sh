@@ -1,12 +1,17 @@
-curl --location --request POST 'http://138.68.70.41:8055/action' \
+#!/bin/bash
+
+curl --location --request POST 'http://138.68.70.41:8015/predict' \
 --header 'Content-Type: application/json' \
 --data-raw '{   
-    "model_point": "almaty",
+    "task_id": null,
+    "model_point": "almaty4",
+    "model_type": "tf_model",
     "model_config": { "window":96 },
-    "metadata": {
+    "model_uri": {
         "experiment_id": "571625146127493926",
         "run_id": "6776c0c6dda044bd8f120d2875463883"
         },
+    "metadata":null,
     "period": null,
     "dataset":[
     ["2021-12-31 01:00:00", 8.875199297449905],

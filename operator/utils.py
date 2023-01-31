@@ -32,7 +32,10 @@ MLSERV_CONFIG_FILE = os.path.join(BASE_PATH, 'conf/services.yaml')
 
 # The path to application code of a model delpoyed in docker container
 APP_CODE = os.environ.get('APP_CODE')
-if not APP_CODE: APP_CODE = '/opt/operator/mlservices'
+if not APP_CODE: APP_CODE = '/opt/mlservices'
+
+
+
 
 # logger configuretion
 def get_logger(name='root', loglevel='INFO'):
