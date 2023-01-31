@@ -60,10 +60,11 @@ class Predict():
             self.model_path = request.get('model_path')
 
             try:
-                
+
                 if not self.model_path: raise RuntimeError('Model PATH not set')
 
-                if self.task_id and len(self.task_id)>10:
+                if self.task_id:
+
                     logger.debug(f'Request result from celery: {self.task_id}')
 
                     try:
@@ -73,7 +74,7 @@ class Predict():
                     except Exception as err:
                         logger.error(f'Broker call has error: {err}')
                         resp.status = falcon.HTTP_500
-                
+
                 elif self.task_id is None:
 
                     try:
@@ -83,14 +84,14 @@ class Predict():
                     except Exception as err:
                         logger.error(f'Task call with error: {err}')
                         resp.status = falcon.HTTP_500
-            
+
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
                 self.response['model_path'] = self.model_path
 
                 logger.debug(self.response)
                 resp.media = self.response
-            
+
             except RuntimeError as exc:
                 logger.error(exc)
                 resp.status = falcon.HTTP_500
