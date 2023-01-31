@@ -5,8 +5,7 @@
 
 on_event(_Event, _State0)->
 
-    GlobalControlTag = <<"/root/PROJECT/TAGS/Nodes/global_model_control">>,
-    
+   GlobalControlTag = <<"/root/PROJECT/TAGS/global_model_control">>,
     {_Date, {Hour, _, _}} = calendar:local_time(),
     
     { ok, StartHour } =
@@ -17,7 +16,7 @@ on_event(_Event, _State0)->
                 { ok, Hour }
         end,
     
-    % select tags if ...
+    % select tags if ... disabled=false, without - isTriggered=false , triggered=false, because we need tags
     TagControlList = find_tags(),
     
     ?LOGINFO("DEBUG: curr_hour ~p, Start_hour ~p",[Hour, StartHour]),
@@ -48,15 +47,14 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
         <<"reset">> := Reset,
         <<"input_archive">>:=InputArchive,
         <<"output_archive">>:=OutputArchive
-    } = fp_db:read_fields( fp_db:open(LocalModelControlTag),[
+    } = fp_db:read_fields( fp_db:open(LocalModelControlTag), [
                                                             <<"task_id">>,
                                                             <<"model_uri">>,
                                                             <<"model_path">>,
                                                             <<"task_status">>,
                                                             <<"reset">>,
                                                             <<"input_archive">>,
-                                                            <<"output_archive">>
-    ]),
+                                                            <<"output_archive">>]),
     
     ?LOGINFO("DEBUG: Trigger tag Id: ~p",[LocalModelControlTag]),
     
@@ -84,7 +82,7 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
         
     ?LOGINFO("DEBUG: Task: ~p trigger: ~p",[ LocalModelControlTag, TriggerValue0 ]),
     ?LOGINFO("DEBUG: Task: ~p state ~p",[ LocalModelControlTag, TaskState]),
-    
+
     fp_db:edit_object(fp_db:open(GlobalModelControlTag),#{
                                                             <<"task_id">>=>TaskId,
                                                             <<"model_uri">>=>ModelUri,
@@ -94,24 +92,25 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
                                                             <<"input_archive">>=>InputArchive,
                                                             <<"output_archive">>=>OutputArchive                                                            
                                                         }),
-
+    
+    fp_db:edit_object(fp_db:open(LocalModelControlTag), #{
+                                            <<"triggered">>=>Triggered
+                                    }),
     if Reset ->
-            fp_db:edit_object(fp_db:open(LocalModelControlTag),#{
-                                                                <<"triggered">>=>false,
-                                                                <<"task_id">> =>none,
-                                                                <<"task_status">> =><<"WAITING">>,
-                                                                <<"reset">> =>false
-                                                        });
-        true ->
-            fp_db:edit_object(fp_db:open(LocalModelControlTag),#{
-                                                                <<"triggered">>=>Triggered
-                                                        })
+        fp_db:edit_object(fp_db:open(LocalModelControlTag), #{
+                                            <<"triggered">>=>false,
+                                            <<"task_id">>=>none,
+                                            <<"task_status">>=><<"QUEUED">>,
+                                            <<"reset">>=>false
+                                    });
+    true-> ok
+    
     end,
     ok.
     
-% , disabled=false, triggered=false
+% , disabled=false, without - isTriggered=false , triggered=false, because we need tags
 find_tags()->
-    ResQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false, triggered=false )">>),
+    ResQuery=fp_db:query(<<"get .oid from root where or(and( .folder=$oid('/root/PROJECT/TAGS/Nodes/Almaty_F/u220'), .pattern=$oid('/root/.patterns/model_control'), disabled=false, triggered=false ), and(disabled=false, reset=true))">>),
     ?LOGINFO("DEBUG: Find available tags ~p ",[ResQuery ]),
     %for only tag - where disable is false and not triggered yet.
     ResQuery.

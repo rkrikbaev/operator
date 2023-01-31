@@ -18,57 +18,79 @@ on_event(_vent, State)->
 next_ts(TS, Cycle) ->
     (TS div Cycle) * Cycle + Cycle.
 
-request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri0, "input_archive":=InputArchive0 })->
+request(Ts, #{ "model_path":=ModelPath })->
+    
+    % read model settings tag
+    ModelSettingsTag = <<ModelPath/binary,"/model_settings">>,
+    
+    #{
+        <<"model_config">>:= Config0,
+        <<"input_window">>:= InputWindow0,
+        <<"output_window">>:= OutputWindow0,
+        <<"granularity">>:=Granularity0,
+        <<"model_type">>:=ModelType,
+        <<"model_point">>:=ModelPoint
+    } = fp_db:read_fields( fp_db:open(ModelSettingsTag),[
+        <<"model_config">>,
+        <<"input_window">>,
+        <<"output_window">>,
+        <<"granularity">>,
+        <<"model_type">>,
+        <<"model_point">>
+    ] ),
+    
+    
+    Config = 
+        if Config0 == none->
+            #{
+                <<"input_window">>=>InputWindow0, 
+                <<"output_window">>=>OutputWindow0,
+                <<"granularity">>=>Granularity0
+            };
+        true->
+            maps:merge(fp_lib:from_json(Config0), #{
+                <<"input_window">>=>InputWindow0, 
+                <<"output_window">>=>OutputWindow0,
+                <<"granularity">>=>Granularity0
+                })
+        end,
+
+    ModelControlTag = <<ModelPath/binary,"/model_control">>,
+    
+    #{
+        <<"task_id">> := TaskId,
+        <<"model_uri">> := ModelUri0,
+        <<"input_archive">>:=InputArchive0
+    } = fp_db:read_fields( fp_db:open(ModelControlTag), [
+                                                            <<"task_id">>,
+                                                            <<"model_uri">>,
+                                                            <<"model_path">>,
+                                                            <<"task_status">>,
+                                                            <<"reset">>,
+                                                            <<"input_archive">>]),
     
     Req =
         case TaskId of
-            undefined->
+            none->
                 ?LOGINFO("REQ: TaskId: ~p", [TaskId]),
                 % Path settings
                 InputArchivesPath = <<ModelPath/binary,"/archivesS/">>,
                 OutputArchivePath = <<ModelPath/binary,"/futureP/">>,
                 ?LOGINFO("REQ: ArchivesPath ~p, FuturePath ~p",[InputArchivesPath, OutputArchivePath]),
                 
-                % read model settings tag
-                ModelSettingsTagPath = <<ModelPath/binary,"/model_settings">>,
-                
-                #{
-                    % <<"model_config">>:= Config0,
-                    <<"input_window">>:= InputWindow0,
-                    <<"output_window">>:= OutputWindow0,
-                    <<"granularity">>:=Granularity0,
-                    <<"model_type">>:=ModelType,
-                    <<"model_point">>:=ModelPoint
-                } = fp_db:read_fields( fp_db:open(ModelSettingsTagPath),[
-                    % <<"model_config">>,
-                    <<"input_window">>,
-                    <<"output_window">>,
-                    <<"granularity">>,
-                    <<"model_type">>,
-                    <<"model_point">>
-                ] ),
-                
-                {ok, InputArchive1} = 
+                InputArchive1 = 
                     case InputArchive0 of
                         InputArchive0 when is_list(InputArchive0)->
-                            {ok, InputArchive0 };
-                        true -> 
-                            { ok, string:tokens(InputArchive0, ",") };
+                            InputArchive0;
                         _-> 
-                            { error, none }
+                           [ <<InputArchive0/binary>> ]
                     end,
                 
                 ModelUri = fp_lib:from_json(ModelUri0),
                 
-                Config = #{
-                    <<"input_window">>=>InputWindow0, 
-                    <<"output_window">>=>OutputWindow0,
-                    <<"granularity">>=>Granularity0
-                },
-                
                 ?LOGINFO("REQ: ModelUri value ~p",[ModelUri]),
                 ?LOGINFO("REQ: Config value ~p",[Config]),
-                
+                ?LOGINFO("REQ: Name of input archive ~p",[InputArchive1]),
                 % Check settings
 
                 InputWindow = if is_number(InputWindow0)->( InputWindow0 + 1 ) * ?HOUR; true-> 96 * ?HOUR end,
@@ -90,6 +112,7 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                                 <<"step_count">> => InputWindow div Granularity,
                                 <<"end">> => To
                             }, InputArchive),
+                            ?LOGINFO("REQ: InputData ~p",[InputData]),
                             fp_db:to_json(term, InputData);
                     true->
                         none
@@ -107,7 +130,7 @@ request(Ts, #{ "task_id":=TaskId, "model_path":=ModelPath, "model_uri":=ModelUri
                     "dataset"=> InputDataset,
                     "period"=>null
                 };
-            TaskId ->
+            TaskId when is_binary(TaskId) ->
                 ?LOGINFO("REQ: TaskId: ~p", [TaskId]),
                 #{
                     "model_type"=> null,
@@ -130,7 +153,7 @@ response(#{
     "task_id":= TaskId,
     "model_path":= ModelPath
 })->
-    % ModelPath = <<"/root/PROJECT/TAGS/Nodes/", ModelPoint/binary>>,
+
     ModelControlTagPath = <<ModelPath/binary,"/model_control">>,
     ?LOGINFO("REQ: Model Control Tag Path: ~p", [ModelControlTagPath]),
     
@@ -142,28 +165,34 @@ response(#{
 
     OutputArchive = 
         <<ModelPath/binary, "/futureP/", (unicode:characters_to_binary(hd([OutputArchive0])))/binary>>,
+
+    {ok, Triggered} = 
+        case TaskStatus of <<"SUCCESS">> ->
+                ?LOGINFO("DEBUG: Task complited: ~p ",[ TaskStatus ]),
+                case Result of 
+                    Result when is_list(Result)->
+                        Predict = [ {floor(TS) *1000, V}||[TS, V]<-Result ],
+                        try
+                            ResIns = fp_archive:insert_values( OutputArchive, Predict ),
+                            fp:log(info,"DEBUG ML: fp_archive:insert_values: ~p ~p", [ Predict, ResIns ])
+                        catch
+                            Error1 -> ?LOGINFO("DEBUG ERROR write to archives: ~p ",[ Error1 ])
+                        end;
+                    _-> 
+                        ok
+                end,                
+                {ok, true};
+            _->
+                {ok, false}
+        end,
     
-    % always return task state and task id
     try
         fp:set_value(ModelControlTagPath, "task_id", TaskId),
         fp:set_value(ModelControlTagPath, "task_status", TaskStatus),
-        fp:set_value(ModelControlTagPath, "task_created",TaskCreated)
+        fp:set_value(ModelControlTagPath, "task_created",TaskCreated),
+        fp:set_value(ModelControlTagPath, "triggered",Triggered)
     catch
         Error0 -> ?LOGINFO("DEBUG wacs_ml Result :  ERROR ~p ",[Error0])
     end,
 
-    case Result of 
-        Result when is_list(Result)->
-            Predict = [{floor(TS) *1000, V}||[TS, V]<-Result],
-            try
-                ResIns = fp_archive:insert_values( OutputArchive, Predict ),
-                fp:log(info,"DEBUG ML: fp_archive:insert_values: ~p ~p", [Predict, ResIns])
-            catch
-                Error1 -> ?LOGINFO("DEBUG ERROR write to archives: ~p ",[Error1])
-            end;
-        true ->
-            fp:log(info,"DEBUG ML: Data is not a list");
-        _-> 
-            ok
-    end,
     ok.
