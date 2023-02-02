@@ -1,12 +1,12 @@
 #!/bin/bash
+HOST=$1
+PORT=$2
+ID=$3
 
-task_id=$1
-
-curl --location \
---request POST 'http://138.68.70.41:8015/predict' \
+curl --location --request POST 'http://$HOST:$PORT/predict' \
 --header 'Content-Type: application/json' \
 --data-raw '{ 
-    "task_id": "'$task_id'", 
+    "task_id": "'$ID'", 
     "model_point": "almaty4", 
     "model_type": "tf_model", 
     "model_config": { "window":96 }, 

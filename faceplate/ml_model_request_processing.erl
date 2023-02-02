@@ -20,54 +20,34 @@ next_ts(TS, Cycle) ->
 
 request(Ts, #{ "model_path":=ModelPath })->
     
-    % read model settings tag
-    ModelSettingsTag = <<ModelPath/binary,"/model_settings">>,
-    
-    #{
-        <<"model_config">>:= Config0,
-        <<"input_window">>:= InputWindow0,
-        <<"output_window">>:= OutputWindow0,
-        <<"granularity">>:=Granularity0,
-        <<"model_type">>:=ModelType,
-        <<"model_point">>:=ModelPoint
-    } = fp_db:read_fields( fp_db:open(ModelSettingsTag),[
-        <<"model_config">>,
-        <<"input_window">>,
-        <<"output_window">>,
-        <<"granularity">>,
-        <<"model_type">>,
-        <<"model_point">>
-    ] ),
-    
-    
-    Config = 
-        if Config0 == none->
-            #{
-                <<"input_window">>=>InputWindow0, 
-                <<"output_window">>=>OutputWindow0,
-                <<"granularity">>=>Granularity0
-            };
-        true->
-            maps:merge(fp_lib:from_json(Config0), #{
-                <<"input_window">>=>InputWindow0, 
-                <<"output_window">>=>OutputWindow0,
-                <<"granularity">>=>Granularity0
-                })
-        end,
-
-    ModelControlTag = <<ModelPath/binary,"/model_control">>,
+     ModelControlTag = <<ModelPath/binary,"/model_control">>,
     
     #{
         <<"task_id">> := TaskId,
         <<"model_uri">> := ModelUri0,
-        <<"input_archive">>:=InputArchive0
+        <<"input_archive">>:=InputArchive0,
+        <<"model_config">>:= Config0,
+        <<"model_type">>:=ModelType,
+        <<"model_point">>:=ModelPoint
     } = fp_db:read_fields( fp_db:open(ModelControlTag), [
-                                                            <<"task_id">>,
-                                                            <<"model_uri">>,
-                                                            <<"model_path">>,
-                                                            <<"task_status">>,
-                                                            <<"reset">>,
-                                                            <<"input_archive">>]),
+        <<"task_id">>,
+        <<"model_uri">>,
+        <<"input_archive">>,
+        <<"model_config">>,
+        <<"model_type">>,
+        <<"model_point">>]),  
+    
+    Config = 
+        try
+            fp_lib:from_json(Config0)
+            
+        catch
+            ErrorConfig -> ?LOGINFO("DEBUG ERROR write to archives: ~p ",[ ErrorConfig ])
+        end,
+        
+    fp:log(info,"DEBUG ML: Config: ~p ", [ Config ]),
+    
+    #{ <<"input_window">>:=InputWindow0, <<"granularity">>:=Granularity0 } = Config,
     
     Req =
         case TaskId of

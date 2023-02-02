@@ -1,12 +1,17 @@
 #!/bin/bash
-
-curl --location --request POST 'http://138.68.70.41:8015/predict' \
+HOST=$1
+PORT=$2
+curl --location --request POST 'http://$HOST:$PORT/predict' \
 --header 'Content-Type: application/json' \
 --data-raw '{   
     "task_id": null,
     "model_point": "almaty4",
     "model_type": "tf_model",
-    "model_config": { "window":96 },
+    "model_config": {         
+        "input_window": 96,
+        "output_window": 48,
+        "granularity": 3600 
+        },
     "model_uri": {
         "experiment_id": "571625146127493926",
         "run_id": "6776c0c6dda044bd8f120d2875463883"

@@ -110,13 +110,15 @@ trigger_tag( GlobalModelControlTag, LocalModelControlTag )->
     
 % , disabled=false, without - isTriggered=false , triggered=false, because we need tags
 find_tags()->
-    ResQuery=fp_db:query(<<"get .oid from root where or(and( .folder=$oid('/root/PROJECT/TAGS/Nodes/Almaty_F/u220'), .pattern=$oid('/root/.patterns/model_control'), disabled=false, triggered=false ), and(disabled=false, reset=true))">>),
+%    ResQuery=fp_db:query(<<"get .oid from root where or(and( .folder=$oid('/root/PROJECT/TAGS/Nodes'), .pattern=$oid('/root/.patterns/model_control'), disabled=false, triggered=false ), and(disabled=false, reset=true))">>),
+
+    ResQuery=fp_db:query( <<"get .oid  from root where  and( .pattern=$oid('/root/.patterns/model_control'), or( and(disabled=false, triggered=false), and(reset=true, disabled=false)))">>),
     ?LOGINFO("DEBUG: Find available tags ~p ",[ResQuery ]),
     %for only tag - where disable is false and not triggered yet.
     ResQuery.
     
 reset_trigger_state() ->
-    ResResetQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false, reset=true )">>),
+    ResResetQuery=fp_db:query(<<"get .oid from root where and( .pattern=$oid('/root/.patterns/model_control'), disabled=false )">>),
     ?LOGINFO("DEBUG: Reset state trigger ~p ",[ResResetQuery ]),
     
     [ begin 
