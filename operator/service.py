@@ -5,7 +5,7 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout, HTTPError
 
-from utils import get_logger, LOG_LEVEL, TRACKING_SERVER, MODELS_REG, APP_CODE
+from utils import get_logger, LOG_LEVEL, TRACKING_SERVER
 
 logger = get_logger(__name__, loglevel=LOG_LEVEL)
 
@@ -40,10 +40,10 @@ class Service():
 
         logger.debug(f'Init object complited {self}')
 
-    def run(self, name, request):
+    def run(self, request, model_point, model_hub, model_uri, app_code_path=None):
 
         logger.debug(f'Deploy object {self}')
-        self.service_name = name
+        self.service_name = model_point
 
         self.response["service_status"] = 'error'
         self.response["start_time"] = str(datetime.datetime.now())
@@ -59,18 +59,14 @@ class Service():
         except NotFound:
             pass
 
-        saved_models = f'{MODELS_REG}:/mlruns'
-        app_code = f'{APP_CODE}/{self.model_type}/app:/app'
-
-        logger.debug(f'{saved_models}')
-        logger.debug(f'{app_code}')
-
         try:
+            model_hub_vol = f'{model_hub}:/mlruns'
+            app_code_vol = f'{app_code_path}:/app'
             self.container = self.client.containers.run(
                                 image=self.image,
                                 name=self.service_name,
                                 ports={f'{self.container_port}/tcp': None},
-                                volumes=[saved_models, app_code],
+                                volumes=[model_hub_vol, app_code_vol],
                                 detach=True,
                                 mem_limit=self.con_mem_limit,
                                 cpuset_cpus=self.cpuset_cpus,
@@ -78,7 +74,8 @@ class Service():
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}',
                                     f'TRACKING_SERVER={TRACKING_SERVER}',
-                                    f'TIMEOUT={self.timeout}'],
+                                    f'TIMEOUT={self.timeout}',
+                                    f'MODEL_URI ={model_uri}'],
                                 command=f'gunicorn -b 0.0.0.0:{self.container_port} api:api --timeout 1000 --log-level debug'
                                 )
             container_id = self.container.short_id
