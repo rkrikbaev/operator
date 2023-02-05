@@ -46,7 +46,7 @@ def run(request):
     return response
 
 
-def get_model_path(modelhub, exp_id, run_id=None, timestamp = 0, suffix='mlmodel'):
+def get_model_path(modelhub, exp_id, run_id=None, timestamp = 0):
 
     if run_id is None:
 
@@ -55,21 +55,20 @@ def get_model_path(modelhub, exp_id, run_id=None, timestamp = 0, suffix='mlmodel
         all_folders = [ x for x in os.listdir('.') if os.path.isdir(x) ]
 
         for folder in all_folders:
-            tokens = folder.split('@')  
-            
-            if len(tokens) == 2:
-                if int(timestamp) <= int(tokens[0]):
-                    timestamp = tokens[0]
-                    run_id = folder
+            try:
+                with open(f'{folder}/meta.yaml', 'r') as fl:
+                    ts =  yaml.safe_load(fl).get('end_time')
+                    
+                    if timestamp <= int(ts):
+                        timestamp = ts
+                        run_id = folder
+                    else:
+                        print(folder, ts)
+
+            except FileNotFoundError as exc:
+                print(exc)
     
         if run_id is None: 
-            raise RuntimeError('Din not find any directory')
+            raise RuntimeError('Din not find any saved model')
         else:
-            print('Variable "run_id" is None so take latest saved model')
-
-    path = f'{modelhub}/{exp_id}/{run_id}/{suffix}'
-    
-    if os.path.isdir(path): 
-        return path
-    else:
-        raise RuntimeError(f'Could not find model by {path}')
+            print('Variable "run_id" is None latest saved model wil be taken')

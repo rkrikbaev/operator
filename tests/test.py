@@ -1,5 +1,5 @@
 import os
-
+import yaml
 
 
 
@@ -12,14 +12,21 @@ def get_model(modelhub, exp_id, run_id=None, timestamp = 0):
         all_folders = [ x for x in os.listdir('.') if os.path.isdir(x) ]
 
         for folder in all_folders:
-            tokens = folder.split('@')  
-            if len(tokens) == 2:
-                if int(timestamp) <= int(tokens[0]):
-                    timestamp = tokens[0]
-                    run_id = folder
+            try:
+                with open(f'{folder}/meta.yaml', 'r') as fl:
+                    ts =  yaml.safe_load(fl).get('end_time')
+                    
+                    if timestamp <= int(ts):
+                        timestamp = ts
+                        run_id = folder
+                    else:
+                        print(folder, ts)
+
+            except FileNotFoundError as exc:
+                print(exc)
     
         if run_id is None: 
-            raise RuntimeError('Din not find any directory')
+            raise RuntimeError('Din not find any saved model')
         else:
             print('Variable "run_id" is None so take latest saved model')
 
