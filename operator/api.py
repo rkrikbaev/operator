@@ -58,6 +58,7 @@ class Predict():
 
             self.task_id = request.get('task_id')
             self.model_path = request.get('model_path')
+            self.model_uri = request.get('model_uri')
 
             try:
 
@@ -69,7 +70,8 @@ class Predict():
 
                     try:
                         task = AsyncResult(self.task_id)
-                        self.response.update(task.result)
+                        if isinstance(task.result, dict):
+                            self.response.update(task.result)
                         self.task_status = task.status
                     except Exception as err:
                         logger.error(f'Broker call has error: {err}')
@@ -88,7 +90,7 @@ class Predict():
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
                 self.response['model_path'] = self.model_path
-
+                self.response['model_uri'] = self.model_uri
                 logger.debug(self.response)
                 resp.media = self.response
 
