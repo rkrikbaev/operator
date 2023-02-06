@@ -40,7 +40,7 @@ class Service():
 
         logger.debug(f'Init object complited {self}')
 
-    def run(self, request, model_point, model_hub, model_uri, app_code_path=None):
+    def run(self, request, model_point, model_hub, app_code_path=None):
 
         logger.debug(f'Deploy object {self}')
         self.service_name = model_point
@@ -74,8 +74,7 @@ class Service():
                                 environment=[
                                     f'LOG_LEVEL={LOG_LEVEL}',
                                     f'TRACKING_SERVER={TRACKING_SERVER}',
-                                    f'TIMEOUT={self.timeout}',
-                                    f'MODEL_URI ={model_uri}'],
+                                    f'TIMEOUT={self.timeout}'],
                                 command=f'gunicorn -b 0.0.0.0:{self.container_port} api:api --timeout 1000 --log-level debug'
                                 )
             container_id = self.container.short_id

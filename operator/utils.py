@@ -1,4 +1,4 @@
-import logging, os, sys
+import logging, os, sys, yaml
 import logging.config
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -74,3 +74,40 @@ def get_logger(name='root', loglevel='INFO'):
                      os.path.basename(sys.argv[0]),
                      ' '.join(sys.argv[1:]))
     return logger
+
+
+
+
+def find_model(local_path, remote_path, exp_id, run_id=None, timestamp = 0):
+
+    if run_id is None:
+
+        os.chdir(f'{local_path}/{exp_id}')
+
+        all_folders = [ x for x in os.listdir('.') if os.path.isdir(x) ]
+
+        for folder in all_folders:
+            try:
+                with open(f'{folder}/meta.yaml', 'r') as fl:
+                    ts =  yaml.safe_load(fl).get('end_time')
+                    
+                    if timestamp <= int(ts):
+                        timestamp = ts
+                        run_id = folder
+                    else:
+                        print(folder, ts)
+
+            except FileNotFoundError as exc:
+                print(exc)
+    
+        if run_id is None: 
+            raise RuntimeError('Din not find any saved model')
+        else:
+            print('Variable "run_id" is None latest saved model wil be taken')
+    
+    path = f'{local_path}/{exp_id}/{run_id}'
+    
+    if os.path.isdir(path): 
+        return f'{remote_path}/{exp_id}/{run_id}'
+    else:
+        raise RuntimeError(f'Could not find model by {path}')
