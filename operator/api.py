@@ -3,8 +3,10 @@ from celery.result import AsyncResult
 import time
 
 from tasks import run
-from utils import get_logger, LOG_LEVEL
-logger = get_logger(__name__, loglevel=LOG_LEVEL)
+from utils import LOG_LEVEL, MODELS_REG
+import utils
+
+logger = utils.get_logger(__name__, loglevel=LOG_LEVEL)
 
 logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
             
@@ -56,11 +58,20 @@ class Predict():
 
         if required_fields == keys:
 
-            self.task_id = request.get('task_id')
-            self.model_path = request.get('model_path')
-            self.model_uri = request.get('model_uri')
-
             try:
+                exp_id = request['model_uri'].get('experiment_id')
+                run_id = request['model_uri'].get('run_id')
+
+                self.model_uri = utils.find_model(
+                                                    local_path=MODELS_REG, 
+                                                    remote_path='/mlruns', 
+                                                    exp_id=exp_id, 
+                                                    run_id=run_id
+                                                )
+
+                self.task_id = request.get('task_id')
+                self.model_path = request.get('model_path')
+                request['model_uri'] = self.model_uri
 
                 if not self.model_path: raise RuntimeError('Model PATH not set')
 

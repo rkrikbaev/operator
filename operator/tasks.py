@@ -25,25 +25,8 @@ def run(request):
 
     service = Service(config)
 
-    exp_id = request['model_uri'].get('experiment_id')
-    run_id = request['model_uri'].get('run_id')
-
-    model_uri = utils.find_model(local_path=MODELS_REG, 
-                                 remote_path='/mlruns', 
-                                 exp_id=exp_id, 
-                                 run_id=run_id)
-
-    request['model_uri'], response['model_uri'] = model_uri
-
-    app_code_path = f'{APP_CODE}/{model_type}/app'
-
-    logger.debug(f'{model_uri}')
-    logger.debug(f'{app_code_path}')
-
     response = service.run(request,
-                           model_point,
-                           MODELS_REG,
-                           app_code_path=app_code_path)
+                           model_point)
 
     logger.debug(f'Servise response in tasks.run: {response}')
 

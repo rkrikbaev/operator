@@ -5,9 +5,10 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout, HTTPError
 
-from utils import get_logger, LOG_LEVEL, TRACKING_SERVER
+from utils import LOG_LEVEL, TRACKING_SERVER, APP_CODE, MODELS_REG
+import utils
 
-logger = get_logger(__name__, loglevel=LOG_LEVEL)
+logger = utils.get_logger(__name__, loglevel=LOG_LEVEL)
 
 
 class Service():
@@ -40,7 +41,7 @@ class Service():
 
         logger.debug(f'Init object complited {self}')
 
-    def run(self, request, model_point, model_hub, app_code_path=None):
+    def run(self, request, model_point):
 
         logger.debug(f'Deploy object {self}')
         self.service_name = model_point
@@ -60,8 +61,8 @@ class Service():
             pass
 
         try:
-            model_hub_vol = f'{model_hub}:/mlruns'
-            app_code_vol = f'{app_code_path}:/app'
+            model_hub_vol = f'{MODELS_REG}:/mlruns'
+            app_code_vol = f'{APP_CODE}/{self.model_type}/app:/app'
             self.container = self.client.containers.run(
                                 image=self.image,
                                 name=self.service_name,
