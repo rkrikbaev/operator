@@ -18,7 +18,7 @@ docker:
       con_mem_limit: '1024m'
       cpuset_cpus: '1'
     features: ''
-    host_ip: '192.168.60.34'
+    host_ip: '138.68.70.41'
     port: 8007
     startup: 5
     timeout: 600

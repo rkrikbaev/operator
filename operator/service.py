@@ -37,7 +37,7 @@ class Service():
         self.response = {}
         self.request = None
         self.host_ip=config.get('host_ip')
-        self.host_ip=MODELS_HOST
+        # self.host_ip=MODELS_HOST
         self.container_port=config.get('port')
 
         logger.debug(f'Init object complited {self}')
