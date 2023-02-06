@@ -34,7 +34,8 @@ MLSERV_CONFIG_FILE = os.path.join(BASE_PATH, 'conf/services.yaml')
 APP_CODE = os.environ.get('APP_CODE')
 if not APP_CODE: APP_CODE = '/opt/mlservices'
 
-
+# host ip
+MODELS_HOST = os.environ.get('MODELS_HOST')
 
 
 # logger configuretion

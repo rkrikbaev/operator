@@ -3,7 +3,7 @@ import celery
 import os
 
 from service import Service
-from utils import LOG_LEVEL, CELERY_BROKER, CELERY_BACKEND, MLSERV_CONFIG_FILE, MODELS_REG, APP_CODE
+from utils import LOG_LEVEL, CELERY_BROKER, CELERY_BACKEND, MLSERV_CONFIG_FILE
 import utils
 logger = utils.get_logger(__name__, loglevel=LOG_LEVEL)
 
