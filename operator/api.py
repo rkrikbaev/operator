@@ -20,9 +20,11 @@ class Health():
 
 class Predict():
     def __init__(self):
+        
         self.task_status = None, 
         self.task_id = None,
         self.model_point = None,
+        self.model_uri = None
 
     def on_post(self, req, resp):
 
@@ -61,6 +63,7 @@ class Predict():
 
                 self.task_id = request.get('task_id')
                 self.model_path = request.get('model_path')
+                self.model_uri = request.get('model_uri')
 
                 if not self.model_path: raise RuntimeError('Model PATH not set')
 
@@ -89,6 +92,7 @@ class Predict():
                                                     )
 
                     request['model_uri'] = path
+                    self.model_uri = { 'experiment_id': exp_id, 'run_id': run_id }
 
                     try:
                         task = run.delay(request)
@@ -101,7 +105,7 @@ class Predict():
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
                 self.response['model_path'] = self.model_path
-                self.response['model_uri'] = { 'experiment_id': exp_id, 'run_id': run_id }
+                self.response['model_uri'] = self.model_uri
                 
                 logger.debug(self.response)
                 
