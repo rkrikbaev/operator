@@ -63,8 +63,7 @@ class Predict():
                 run_id = request['model_uri'].get('run_id')
 
                 self.model_uri = utils.find_model(
-                                                    local_path=MODELS_REG, 
-                                                    remote_path='/mlruns', 
+                                                    modelhub_path='/mlruns', 
                                                     exp_id=exp_id, 
                                                     run_id=run_id
                                                 )

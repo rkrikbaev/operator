@@ -78,11 +78,11 @@ def get_logger(name='root', loglevel='INFO'):
 
 
 
-def find_model(local_path, remote_path, exp_id, run_id=None, timestamp = 0):
+def find_model(modelhub_path, exp_id, run_id=None, timestamp = 0):
 
     if run_id is None:
 
-        os.chdir(f'{local_path}/{exp_id}')
+        os.chdir(f'{modelhub_path}/{exp_id}')
 
         all_folders = [ x for x in os.listdir('.') if os.path.isdir(x) ]
 
@@ -105,9 +105,9 @@ def find_model(local_path, remote_path, exp_id, run_id=None, timestamp = 0):
         else:
             print('Variable "run_id" is None latest saved model wil be taken')
     
-    path = f'{local_path}/{exp_id}/{run_id}'
+    path = f'{modelhub_path}/{exp_id}/{run_id}'
     
     if os.path.isdir(path): 
-        return f'{remote_path}/{exp_id}/{run_id}'
+        return path
     else:
         raise RuntimeError(f'Could not find model by {path}')

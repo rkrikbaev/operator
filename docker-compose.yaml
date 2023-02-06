@@ -24,6 +24,7 @@ services:
       - 8015:8015
     volumes:
       - ./operator:/application
+      - /opt/modelregistry/mlruns:/mlruns
       - /var/run/docker.sock:/var/run/docker.sock
     command: gunicorn -b 0.0.0.0:8015 api:api --timeout 600 --worker-class sync --log-level debug
     environment:
@@ -39,6 +40,7 @@ services:
     restart: always
     volumes:
       - ./operator:/application
+      - /opt/modelregistry/mlruns:/mlruns
       - /var/run/docker.sock:/var/run/docker.sock
     command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
     environment:
@@ -59,6 +61,7 @@ services:
     restart: always
     volumes:
       - ./operator:/application
+      - /opt/modelregistry/mlruns:/mlruns
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 5555:5555
