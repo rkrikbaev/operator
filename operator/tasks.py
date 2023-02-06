@@ -25,8 +25,8 @@ def run(request):
 
     service = Service(config)
 
-    exp_id = request.get('experiment_id')
-    run_id = request.get('run_id')
+    exp_id = request['model_uri'].get('experiment_id')
+    run_id = request['model_uri'].get('run_id')
 
     model_uri = get_model_path(MODELS_REG, exp_id, run_id=run_id)
     app_code_path = f'{APP_CODE}/{model_type}/app'
