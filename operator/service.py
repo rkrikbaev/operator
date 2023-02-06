@@ -5,7 +5,7 @@ import time
 import requests, json
 from requests import ConnectionError, Timeout, HTTPError
 
-from utils import LOG_LEVEL, TRACKING_SERVER, APP_CODE, MODELS_REG
+from utils import LOG_LEVEL, TRACKING_SERVER, APP_CODE, MODELS_REG, MODELS_HOST
 import utils
 
 logger = utils.get_logger(__name__, loglevel=LOG_LEVEL)
@@ -37,6 +37,7 @@ class Service():
         self.response = {}
         self.request = None
         self.host_ip=config.get('host_ip')
+        self.host_ip=MODELS_HOST
         self.container_port=config.get('port')
 
         logger.debug(f'Init object complited {self}')
