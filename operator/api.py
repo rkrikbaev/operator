@@ -22,7 +22,6 @@ class Predict():
     def __init__(self):
         self.task_status = None, 
         self.task_id = None,
-        self.model_uri = None
         self.model_point = None,
 
     def on_post(self, req, resp):
@@ -59,18 +58,9 @@ class Predict():
         if required_fields == keys:
 
             try:
-                exp_id = request['model_uri'].get('experiment_id')
-                run_id = request['model_uri'].get('run_id')
-
-                self.model_uri = utils.find_model(
-                                                    modelhub_path='/mlruns', 
-                                                    exp_id=exp_id, 
-                                                    run_id=run_id
-                                                )
 
                 self.task_id = request.get('task_id')
                 self.model_path = request.get('model_path')
-                request['model_uri'] = self.model_uri
 
                 if not self.model_path: raise RuntimeError('Model PATH not set')
 
@@ -89,6 +79,17 @@ class Predict():
 
                 elif self.task_id is None:
 
+                    exp_id = request['model_uri'].get('experiment_id')
+                    run_id = request['model_uri'].get('run_id')
+
+                    path, exp_id, run_id = utils.find_model(
+                                                        '/mlruns', 
+                                                        exp_id, 
+                                                        run_id=run_id
+                                                    )
+
+                    request['model_uri'] = path
+
                     try:
                         task = run.delay(request)
                         self.task_id = task.id
@@ -100,8 +101,10 @@ class Predict():
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
                 self.response['model_path'] = self.model_path
-                self.response['model_uri'] = self.model_uri
+                self.response['model_uri'] = { 'experiment_id': exp_id, 'run_id': run_id }
+                
                 logger.debug(self.response)
+                
                 resp.media = self.response
 
             except RuntimeError as exc:

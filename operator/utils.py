@@ -108,6 +108,6 @@ def find_model(modelhub_path, exp_id, run_id=None, timestamp = 0):
     path = f'{modelhub_path}/{exp_id}/{run_id}'
     
     if os.path.isdir(path): 
-        return path
+        return path, exp_id, run_id
     else:
         raise RuntimeError(f'Could not find model by {path}')
