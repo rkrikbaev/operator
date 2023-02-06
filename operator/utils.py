@@ -79,7 +79,7 @@ def get_logger(name='root', loglevel='INFO'):
 
 
 
-def find_model(modelhub_path, exp_id, run_id=None, timestamp = 0):
+def find_model(modelhub_path, exp_id, run_id=None, timestamp = 0, artefact='mlmodel'):
 
     if run_id is None:
 
@@ -106,7 +106,7 @@ def find_model(modelhub_path, exp_id, run_id=None, timestamp = 0):
         else:
             print('Variable "run_id" is None latest saved model wil be taken')
     
-    path = f'{modelhub_path}/{exp_id}/{run_id}'
+    path = f'{modelhub_path}/{exp_id}/{run_id}/{artefact}'
     
     if os.path.isdir(path): 
         return path, exp_id, run_id
