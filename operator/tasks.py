@@ -33,7 +33,7 @@ def run(request):
                                  exp_id=exp_id, 
                                  run_id=run_id)
 
-    request['model_uri'] = model_uri
+    request['model_uri'], response['model_uri'] = model_uri
 
     app_code_path = f'{APP_CODE}/{model_type}/app'
 
