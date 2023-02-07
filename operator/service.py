@@ -31,7 +31,7 @@ class Service():
         self.model_keys = ['model_config', 'dataset', 'model_uri', 'metadata', 'period']
 
         self.service_name = None
-
+        self.status = "OK"
         self.response = {}
         self.request = None
         self.host_ip=config.get('host_ip')
@@ -44,7 +44,6 @@ class Service():
 
         self.service_name = model_point
 
-        self.response["service_status"] = 'INTERNAL_ERROR'
         self.response["start_time"] = str(datetime.datetime.now())
 
         self.request = {key: request[key] for key in self.model_keys}
@@ -90,18 +89,15 @@ class Service():
             self.container.stop(timeout=10)
             self.container.remove(force=True)
 
-            self.response["service_status"] = 'OK'
-
         except (Exception, RuntimeError) as exc:
             logger.debug(exc)
 
+        self.response["service_status"] = self.status
         logger.debug(f'Run model: {self.service_name} reponse: {self.response}')
-        
+
         return self.response
 
     def container_deploy(self, container_id, counter=0):
-
-        response = {"service_status": "container_deploy error"}
 
         container = self.client.containers.get(container_id)
         status = container.status.lower()
@@ -122,13 +118,14 @@ class Service():
             self.container_deploy(container_id, counter)
 
         if counter > 3:
+            self.status = "container deploy error"
             raise RuntimeError('error max tries to get info anbout container')
         
-        return response
+        return
 
     def model_call(self, host_ip, port, counter=0)->dict:
 
-        response = {"service_status": "model_call error"}
+        response = {}
 
         try:
             try:
@@ -161,7 +158,8 @@ class Service():
             else:
                 raise RuntimeError('Unexpected response from model')
         
-        except Exception as exc:
+        except (Exception, RuntimeError) as exc:
+            self.status = "model_call error"
             logger.error(exc)
 
         return response
