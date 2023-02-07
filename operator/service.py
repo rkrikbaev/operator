@@ -78,10 +78,10 @@ class Service():
             logger.debug(f'Created container ID {container_id}')
 
             if not container_id:
+                
                 raise RuntimeError('Created container id cannot be None')
 
-            r  = self.container_deploy(container_id, counter=0)
-            self.response.update(r)
+            self.container_deploy(container_id, counter=0)
 
             r = self.model_call(self.host_ip, self.host_port)
             self.response.update(r)
@@ -90,6 +90,7 @@ class Service():
             self.container.remove(force=True)
 
         except (Exception, RuntimeError) as exc:
+            self.status = "internal error"
             logger.debug(exc)
 
         self.response["service_status"] = self.status
