@@ -16,18 +16,13 @@ def run(request):
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point').lower()
 
-    logger.debug(f'Deploy container with model for: {model_point}')
-
     with open(MLSERV_CONFIG_FILE, 'r') as fl:
         config =  yaml.safe_load(fl).get('docker')[model_type] 
 
-    logger.debug(config)
+    logger.debug(f'Run Celery task for point: {model_point} with config: {config}')
 
     service = Service(config)
 
-    response = service.run(request,
-                           model_point)
-
-    logger.debug(f'Servise response in tasks.run: {response}')
+    response = service.run(request, model_point)
 
     return response

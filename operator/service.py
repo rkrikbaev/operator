@@ -44,14 +44,12 @@ class Service():
 
     def run(self, request, model_point):
 
-        logger.debug(f'Deploy object {self}')
         self.service_name = model_point
 
-        self.response["service_status"] = 'error'
+        self.response["service_status"] = 'INTERNAL_ERROR'
         self.response["start_time"] = str(datetime.datetime.now())
 
         self.request = {key: request[key] for key in self.model_keys}
-        logger.debug(f'Filter request fields: {list(self.request.keys())}')
 
         try:
             container = self.client.containers.get(self.service_name)
@@ -85,52 +83,54 @@ class Service():
             if not container_id:
                 raise RuntimeError('Created container id cannot be None')
 
-            ip_address, host_port = self.container_deploy(container_id, _counter=0)
+            r  = self.container_deploy(container_id, counter=0)
+            self.response.update(r)
 
-            _response = self._model_call(self.host_ip, host_port)
-            logger.debug(f'Post request result service._model_call() {_response}')
+            r = self.model_call(self.host_ip, self.host_port)
+            self.response.update(r)
 
             self.container.stop(timeout=10)
             self.container.remove(force=True)
 
-            self.response.update(_response)
             self.response["service_status"] = 'OK'
 
-        except Exception as exc:
+        except (Exception, RuntimeError) as exc:
             logger.debug(exc)
 
-        logger.debug(f'Post request result service._model_call() {self.response}')
+        logger.debug(f'Run model: {self.service_name} reponse: {self.response}')
+        
         return self.response
 
-    def container_deploy(self, container_id, _counter=0):
+    def container_deploy(self, container_id, counter=0):
+
+        response = {"service_status": "container_deploy error"}
 
         container = self.client.containers.get(container_id)
-        _status = container.status.lower()
+        status = container.status.lower()
 
-        if _status == 'running':
+        if status == 'running':
 
-             ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
-             host_port = container.attrs['NetworkSettings']['Ports'][f'{self.container_port}/tcp'][0]['HostPort']
+            self.ip_address = container.attrs['NetworkSettings']['Networks'][self.network]['IPAddress']
+            self.host_port = container.attrs['NetworkSettings']['Ports'][f'{self.container_port}/tcp'][0]['HostPort']
 
-             assert host_port is not None
+            assert self.host_port is not None
 
-             logger.debug(f'container started with IP:PORT: {ip_address}:{host_port}')
-             logger.debug(container.attrs['NetworkSettings'])
-
-             return ip_address, host_port
+            logger.debug(f'container started with IP:PORT: {self.ip_address}:{self.host_port}')
 
         else:
 
-            _counter +=1
+            counter +=1
             time.sleep(1)
-            self.container_deploy(container_id, _counter)
+            self.container_deploy(container_id, counter)
 
-        if _counter > 3:
+        if counter > 3:
             raise RuntimeError('error max tries to get info anbout container')
+        
+        return response
 
-    def _model_call(self, host_ip, port, _counter=0):
+    def model_call(self, host_ip, port, counter=0):
 
-        _response = {"service_status": "error"}
+        response = {"service_status": "model_call error"}
 
         try:
             with requests.Session() as s:
@@ -140,13 +140,13 @@ class Service():
                 logger.debug(f'Service API {url} is {health.ok}')
         except Exception as exc:
             logger.error(exc)
-            _counter +=1
+            counter +=1
             time.sleep(5)
 
-            if _counter > 3:
+            if counter > 3:
                 raise RuntimeError('error max tries to get response from model api')
             else:
-                self._model_call(host_ip, port, _counter)
+                self.model_call(host_ip, port, counter)
         try:
             with requests.Session() as s:
                 url = f'http://{host_ip}:{port}/action'
@@ -155,11 +155,13 @@ class Service():
                         headers={'Content-Type': 'application/json'},
                         data=json.dumps(self.request),
                         timeout=600)
+            
+                if isinstance(r, dict):
+                   response.update(r.json())
+                else:
+                    raise RuntimeError('Unexpected response from model')
 
-                logger.debug(f'{__class__}._model_call() in {__file__} return {r.json()}')
-                _response.update(r.json())
-                _response["service_status"] = "ok"
-        except Exception as exc:
+        except (Exception, RuntimeError) as exc:
             logger.error(exc)
 
-        return _response
+        return response
