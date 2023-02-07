@@ -152,10 +152,10 @@ class Service():
                         url,
                         headers={'Content-Type': 'application/json'},
                         data=json.dumps(self.request),
-                        timeout=600)
+                        timeout=600).json()
 
             if isinstance(r, dict):
-                response.update(r.json())
+                response.update(r)
             else:
                 raise RuntimeError('Unexpected response from model')
         
