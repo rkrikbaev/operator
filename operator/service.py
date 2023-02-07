@@ -15,8 +15,6 @@ class Service():
 
     def __init__(self, config):
 
-        logger.debug(f'Read service config file {config}')
-
         try:
             self.client = DockerClient(base_url='unix://var/run/docker.sock',timeout=10)
             logger.debug(f'Create docker client object {self.client}')
@@ -128,26 +126,28 @@ class Service():
         
         return response
 
-    def model_call(self, host_ip, port, counter=0):
+    def model_call(self, host_ip, port, counter=0)->dict:
 
         response = {"service_status": "model_call error"}
 
         try:
-            with requests.Session() as s:
-                url = f'http://{host_ip}:{port}/health'
-                logger.debug(url)
-                health = s.get(url, timeout=10)
-                logger.debug(f'Service API {url} is {health.ok}')
-        except Exception as exc:
-            logger.error(exc)
-            counter +=1
-            time.sleep(5)
+            try:
+                with requests.Session() as s:
+                    url = f'http://{host_ip}:{port}/health'
+                    logger.debug(url)
+                    health = s.get(url, timeout=10)
+                    logger.debug(f'Service API by URL {url} is started {health.ok}')
+            
+            except Exception as exc:
+                logger.error(exc)
+                counter +=1
+                time.sleep(5)
 
-            if counter > 3:
-                raise RuntimeError('error max tries to get response from model api')
-            else:
-                self.model_call(host_ip, port, counter)
-        try:
+                if counter > 3:
+                    raise RuntimeError('error max tries to get response from model api')
+                else:
+                    self.model_call(host_ip, port, counter)
+
             with requests.Session() as s:
                 url = f'http://{host_ip}:{port}/action'
                 r = s.post(
@@ -155,13 +155,13 @@ class Service():
                         headers={'Content-Type': 'application/json'},
                         data=json.dumps(self.request),
                         timeout=600)
-            
-                if isinstance(r, dict):
-                   response.update(r.json())
-                else:
-                    raise RuntimeError('Unexpected response from model')
 
-        except (Exception, RuntimeError) as exc:
+            if isinstance(r, dict):
+                response.update(r.json())
+            else:
+                raise RuntimeError('Unexpected response from model')
+        
+        except Exception as exc:
             logger.error(exc)
 
         return response
