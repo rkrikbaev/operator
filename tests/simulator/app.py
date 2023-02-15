@@ -3,6 +3,7 @@ import time
 import json
 from datetime import datetime, timedelta, timezone
 import csv
+import os
 
 
 def request(payload, url)->dict:
@@ -47,8 +48,8 @@ def main():
         dt = datetime.now()
         base_time = dt.replace(hour=0, minute=0, second=0)
         dayofweek = dt.weekday() + 1
-
-        with open(f'/Users/rustamkrikbayev/operator/tests/simulator/samples/daysofweek/{dayofweek}.csv') as f:
+        path = os.path.abspath(os.path.dirname(__file__))
+        with open(f'{path}/samples/daysofweek/{dayofweek}.csv') as f:
             
             _ = next(f)
             payload = list(csv.reader(f,delimiter=';'))
