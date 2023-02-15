@@ -34,6 +34,8 @@ def read_and_send( data, base, batch=10):
 
                 i +=10
 
+                print(str(ts) + ':' + str(i))
+
             time.sleep(1)
 
         except IndexError:
@@ -48,8 +50,10 @@ def main():
         dt = datetime.now()
         base_time = dt.replace(hour=0, minute=0, second=0)
         dayofweek = dt.weekday() + 1
-        path = os.path.abspath(os.path.dirname(__file__))
-        with open(f'{path}/samples/daysofweek/{dayofweek}.csv') as f:
+        parent_dir = os.path.abspath(os.path.dirname(__file__))
+        path = f'{parent_dir}/samples/daysofweek/{dayofweek}.csv'
+        print(path)
+        with open(path) as f:
             
             _ = next(f)
             payload = list(csv.reader(f,delimiter=';'))
