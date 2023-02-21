@@ -82,18 +82,6 @@ class Predict():
 
                 elif self.task_id is None:
 
-                    exp_id = request['model_uri'].get('experiment_id')
-                    run_id = request['model_uri'].get('run_id')
-
-                    path, exp_id, run_id = utils.find_model(
-                                                        '/mlruns', 
-                                                        exp_id, 
-                                                        run_id=run_id
-                                                    )
-
-                    request['model_uri'] = path
-                    self.model_uri = { 'experiment_id': exp_id, 'run_id': run_id }
-
                     try:
                         task = run.delay(request)
                         self.task_id = task.id
@@ -105,7 +93,7 @@ class Predict():
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
                 self.response['model_path'] = self.model_path
-                self.response['model_uri'] = self.model_uri
+                self.response['model_uri'] = { 'experiment_id': exp_id, 'run_id': run_id }
                 
                 logger.debug(self.response)
                 

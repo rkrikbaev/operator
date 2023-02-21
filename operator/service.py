@@ -37,16 +37,28 @@ class Service():
         self.host_ip=config.get('host_ip')
         # self.host_ip=MODELS_HOST
         self.container_port=config.get('port')
+        self.load_model_flag = config.get('load_model_flag')
 
         logger.debug(f'Init object complited {self}')
 
     def run(self, request, model_point):
 
         self.service_name = model_point
-
         self.response["start_time"] = str(datetime.datetime.now())
-
+        
         self.request = {key: request[key] for key in self.model_keys}
+        
+        
+        if self.load_model_flag:
+            exp_id = request['model_uri'].get('experiment_id')
+            run_id = request['model_uri'].get('run_id')            
+            path, exp_id, run_id = utils.find_model(
+                                            '/mlruns', 
+                                            exp_id, 
+                                            run_id=run_id
+                                        )
+
+            self.request['model_uri'] = path
 
         try:
             container = self.client.containers.get(self.service_name)

@@ -1,15 +1,16 @@
 docker:
   prophet_model:
     type: 'prophet_model'
-    image: 'rkrikbaev/fp-prophet:latest'
+    image: 'rkrikbaev/prophet-model:latest'
     network: 'operator_default'
     limits:
       con_mem_limit: '512m'
       cpuset_cpus: '1'
     features: 'yhat,yhat_lower,yhat_upper,trend'
     host_ip: '192.168.60.34'
-    port: 8005
+    port: 8007
     startup: 5
+    load_model_flag: False
   tf_model:
     type: 'tf_model'
     image: 'tf-model:latest'
@@ -18,7 +19,8 @@ docker:
       con_mem_limit: '1024m'
       cpuset_cpus: '1'
     features: ''
-    host_ip: '138.68.70.41'
+    host_ip: '192.168.60.34'
     port: 8007
     startup: 5
+    load_model_flag: True
     timeout: 600
