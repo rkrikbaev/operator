@@ -24,15 +24,15 @@ class Predict():
         self.task_status = None, 
         self.task_id = None,
         self.model_point = None,
-        self.model_uri = None
+        self.model_run_id = None
 
     def on_post(self, req, resp):
 
         self.response = { 
-            "task_created": int(time.time()), 
-            "model_uri": None, 
+            "task_updated": int(time.time()), 
+            "model_uri": {}, 
             "anomalies": None, 
-            "prediction": None,
+            "result": None,
             "start_time": None,
             "finish_time": None,
             "model_point": None,
@@ -49,9 +49,9 @@ class Predict():
             'model_type',
             'period',
             'task_id',
-            'model_point', 
-            'model_uri',
-            'model_path'
+            'model_point',
+            'model_path',
+            'model_run_id'
             }
 
         request = req.media
@@ -63,10 +63,12 @@ class Predict():
 
                 self.task_id = request.get('task_id')
                 self.model_path = request.get('model_path')
-                self.model_uri = request.get('model_uri')
+                self.model_run_id = request.get('model_run_id')
+                #self.model_point = request.get('model_point')
+                #self.response['model_uri'] = {"experiment_id": self.model_point, "run_id":self.model_run_id}
 
                 if not self.model_path: raise RuntimeError('Model PATH not set')
-
+                logger.debug(self.task_id)
                 if self.task_id:
 
                     logger.debug(f'Request result from celery: {self.task_id}')
@@ -93,10 +95,8 @@ class Predict():
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
                 self.response['model_path'] = self.model_path
-                self.response['model_uri'] = { 'experiment_id': exp_id, 'run_id': run_id }
-                
+
                 logger.debug(self.response)
-                
                 resp.media = self.response
 
             except RuntimeError as exc:

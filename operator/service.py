@@ -1,4 +1,5 @@
 import datetime
+import os
 from docker import DockerClient
 from docker.errors import DockerException, APIError, ContainerError, ImageNotFound, InvalidArgument, NotFound
 import time
@@ -33,9 +34,8 @@ class Service():
         self.service_name = None
         self.status = "OK"
         self.response = {}
-        self.request = None
+        self.request = {}
         self.host_ip=config.get('host_ip')
-        # self.host_ip=MODELS_HOST
         self.container_port=config.get('port')
         self.load_model_flag = config.get('load_model_flag')
 
@@ -43,22 +43,61 @@ class Service():
 
     def run(self, request, model_point):
 
+        def find_model(modelhub_path, exp_id, run_id=None, timestamp = 0, artefact='mlmodel'):
+
+            if run_id is None:
+
+                os.chdir(f'{modelhub_path}/{exp_id}')
+
+                all_folders = [ x for x in os.listdir('.') if os.path.isdir(x) ]
+
+                for folder in all_folders:
+                    try:
+                        with open(f'{folder}/meta.yaml', 'r') as fl:
+                            ts =  yaml.safe_load(fl).get('end_time')
+                            if timestamp <= int(ts):
+                                timestamp = ts
+                                run_id = folder
+                            else:
+                                print(folder, ts)
+
+                    except FileNotFoundError as exc:
+                        print(exc)
+
+                if run_id is None:
+                    raise RuntimeError('Din not find any saved model')
+                else:
+                    print('Variable "run_id" is None latest saved model wil be taken')
+
+            path = f'{modelhub_path}/{exp_id}/{run_id}/{artefact}'
+
+            if os.path.isdir(path):
+                return path, exp_id, run_id
+            else:
+                raise RuntimeError(f'Could not find model by {path}')
+
+        self.request = request
+
         self.service_name = model_point
+
         self.response["start_time"] = str(datetime.datetime.now())
-        
-        self.request = {key: request[key] for key in self.model_keys}
-        
-        
+
         if self.load_model_flag:
-            exp_id = request['model_uri'].get('experiment_id')
-            run_id = request['model_uri'].get('run_id')            
-            path, exp_id, run_id = utils.find_model(
-                                            '/mlruns', 
-                                            exp_id, 
+
+                exp_id = model_point
+                run_id = self.request.get('model_run_id')
+
+                path, exp_id, run_id = find_model(
+                                            '/mlruns',
+                                            exp_id,
                                             run_id=run_id
                                         )
 
-            self.request['model_uri'] = path
+                self.request['model_uri'] = path
+        else:
+            self.request['model_uri'] = None
+
+        self.request = {key: request[key] for key in self.model_keys}
 
         try:
             container = self.client.containers.get(self.service_name)
@@ -99,14 +138,14 @@ class Service():
             self.response.update(r)
 
             self.container.stop(timeout=10)
-            self.container.remove(force=True)
+#            self.container.remove(force=True)
 
         except (Exception, RuntimeError) as exc:
             self.status = "internal error"
             logger.debug(exc)
 
         self.response["service_status"] = self.status
-        logger.debug(f'Run model: {self.service_name} reponse: {self.response}')
+        logger.debug(f'Model {self.service_name} response: {self.response}')
 
         return self.response
 
@@ -139,15 +178,14 @@ class Service():
     def model_call(self, host_ip, port, counter=0)->dict:
 
         response = {}
+        logger.debug(self.request)
 
         try:
             try:
                 with requests.Session() as s:
                     url = f'http://{host_ip}:{port}/health'
-                    logger.debug(url)
                     health = s.get(url, timeout=10)
-                    logger.debug(f'Service API by URL {url} is started {health.ok}')
-            
+                    logger.debug(f'{url} is {health.ok}')
             except Exception as exc:
                 logger.error(exc)
                 counter +=1
@@ -157,7 +195,7 @@ class Service():
                     raise RuntimeError('error max tries to get response from model api')
                 else:
                     self.model_call(host_ip, port, counter)
-
+            logger.debug('call predict')
             with requests.Session() as s:
                 url = f'http://{host_ip}:{port}/action'
                 r = s.post(
@@ -165,7 +203,6 @@ class Service():
                         headers={'Content-Type': 'application/json'},
                         data=json.dumps(self.request),
                         timeout=600).json()
-
             if isinstance(r, dict):
                 response.update(r)
             else:
