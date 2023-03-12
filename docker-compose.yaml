@@ -41,7 +41,7 @@ services:
       - ./operator:/application
       - /opt/modelregistry/mlruns:/mlruns
       - /var/run/docker.sock:/var/run/docker.sock
-    command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 2 -n task_worker
+    command: celery -A tasks worker --loglevel=info --logfile=logs/celery.log -c 10 -n task_worker
     environment:
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0

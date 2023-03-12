@@ -49,8 +49,9 @@ class Predict():
             'model_type',
             'period',
             'task_id',
+            'task_status',
             'model_point',
-            'model_path',
+            'model_tag',
             'model_run_id'
             }
 
@@ -62,14 +63,19 @@ class Predict():
             try:
 
                 self.task_id = request.get('task_id')
-                self.model_path = request.get('model_path')
+                self.task_status = request.get('task_status')
+                self.model_tag = request.get('model_tag')
                 self.model_run_id = request.get('model_run_id')
+
                 #self.model_point = request.get('model_point')
                 #self.response['model_uri'] = {"experiment_id": self.model_point, "run_id":self.model_run_id}
 
-                if not self.model_path: raise RuntimeError('Model PATH not set')
+                assert self.model_tag is not None
+
                 logger.debug(self.task_id)
-                if self.task_id:
+                logger.debug(self.task_status)
+
+                if self.task_status == "PENDING":
 
                     logger.debug(f'Request result from celery: {self.task_id}')
 
@@ -78,23 +84,28 @@ class Predict():
                         if isinstance(task.result, dict):
                             self.response.update(task.result)
                         self.task_status = task.status
+                    
                     except Exception as err:
                         logger.error(f'Broker call has error: {err}')
                         resp.status = falcon.HTTP_500
 
-                elif self.task_id is None:
+                elif self.task_status == "QUEUED":
 
                     try:
                         task = run.delay(request)
                         self.task_id = task.id
                         self.task_status = task.status
+
                     except Exception as err:
                         logger.error(f'Task call with error: {err}')
                         resp.status = falcon.HTTP_500
 
+                else:
+                    resp.status = falcon.HTTP_400
+
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
-                self.response['model_path'] = self.model_path
+                self.response['model_tag'] = self.model_tag
 
                 logger.debug(self.response)
                 resp.media = self.response
