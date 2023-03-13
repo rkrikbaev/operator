@@ -67,6 +67,8 @@ class Predict():
                 self.model_tag = request.get('model_tag')
                 self.model_run_id = request.get('model_run_id')
 
+                print(request)
+
                 assert self.model_tag is not None
 
                 logger.debug(self.task_id)
