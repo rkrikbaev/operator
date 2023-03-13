@@ -30,7 +30,7 @@ class Predict():
 
         self.response = { 
             "task_updated": int(time.time()), 
-            "model_uri": {}, 
+            "model_uri": None, 
             "anomalies": None, 
             "result": None,
             "start_time": None,
@@ -66,9 +66,6 @@ class Predict():
                 self.task_status = request.get('task_status')
                 self.model_tag = request.get('model_tag')
                 self.model_run_id = request.get('model_run_id')
-
-                #self.model_point = request.get('model_point')
-                #self.response['model_uri'] = {"experiment_id": self.model_point, "run_id":self.model_run_id}
 
                 assert self.model_tag is not None
 
