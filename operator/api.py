@@ -67,7 +67,7 @@ class Predict():
                 self.model_tag = request.get('model_tag')
                 self.model_run_id = request.get('model_run_id')
 
-                logger.debug(f'request: {self.request}')
+                logger.debug(f'request: {request}')
 
                 assert self.model_tag is not None
 
