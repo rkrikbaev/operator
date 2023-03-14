@@ -67,7 +67,7 @@ class Predict():
                 self.model_tag = request.get('model_tag')
                 self.model_run_id = request.get('model_run_id')
 
-                print(request)
+                logger.debug(f'request: {self.request}')
 
                 assert self.model_tag is not None
 
@@ -76,7 +76,7 @@ class Predict():
 
                 if self.task_status == "PENDING":
 
-                    logger.debug(f'Request result from celery: {self.task_id}')
+                    logger.debug(f'get result from celery: {self.task_id}')
 
                     try:
                         task = AsyncResult(self.task_id)
@@ -106,7 +106,7 @@ class Predict():
                 self.response['task_id'] = self.task_id
                 self.response['model_tag'] = self.model_tag
 
-                logger.debug(self.response)
+                logger.debug(f'response: {self.response}')
                 resp.media = self.response
 
             except RuntimeError as exc:
