@@ -80,9 +80,15 @@ class Predict():
 
                     try:
                         task = AsyncResult(self.task_id)
+                        
                         if isinstance(task.result, dict):
-                            self.response.update(task.result)
-                        self.task_status = task.status
+                            result = task.result
+                            self.response.update(result)
+                        
+                        if result is not None:
+                            self.task_status = task.status
+                        else:
+                            pass
                     
                     except Exception as err:
                         logger.error(f'Broker call has error: {err}')
