@@ -85,10 +85,10 @@ class Predict():
                             result = task.result
                             self.response.update(result)
                         
-                        if result is not None:
-                            self.task_status = task.status
-                        else:
-                            pass
+                            if result is not None:
+                                self.task_status = task.status
+                            else:
+                                pass
                     
                     except Exception as err:
                         logger.error(f'Broker call has error: {err}')
