@@ -37,7 +37,8 @@ class Predict():
             "finish_time": None,
             "model_point": None,
             "service_status": None,
-            "model_status": None
+            "model_status": None,
+            'task_status': None
             }
 
         resp.state = falcon.HTTP_200
@@ -82,10 +83,12 @@ class Predict():
                         task = AsyncResult(self.task_id)
                         
                         if isinstance(task.result, dict):
+
                             result = task.result
+                            
                             self.response.update(result)
                         
-                            if result is not None:
+                            if isinstance(result, list):
                                 self.task_status = task.status
                             else:
                                 pass
