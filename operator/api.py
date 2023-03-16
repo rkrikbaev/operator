@@ -91,7 +91,7 @@ class Predict():
                             if isinstance(r, list):
                                 self.task_status = task.status
                         
-                        self.response.update(result)
+                            self.response.update(result)
                     
                     except Exception as err:
                         logger.error(f'Broker call has error: {err}')
