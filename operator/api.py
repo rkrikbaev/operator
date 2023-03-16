@@ -86,13 +86,12 @@ class Predict():
 
                             result = task.result
                             
-                            self.response.update(result)
                             logger.debug(result)
-                            
-                            if isinstance(result['result'], list):
+                            r = result.get('result')
+                            if isinstance(r, list):
                                 self.task_status = task.status
-                            else:
-                                pass
+                        
+                        self.response.update(result)
                     
                     except Exception as err:
                         logger.error(f'Broker call has error: {err}')
