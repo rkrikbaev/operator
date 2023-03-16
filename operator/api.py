@@ -87,7 +87,7 @@ class Predict():
                             result = task.result
                             
                             self.response.update(result)
-                        
+                            print(type(result))
                             if isinstance(result, list):
                                 self.task_status = task.status
                             else:
