@@ -38,7 +38,8 @@ class Predict():
             "model_point": None,
             "service_status": None,
             "model_status": None,
-            'task_status': None
+            'task_status': None,
+            "task_timing": 0
             }
 
         resp.state = falcon.HTTP_200
@@ -113,6 +114,7 @@ class Predict():
 
                 self.response['task_status'] = self.task_status
                 self.response['task_id'] = self.task_id
+                self.response['task_timing'] = 0
                 self.response['model_tag'] = self.model_tag
 
                 logger.debug(f'response: {self.response}')
