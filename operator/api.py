@@ -11,14 +11,17 @@ logger = utils.get_logger(__name__, loglevel=LOG_LEVEL)
 logger.info(f'LOG_LEVEL: {LOG_LEVEL}')
             
 class Health():
+
     def __init__(self):
         pass
+
     def on_get(self, req, resp):
         logger.debug('Health check')
         resp.state = falcon.HTTP_200
         resp.media = {'status': 'ok'}
 
 class Predict():
+
     def __init__(self):
         
         self.task_status = None, 
@@ -76,7 +79,7 @@ class Predict():
                 logger.debug(self.task_id)
                 logger.debug(self.task_status)
 
-                if self.task_status == "PENDING":
+                if self.task_status in ["DEPLOYED"]:
 
                     logger.debug(f'get result from celery: {self.task_id}')
 
@@ -89,6 +92,7 @@ class Predict():
                             
                             logger.debug(result)
                             r = result.get('result')
+
                             if isinstance(r, list):
                                 self.task_status = task.status
                         
@@ -104,6 +108,7 @@ class Predict():
                         task = run.delay(request)
                         self.task_id = task.id
                         self.task_status = task.status
+                        print("QUEUED->"+task.status)
 
                     except Exception as err:
                         logger.error(f'Task call with error: {err}')

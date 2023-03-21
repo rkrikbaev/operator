@@ -8,10 +8,13 @@ import utils
 logger = utils.get_logger(__name__, loglevel=LOG_LEVEL)
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
+
+app.conf.task_track_started = True
+
 logger.debug(f'Create Celery object: {type(app)}')
 
 @app.task(time_limit=600)
-def run(request):
+def run(self, request):
 
     model_type = request.get('model_type').lower()
     model_point = request.get('model_point').lower()
@@ -22,6 +25,8 @@ def run(request):
     logger.debug(f'Run Celery task for point: {model_point} with config: {config}')
 
     service = Service(config)
+
+    self.update_state(state='DEPLOYED')
 
     response = service.run(request, model_point)
 
