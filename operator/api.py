@@ -79,7 +79,7 @@ class Predict():
                 logger.debug(self.task_id)
                 logger.debug(self.task_status)
 
-                if self.task_status in ["DEPLOYED"]:
+                if self.task_status in ["STARTED"]:
 
                     logger.debug(f'get result from celery: {self.task_id}')
 

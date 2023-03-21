@@ -9,11 +9,11 @@ logger = utils.get_logger(__name__, loglevel=LOG_LEVEL)
 
 app = celery.Celery('tasks', broker=CELERY_BROKER, backend=CELERY_BACKEND)
 
-app.conf.task_track_started = True
+# app.conf.task_track_started = True
 
 logger.debug(f'Create Celery object: {type(app)}')
 
-@app.task(time_limit=600)
+@app.task(bind=True, track_started=True)
 def run(self, request):
 
     model_type = request.get('model_type').lower()
